@@ -1,0 +1,13 @@
+#!/bin/sh
+
+passTypeID=${1:?Usage: extract_certs <pass type ID>}
+
+mkdir -p certs
+echo "Extracting Apple WWDR certificate"
+security find-certificate -p -c "Apple Worldwide Developer Relations Certification Authority" login.keychain >| certs/wwdr.pem
+for p12 in certs/*.p12 ; do
+  pem=${p12/.p12/.pem}
+  echo "Creating ${pem}"
+  openssl pkcs12 -in $p12 -out $pem
+  echo $p12
+done
