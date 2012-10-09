@@ -11,7 +11,7 @@ CLI.enable("version");
 CLI.setApp(__dirname + "/../package.json");
 
 CLI.parse({
-  keys:  ["k", "Directory holding private keys", "path", "keys"]
+  path:  ["p", "Directory holding private keys", "path", "path"]
 }, {
   "prepare-keys": "Prepare private keys for signing passbook",
   "server-keys":  "Generates self-signed keys for TLS (HTTPS)"
@@ -22,9 +22,9 @@ CLI.main(function(args, options) {
   switch (this.command) {
     case "prepare-keys":
       Async.waterfall([
-        createKeysDirectory.bind(null, options.keys),
-        extractWWDRKey.bind(null, options.keys),
-        generateKeyFromP12Files.bind(null, options.keys)
+        createKeysDirectory.bind(null, options.path),
+        extractWWDRKey.bind(null, options.path),
+        generateKeyFromP12Files.bind(null, options.path)
       ], function(error) {
         if (error) {
           CLI.error(error.message || error);
@@ -37,8 +37,8 @@ CLI.main(function(args, options) {
 
     case "server-keys":
       Async.waterfall([
-        createKeysDirectory.bind(null, options.keys),
-        generateServerKeys.bind(null, options.keys)
+        createKeysDirectory.bind(null, options.path),
+        generateServerKeys.bind(null, options.path)
       ], function(error) {
         if (error) {
           CLI.error(error.message || error);

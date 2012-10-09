@@ -12,7 +12,7 @@ Authority' certificate and to conver the `.p12` files into `.pem` files.  You
 can do both using the `node-passbook prepare-keys` command:
 
 ```
-node-passbook prepare-keys -k keys
+node-passbook prepare-keys -p keys
 ```
 
 This is the same directory into which you placet the `.p12` files.
