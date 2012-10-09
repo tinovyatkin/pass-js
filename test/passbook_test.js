@@ -1,5 +1,5 @@
 var assert = require("assert");
-var createTemplate = require("../lib/passbook");
+var createTemplate = require("../");
 var Crypto = require("crypto");
 var execFile = require("child_process").execFile;
 var File = require("fs");

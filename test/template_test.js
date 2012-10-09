@@ -1,5 +1,5 @@
 var assert = require("assert");
-var createTemplate = require("../lib/passbook");
+var createTemplate = require("../");
 
 describe("Template", function() {
 
