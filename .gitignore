@@ -1,3 +1,7 @@
 node_modules
 *.pkpass
 keys/*
+lib/server.js
+.dropbox
+test.js
+*.tgz
