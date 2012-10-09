@@ -11,7 +11,7 @@ CLI.enable("version");
 CLI.setApp(__dirname + "/../package.json");
 
 CLI.parse({
-  path:  ["p", "Directory holding private keys", "path", "path"]
+  path:  ["p", "Directory holding private keys", "path", "keys"]
 }, {
   "prepare-keys": "Prepare private keys for signing passbook",
   "server-keys":  "Generates self-signed keys for TLS (HTTPS)"
@@ -69,7 +69,7 @@ function createKeysDirectory(keysPath, callback) {
 // Extract the Apple Worldwide Developer Relations Certification Authority from
 // Keychain and store it as wwdr.pem in the keys directory.
 function extractWWDRKey(keysPath, callback) {
-  var destination = keysPath + "/wwdr.pem";
+  var destination = Path.resolve(keysPath, "wwdr.pem");
   File.exists(destination, function(exists) {
     if (exists) {
       callback();
@@ -77,7 +77,7 @@ function extractWWDRKey(keysPath, callback) {
       CLI.info("Extracting Apple WWDR certificate into directory " + destination);
       var command = "security find-certificate -p -c 'Apple Worldwide Developer Relations Certification Authority' login.keychain";
       CLI.exec(command, function(keyContents) {
-        File.writeFile(destination, keyContents, callback);
+        File.writeFile(destination, keyContents.join("\n"), callback);
       }, callback);
     }
   });

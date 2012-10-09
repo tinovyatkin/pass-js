@@ -14,6 +14,7 @@
     "cli":    "0.4.4"
   },
   "devDependencies": {
+    "mocha":  "1.6.0"
   },
   "repository": {
     "type": "git",
