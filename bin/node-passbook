@@ -1,0 +1,170 @@
+#!/usr/bin/env node
+//vi:set ft=javascript:
+var Async = require("async");
+var CLI = require("cli");
+var File = require("fs");
+var Path = require("path");
+var spawn = require("child_process").spawn;
+
+
+CLI.enable("version");
+CLI.setApp(__dirname + "/../package.json");
+
+CLI.parse({
+  keys:  ["k", "Directory holding private keys", "path", "keys"]
+}, {
+  "prepare-keys": "Prepare private keys for signing passbook",
+  "server-keys":  "Generates self-signed keys for TLS (HTTPS)"
+});
+
+
+CLI.main(function(args, options) {
+  switch (this.command) {
+    case "prepare-keys":
+      Async.waterfall([
+        createKeysDirectory.bind(null, options.keys),
+        extractWWDRKey.bind(null, options.keys),
+        generateKeyFromP12Files.bind(null, options.keys)
+      ], function(error) {
+        if (error) {
+          CLI.error(error.message || error);
+          process.exit(1);
+        } else {
+          CLI.info("Done");
+        }
+      });
+      break;
+
+    case "server-keys":
+      Async.waterfall([
+        createKeysDirectory.bind(null, options.keys),
+        generateServerKeys.bind(null, options.keys)
+      ], function(error) {
+        if (error) {
+          CLI.error(error.message || error);
+          process.exit(1);
+        } else {
+          CLI.info("Done");
+        }
+      });
+      break;
+
+    default:
+      throw new Error("Unknown command " + this.command);
+  }
+});
+
+
+// Create the directory used for storing all keys.
+function createKeysDirectory(keysPath, callback) {
+  File.exists(keysPath, function(exists) {
+    if (exists)
+      callback();
+    else
+      File.mkdir(keysPath, callback);
+  });
+}
+
+
+// Extract the Apple Worldwide Developer Relations Certification Authority from
+// Keychain and store it as wwdr.pem in the keys directory.
+function extractWWDRKey(keysPath, callback) {
+  var destination = keysPath + "/wwdr.pem";
+  File.exists(destination, function(exists) {
+    if (exists) {
+      callback();
+    } else {
+      CLI.info("Extracting Apple WWDR certificate into directory " + destination);
+      var command = "security find-certificate -p -c 'Apple Worldwide Developer Relations Certification Authority' login.keychain";
+      CLI.exec(command, function(keyContents) {
+        File.writeFile(destination, keyContents, callback);
+      }, callback);
+    }
+  });
+} 
+
+
+// Convert all P12 files in the keys directory into PEM files.
+//
+// When exporting the Passbook certificate from Keychain, we get a P12 files,
+// but to sign the certificate we need a PEM file.
+function generateKeyFromP12Files(keysPath, callback) {
+  File.readdir(keysPath, function(error, files) {
+    if (error) {
+      callback(error);
+    } else {
+      var p12Files = files.filter(function(fn) { return Path.extname(fn) === ".p12" }).
+        map(function(fn) { return Path.resolve(keysPath, fn) });
+      if (p12Files.length == 0) {
+        CLI.info("No P12 files found in directory " + keysPath);
+        callback();
+      } else
+        generateNextKeyFile(p12Files);
+    }
+  });
+
+  // Process the next file in p12Files
+  function generateNextKeyFile(p12Files) {
+    var p12File = p12Files[0];
+    if (p12File) {
+      var pemFile = p12File.replace(/p12$/, "pem");
+      File.exists(pemFile, function(exists) {
+        if (exists && false) {
+          CLI.info("Skipping " + pemFile);
+          generateNextKeyFile(p12Files.slice(1));
+        } else {
+          CLI.info("Generating " + pemFile);
+          spawn("openssl", ["pkcs12", "-in", p12File, "-out", pemFile]).
+            on("exit", function(code) {
+              if (code == 0)
+                generateNextKeyFile(p12Files.slice(1));
+              else
+                callback(new Error("Failed to generate " + pemFile));
+            });
+        }
+      });
+    } else
+      callback();
+  }
+}
+
+
+function generateServerKeys(keysPath, callback) {
+  var keyFile = Path.resolve(keysPath, "server.key");
+  var certFile = Path.resolve(keysPath, "server.crt");
+  Async.waterfall([
+    function(done) {
+      CLI.info("Generating private/public key pair");
+      spawn("openssl", ["genrsa", "-des3", "-out", "server.key", "1024"]).
+        on("exit", function(code) {
+          done(code == 0 ? null : new Error("Could not generate server.key"));
+        });
+    },
+    function(done) {
+      CLI.info("Generating CSR");
+      spawn("openssl", ["req", "-new", "-key", "server.key", "-out", "server.csr"], { stdio: "inherit" }).
+        on("exit", function(code) {
+          done(code == 0 ? null : new Error("Could not generate server.csr"));
+        });
+    },
+    function(done) {
+      CLI.info("Removing password from server.key");
+      spawn("openssl", ["rsa", "-in", "server.key", "-out", keyFile], { stdio: "inherit" }).
+        on("exit", function(code) {
+          File.unlink("server.key");
+          done(code == 0 ? null : new Error("Could not generate " + keyFile));
+        });
+    },
+    function(done) {
+      CLI.info("Generating server certificate");
+
+      spawn("openssl", ["x509", "-req", "-days", "365", "-in", "server.csr",
+                        "-signkey", keyFile, "-out", certFile], { stdio: "inherit" }).
+        on("exit", function(code) {
+          File.unlink("server.csr");
+          done(code == 0 ? null : new Error("Could not generate " + certFile));
+        });
+    }
+  ], callback);
+}
+

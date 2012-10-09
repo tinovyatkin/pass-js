@@ -1,9 +1,9 @@
 { "name": "passbook",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "dependencies": {
-    "node-native-zip":  "1.1.0"
+    "async":  "0.1.22",
+    "cli":    "0.4.4"
   },
   "devDependencies": {
-    "coffee-script":  "1.3.3"
   }
 }
