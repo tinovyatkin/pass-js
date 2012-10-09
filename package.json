@@ -1,9 +1,25 @@
 { "name": "passbook",
+  "description": "iOS Passbook for the Node hacker",
   "version": "1.0.0",
+  "author": {
+    "name": "Assaf Arkin",
+    "email": "assaf@labnotes.org"
+  },
+  "main": "index",
+  "bin": {
+    "node-passbook": "./bin/node-passbook"
+  },
   "dependencies": {
     "async":  "0.1.22",
     "cli":    "0.4.4"
   },
   "devDependencies": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/assaf/node-passbook"
+  },
+  "scripts": {
+    "test": "make test"
   }
 }
