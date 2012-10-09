@@ -1,5 +1,6 @@
 { "name": "passbook",
   "description": "iOS Passbook for the Node hacker",
+  "homepage": "https://github.com/assaf/node-passbook",
   "version": "1.0.0",
   "author": {
     "name": "Assaf Arkin",
@@ -16,11 +17,19 @@
   "devDependencies": {
     "mocha":  "1.6.0"
   },
+  "scripts": {
+    "test": "mocha"
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/assaf/node-passbook"
   },
-  "scripts": {
-    "test": "make test"
-  }
+  "bugs": {
+    "url": "http://github.com/assaf/node-passbook/issues"
+  },
+  "licenses": [
+    { "type": "MIT",
+      "url": "http://github.com/assaf/node-passbook/blob/master/MIT-LICENSE"
+    }
+  ]
 }
