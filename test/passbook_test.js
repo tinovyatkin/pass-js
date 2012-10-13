@@ -103,8 +103,7 @@ describe("Passbook", function() {
   describe("generated", function() {
     before(function(done) {
       var passbook = this.template.createPassbook(this.fields);
-      passbook.icon(__dirname + "/resources/icon.png");
-      passbook.logo(__dirname + "/resources/logo.png");
+      passbook.loadImagesFrom(__dirname + "/resources");
       passbook.generate(function(error, buffer) {
         if (error)
           done(error);
@@ -140,16 +139,20 @@ describe("Passbook", function() {
     it("should contain a manifest", function(done) {
       unzip("/tmp/passbook.pkpass", "manifest.json", function(error, buffer) {
         assert.deepEqual(JSON.parse(buffer), {
-          'pass.json':  'bcb463e9d94298e2d9757cea4a1af501fe5b45ae',
-          'icon.png':   'e0f0bcd503f6117bce6a1a3ff8a68e36d26ae47f',
-          'logo.png':   'abc97e3b2bc3b0e412ca4a853ba5fd90fe063551'
+          "pass.json":    "bcb463e9d94298e2d9757cea4a1af501fe5b45ae",
+          "icon.png":     "e0f0bcd503f6117bce6a1a3ff8a68e36d26ae47f",
+          "icon@2x.png":  "10e4a72dbb02cc526cef967420553b459ccf2b9e",
+          "logo.png":     "abc97e3b2bc3b0e412ca4a853ba5fd90fe063551",
+          "logo@2x.png":  "87ca39ddc347646b5625062a349de4d3f06714ac",
+          "strip.png":    "e199fc0e2839ad5698b206d5f4b7d8cb2418927c",
+          "strip@2x.png": "ac640c623741c0081fb1592d6353ebb03122244f"
         });
         done();
       });
     });
 
     it("should contain a signature", function(done) {
-      execFile("signpass", ["-v", "passbook.pkpass"], function(error, stdout) {
+      execFile("signpass", ["-v", "/tmp/passbook.pkpass"], function(error, stdout) {
         assert(/\*\*\* SUCCEEDED \*\*\*/.test(stdout), stdout);
         done();
       })
