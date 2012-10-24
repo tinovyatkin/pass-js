@@ -16,7 +16,7 @@ describe("Passbook", function() {
       serialNumber:       "123456",
       organizationName:   "Acme flowers",
       description:        "20% of black roses"
-    }
+    };
   });
 
   describe("from template", function() {
@@ -104,13 +104,10 @@ describe("Passbook", function() {
     before(function(done) {
       var passbook = this.template.createPassbook(this.fields);
       passbook.loadImagesFrom(__dirname + "/resources");
-      passbook.generate(function(error, buffer) {
-        if (error)
-          done(error);
-        else
-          File.writeFile("/tmp/passbook.pkpass", buffer, done);
-      })
-
+      if (File.existsSync("/tmp/passbook.pkpass"))
+        File.unlinkSync("/tmp/passbook.pkpass");
+      var file = File.createWriteStream("/tmp/passbook.pkpass");
+      passbook.pipe(file, done);
     });
 
     it("should be a valid ZIP", function(done) {
@@ -118,7 +115,7 @@ describe("Passbook", function() {
         if (error)
           error = new Error(stdout);
         done(error);
-      })
+      });
     });
 
     it("should contain pass.json", function(done) {
@@ -155,7 +152,7 @@ describe("Passbook", function() {
       execFile("signpass", ["-v", "/tmp/passbook.pkpass"], function(error, stdout) {
         assert(/\*\*\* SUCCEEDED \*\*\*/.test(stdout), stdout);
         done();
-      })
+      });
     });
 
     it("should contain the icon", function(done) {
