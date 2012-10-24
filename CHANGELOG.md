@@ -1,4 +1,12 @@
-## 1.1.0  October 23, 2012
+## 1.1.0  October 24, 2012
+
+API change: instead of generating passbook into a buffer, we pipe it into an
+output stream.  Like so:
+
+  fs = File.createWriteStream("demo.pkpass");
+  passbook.pipe(fs, function(error) {
+    . . .
+  });
 
 You can now add images by specifing an HTTP/S URL.
 
