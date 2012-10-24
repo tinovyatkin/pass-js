@@ -6,7 +6,7 @@
     "name": "Assaf Arkin",
     "email": "assaf@labnotes.org"
   },
-  "main": "./lib/passbook.js",
+  "main": "./lib/index.js",
   "bin": {
     "node-passbook": "./bin/node-passbook"
   },
