@@ -1,5 +1,13 @@
 ## 1.2.0  October 26, 2012
 
+New API for updating structure fields:
+
+  passbook.headerFields.add("time", "The Time", "10:00AM");
+  passbook.backFields.add("url", "Web site", "http://example.com");
+  console.log(passbook.backFields.get("url"));
+  passbook.backFields.remove("url");
+  console.log(passbook.backFields.all());
+
 passbook.pipe is now passbook.writeToOutputStream, which better reflects what it
 does.
 
