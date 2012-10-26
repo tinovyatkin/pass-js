@@ -1,3 +1,13 @@
+## 1.2.0  October 26, 2012
+
+passbook.pipe is now passbook.writeToOutputStream, which better reflects what it
+does.
+
+Added passbook.render to render a Passbook to an HTTP response.
+
+Should send complete bufferred resources first.
+
+
 ## 1.1.1  October 24, 2012
 
 Fix piping support for files/HTTP resources.

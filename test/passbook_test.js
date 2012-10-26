@@ -107,7 +107,7 @@ describe("Passbook", function() {
       if (File.existsSync("/tmp/passbook.pkpass"))
         File.unlinkSync("/tmp/passbook.pkpass");
       var file = File.createWriteStream("/tmp/passbook.pkpass");
-      passbook.pipe(file, done);
+      passbook.writeToOutputStream(file, done);
     });
 
     it("should be a valid ZIP", function(done) {
