@@ -136,13 +136,15 @@ describe("Passbook", function() {
     it("should contain a manifest", function(done) {
       unzip("/tmp/passbook.pkpass", "manifest.json", function(error, buffer) {
         assert.deepEqual(JSON.parse(buffer), {
-          "pass.json":    "bcb463e9d94298e2d9757cea4a1af501fe5b45ae",
-          "icon.png":     "e0f0bcd503f6117bce6a1a3ff8a68e36d26ae47f",
-          "icon@2x.png":  "10e4a72dbb02cc526cef967420553b459ccf2b9e",
-          "logo.png":     "abc97e3b2bc3b0e412ca4a853ba5fd90fe063551",
-          "logo@2x.png":  "87ca39ddc347646b5625062a349de4d3f06714ac",
-          "strip.png":    "e199fc0e2839ad5698b206d5f4b7d8cb2418927c",
-          "strip@2x.png": "ac640c623741c0081fb1592d6353ebb03122244f"
+          "pass.json":        "bcb463e9d94298e2d9757cea4a1af501fe5b45ae",
+          "icon.png":         "e0f0bcd503f6117bce6a1a3ff8a68e36d26ae47f",
+          "icon@2x.png":      "10e4a72dbb02cc526cef967420553b459ccf2b9e",
+          "logo.png":         "abc97e3b2bc3b0e412ca4a853ba5fd90fe063551",
+          "logo@2x.png":      "87ca39ddc347646b5625062a349de4d3f06714ac",
+          "strip.png":        "68fc532d6c76e7c6c0dbb9b45165e62fbb8e9e32",
+          "strip@2x.png":     "17e4f5598362d21f92aa75bc66e2011a2310f48e",
+          "thumbnail.png":    "e199fc0e2839ad5698b206d5f4b7d8cb2418927c",
+          "thumbnail@2x.png": "ac640c623741c0081fb1592d6353ebb03122244f"
         });
         done();
       });
