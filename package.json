@@ -20,6 +20,12 @@
   "scripts": {
     "test": "mocha"
   },
+  "keywords": [
+    "iOS",
+    "apple",
+    "passbook",
+    "library"
+  ],
   "repository": {
     "type": "git",
     "url": "git://github.com/assaf/node-passbook"
