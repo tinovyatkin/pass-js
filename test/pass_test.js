@@ -5,7 +5,7 @@ var execFile = require("child_process").execFile;
 var File = require("fs");
 
 
-describe("Passbook", function() {
+describe("Pass", function() {
   before(function() {
     this.template = createTemplate("coupon", {
       passTypeIdentifier: "pass.com.example.passbook",
@@ -21,29 +21,29 @@ describe("Passbook", function() {
 
   describe("from template", function() {
     before(function() {
-      this.passbook = this.template.createPassbook();
+      this.pass = this.template.createPass();
     });
 
     it("should copy template fields", function() {
-      assert.equal(this.passbook.fields.passTypeIdentifier, "pass.com.example.passbook");
+      assert.equal(this.pass.fields.passTypeIdentifier, "pass.com.example.passbook");
     });
 
     it("should start with no images", function() {
-      assert.deepEqual(this.passbook.images, {});
+      assert.deepEqual(this.pass.images, {});
     });
 
     it("should create a structure based on style", function() {
-      assert(this.passbook.fields.coupon);
-      assert(!this.passbook.fields.eventTicket);
+      assert(this.pass.fields.coupon);
+      assert(!this.pass.fields.eventTicket);
     });
   });
 
   describe("without serial number", function() {
     it("should not be valid", function() {
-      var passbook = this.template.createPassbook(cloneExcept(this.fields, "serialNumber"));
+      var pass = this.template.createPass(cloneExcept(this.fields, "serialNumber"));
       try {
-        passbook.validate();
-        assert(false, "Passbook validated without serialNumber");
+        pass.validate();
+        assert(false, "Pass validated without serialNumber");
       } catch(ex) { 
         assert.equal(ex.message, "Missing field serialNumber");
       }
@@ -52,10 +52,10 @@ describe("Passbook", function() {
 
   describe("without organization name", function() {
     it("should not be valid", function() {
-      var passbook = this.template.createPassbook(cloneExcept(this.fields, "organizationName"));
+      var pass = this.template.createPass(cloneExcept(this.fields, "organizationName"));
       try {
-        passbook.validate();
-        assert(false, "Passbook validated without organizationName");
+        pass.validate();
+        assert(false, "Pass validated without organizationName");
       } catch(ex) { 
         assert.equal(ex.message, "Missing field organizationName");
       }
@@ -64,10 +64,10 @@ describe("Passbook", function() {
 
   describe("without description", function() {
     it("should not be valid", function() {
-      var passbook = this.template.createPassbook(cloneExcept(this.fields, "description"));
+      var pass = this.template.createPass(cloneExcept(this.fields, "description"));
       try {
-        passbook.validate();
-        assert(false, "Passbook validated without description");
+        pass.validate();
+        assert(false, "Pass validated without description");
       } catch(ex) { 
         assert.equal(ex.message, "Missing field description");
       }
@@ -76,10 +76,10 @@ describe("Passbook", function() {
   
   describe("without icon.png", function() {
     it("should not be valid", function() {
-      var passbook = this.template.createPassbook(this.fields);
+      var pass = this.template.createPass(this.fields);
       try {
-        passbook.validate();
-        assert(false, "Passbook validated without icon.png");
+        pass.validate();
+        assert(false, "Pass validated without icon.png");
       } catch(ex) { 
         assert.equal(ex.message, "Missing image icon.png");
       }
@@ -87,31 +87,48 @@ describe("Passbook", function() {
   });
 
   describe("without logo.png", function() {
+    var validationError;
+
+    before(function(done) {
+      var pass = this.template.createPass(this.fields);
+      pass.icon("icon.png");
+      var file = File.createWriteStream("/tmp/pass.pkpass");
+      pass.pipe(file);
+      pass.on("done", done);
+      pass.on("error", function(error) {
+        validationError = error;
+        done();
+      });
+    });
+
     it("should not be valid", function() {
-      var passbook = this.template.createPassbook(this.fields);
-      passbook.icon("icon.png");
-      try {
-        passbook.validate();
-        assert(false, "Passbook validated without logo.png");
-      } catch(ex) { 
-        assert.equal(ex.message, "Missing image logo.png");
-      }
+      assert(validationError, "Pass validated without logo.png");
+      assert.equal(validationError.message, "Missing image logo.png");
     });
   });
 
 
   describe("generated", function() {
+    before(function() {
+      this.pass = this.template.createPass(this.fields);
+      this.pass.loadImagesFrom(__dirname + "/resources");
+      this.pass.headerFields.add("date", "Date", "Nov 1");
+      this.pass.primaryFields.add([
+        { key: "location", label: "Place", value: "High ground" }
+      ]);
+
+    });
+
     before(function(done) {
-      var passbook = this.template.createPassbook(this.fields);
-      passbook.loadImagesFrom(__dirname + "/resources");
-      if (File.existsSync("/tmp/passbook.pkpass"))
-        File.unlinkSync("/tmp/passbook.pkpass");
-      var file = File.createWriteStream("/tmp/passbook.pkpass");
-      passbook.writeToOutputStream(file, done);
+      if (File.existsSync("/tmp/pass.pkpass"))
+        File.unlinkSync("/tmp/pass.pkpass");
+      var file = File.createWriteStream("/tmp/pass.pkpass");
+      this.pass.pipe(file);
+      this.pass.on("end", done);
     });
 
     it("should be a valid ZIP", function(done) {
-      execFile("unzip", ["-t", "/tmp/passbook.pkpass"], function(error, stdout) {
+      execFile("unzip", ["-t", "/tmp/pass.pkpass"], function(error, stdout) {
         if (error)
           error = new Error(stdout);
         done(error);
@@ -119,14 +136,27 @@ describe("Passbook", function() {
     });
 
     it("should contain pass.json", function(done) {
-      unzip("/tmp/passbook.pkpass", "pass.json", function(error, buffer) {
+      unzip("/tmp/pass.pkpass", "pass.json", function(error, buffer) {
         assert.deepEqual(JSON.parse(buffer), {
           passTypeIdentifier: 'pass.com.example.passbook',
           teamIdentifier:     'MXL',
           serialNumber:       '123456',
           organizationName:   'Acme flowers',
           description:        '20% of black roses',
-          coupon:             {},
+          coupon:             {
+            headerFields:       [
+              { key:    "date",
+                label:  "Date",
+                value:  "Nov 1"
+              }
+            ],
+            primaryFields:      [
+              { key:    "location",
+                label:  "Place",
+                value:  "High ground"
+              }
+            ]
+          },
           formatVersion:      1
         });
         done();
@@ -134,9 +164,9 @@ describe("Passbook", function() {
     });
 
     it("should contain a manifest", function(done) {
-      unzip("/tmp/passbook.pkpass", "manifest.json", function(error, buffer) {
+      unzip("/tmp/pass.pkpass", "manifest.json", function(error, buffer) {
         assert.deepEqual(JSON.parse(buffer), {
-          "pass.json":        "bcb463e9d94298e2d9757cea4a1af501fe5b45ae",
+          "pass.json":        "87c2bd96d4bcaf55f0d4d7846a5ae1fea85ea628",
           "icon.png":         "e0f0bcd503f6117bce6a1a3ff8a68e36d26ae47f",
           "icon@2x.png":      "10e4a72dbb02cc526cef967420553b459ccf2b9e",
           "logo.png":         "abc97e3b2bc3b0e412ca4a853ba5fd90fe063551",
@@ -151,14 +181,14 @@ describe("Passbook", function() {
     });
 
     it("should contain a signature", function(done) {
-      execFile("signpass", ["-v", "/tmp/passbook.pkpass"], function(error, stdout) {
+      execFile("signpass", ["-v", "/tmp/pass.pkpass"], function(error, stdout) {
         assert(/\*\*\* SUCCEEDED \*\*\*/.test(stdout), stdout);
         done();
       });
     });
 
     it("should contain the icon", function(done) {
-      unzip("/tmp/passbook.pkpass", "icon.png", function(error, buffer) {
+      unzip("/tmp/pass.pkpass", "icon.png", function(error, buffer) {
         assert.equal(Crypto.createHash("sha1").update(buffer).digest("hex"),
                      "e0f0bcd503f6117bce6a1a3ff8a68e36d26ae47f");
         done();
@@ -166,7 +196,7 @@ describe("Passbook", function() {
     });
 
     it("should contain the logo", function(done) {
-      unzip("/tmp/passbook.pkpass", "logo.png", function(error, buffer) {
+      unzip("/tmp/pass.pkpass", "logo.png", function(error, buffer) {
         assert.equal(Crypto.createHash("sha1").update(buffer).digest("hex"),
                      "abc97e3b2bc3b0e412ca4a853ba5fd90fe063551");
         done();

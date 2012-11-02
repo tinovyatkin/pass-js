@@ -1,19 +1,22 @@
-## 1.2.0  October 26, 2012
+## 2.0.0  November 1, 2012
 
 New API for updating structure fields:
 
   passbook.headerFields.add("time", "The Time", "10:00AM");
-  passbook.backFields.add("url", "Web site", "http://example.com");
+  passbook.backFields.add({ key: "url", label: "Web site", value: "http://example.com" });
   console.log(passbook.backFields.get("url"));
   passbook.backFields.remove("url");
   console.log(passbook.backFields.all());
 
-passbook.pipe is now passbook.writeToOutputStream, which better reflects what it
-does.
+The `pipe` method no longer accepts a callback, instead, register listener on
+the `end` and `error` events.
 
-Added passbook.render to render a Passbook to an HTTP response.
+For HTTP servers, you can use the `render` method.
 
-Should send complete bufferred resources first.
+New optimization to send completes resources first (useful when downloading
+images from URLs).
+
+Renamed `createPassbook` to `createPass`.
 
 
 ## 1.1.1  October 24, 2012

@@ -21,7 +21,7 @@ This is the same directory into which you placet the `.p12` files.
 # Start with a template
 
 Start with a template.  A template has all the common data fields that will be
-shared between your passbook, and also defines the keys to use for signing it.
+shared between your passes, and also defines the keys to use for signing it.
 
 ```
 var createTemplate = require("passbook");
@@ -29,84 +29,134 @@ var createTemplate = require("passbook");
 var template = createTemplate("coupon", {
   passTypeIdentifier: "pass.com.example.passbook",
   teamIdentifier:     "MXL",
-  "backgroundColor":   "rgb(255,255,255)"
+  backgroundColor:   "rgb(255,255,255)"
 });
-template.keys("/etc/passbook/keys", "secret");
 ```
 
-The first argument is the Passbook style (`coupon`, `eventTicket`, etc), and the
-second optional argument has any fields you want to set on th template.
+The first argument is the pass style (`coupon`, `eventTicket`, etc), and the
+second optional argument has any fields you want to set on the template.
 
 You can access template fields directly, or from chained accessor methods, e.g:
 
 ```
 template.fields.passTypeIdentifier = "pass.com.example.passbook";
+
 console.log(template.passTypeIdentifier());
+
 template.teamIdentifier("MXL").
   passTypeIdentifier("pass.com.example.passbook")
 ```
 
-The template fields are `passTypeIdentifier`, `teamIdentifier`,
-`backgroundColor`, `foregroundColor`, `labelColor`, `logoText`,
-`organizationName`, `suppressStripShine` and `webServiceURL`.
+The following template fields are required:
+`passTypeIdentifier`  - The Passbook Type ID, begins with "pass."
+`teamIdentifier`      - May contain an I
 
-The first two are required: `passTypeIdentifier` is the Passbook Type ID, begins
-with "pass." and has to be registered with Apple.  The `teamIdentifier` may
-contain an I.
+Optional fields that you can set on the template (or pass): `backgroundColor`,
+`foregroundColor`, `labelColor`, `logoText`, `organizationName`,
+`suppressStripShine` and `webServiceURL`.
 
-All other fields can be set on either template or passbook.
-
-
-# Create your passbook
-
-To create a new passbook from a template:
+In addition, you need to tell the template where to find the key files and where
+to load images from:
 
 ```
-var passbook = template.createPassbook({
+template.keys("/etc/passbook/keys", "secret");
+template.loadImagesFrom("images");
+```
+
+The last part is optional, but if you have images that are common to all passes,
+you may want to specify them once in the template.
+
+
+# Create your pass
+
+To create a new pass from a template:
+
+```
+var pass = template.createPass({
   serialNumber:  "123456",
   description:   "20% off"
 });
 ```
 
-Just like template, you can access Passbook fields directly, or from chained
+Just like template, you can access pass fields directly, or from chained
 accessor methods, e.g:
 
 ```
-passbook.fields.serialNumber = "12345";
-console.log(passbook.serialNumber());
-passbook.serialNumber("12345").
+pass.fields.serialNumber = "12345";
+console.log(pass.serialNumber());
+pass.serialNumber("12345").
   description("20% off");
 ```
 
-You can also access structure fields directly, or from chained accessor methods.
-The following three are equivalent:
+In the JSON specification, structure fields (primary fields, secondary fields,
+etc) are represented as arrays, but items must have distinct key properties.  Le
+sigh.
+
+To make it easier, you can use methods like `add`, `get` and `remove` that
+will do the logical thing.  For example, to add a primary field:
 
 ```
-passbook.fields.coupon.headerFields = header;
-passbook.structure.headerFields = header;
-passbook.headerFields(header);
+pass.primaryFields.add("date", "Date", "Nov 1");
+pass.primaryFields.add({ key: "time", label: "Time", value: "10:00AM");
 ```
 
-Same drill when it comes to adding images to your Passbook:
+You can also call `add` with an array of triplets or array of objects.
+
+To get one or all fields:
 
 ```
-passbook.images.icon = iconFilename;
-passbook.icon(iconFilename);
+var dateField = pass.primaryFields.get("date");
+var allFields = pass.primaryFields.all();
 ```
 
-You can add the image itself (`Buffer`), the name of a file containing the image
-(`String`), or a function that will be called to load the image, and should pass
-an error, or `null` and a `Buffer` to its callback.
-
-Finally, to generate a Passbook file:
+To remove one or all fields:
 
 ```
-passbook.generate(function(error, buffer) {
-  if (error) {
-    console.log(error);
-  } else {
-    File.writeFile("passbook.pkpass", buffer);
-  }
+pass.primaryFields.remove("date");
+pass.primaryFields.clear();
+```
+
+Adding images to a pass is the same as adding images to a template:
+
+```
+pass.images.icon = iconFilename;
+pass.icon(iconFilename);
+pass.loadImagesFrom("images");
+```
+
+You can add the image itself (a `Buffer`), or provide the name of a file or an
+HTTP/S URL for retrieving the image.  You can also provide a function that will
+be called when it's time to load the image, and should pass an error, or `null`
+and a buffer to its callback. 
+
+
+# Generate the file
+
+To generate a file:
+
+```
+var file = File.createWriteStream("mypass.pkpass");
+passbook.on("error", function(error) {
+  console.error(error);
+  process.exit(1);
+})
+passbook.pipe(output);
+```
+
+Your pass will emit the `error` event if it fails to generate a valid Passbook
+file, and emit the `end` event when it successfuly completed generating the
+file.
+
+You can pipe to any writeable stream.  When working with HTTP, the `render`
+method will set the content type, pipe to the HTTP response, and make use of a
+callback (if supplied).
+
+```
+server.get("/mypass", function(request, response) {
+  passbook.render(response, function(error) {
+    if (error)
+      console.error(error);
+  });
 });
 ```
 
