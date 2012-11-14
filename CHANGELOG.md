@@ -1,3 +1,8 @@
+## 2.0.1  November 14, 2012
+
+Fix addImage not working with buffers.
+
+
 ## 2.0.0  November 1, 2012
 
 New API for updating structure fields:
