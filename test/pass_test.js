@@ -203,6 +203,20 @@ describe("Pass", function() {
       });
     });
 
+
+    describe("unzip", function() {
+
+      before(function(done) {
+        var unzip = require("../lib/unzip");
+        var input = File.createReadStream("/tmp/pass.pkpass");
+        var files = new unzip(input);
+        console.dir(files);
+      });
+
+      it("should do something", function() {
+      });
+    });
+
   });
 
 });
