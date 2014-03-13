@@ -127,7 +127,7 @@ pass.loadImagesFrom("images");
 You can add the image itself (a `Buffer`), or provide the name of a file or an
 HTTP/S URL for retrieving the image.  You can also provide a function that will
 be called when it's time to load the image, and should pass an error, or `null`
-and a buffer to its callback. 
+and a buffer to its callback.
 
 
 # Generate the file
@@ -135,12 +135,12 @@ and a buffer to its callback.
 To generate a file:
 
 ```
-var file = File.createWriteStream("mypass.pkpass");
-passbook.on("error", function(error) {
+var file = fs.createWriteStream("mypass.pkpass");
+pass.on("error", function(error) {
   console.error(error);
   process.exit(1);
 })
-passbook.pipe(output);
+pass.pipe(file);
 ```
 
 Your pass will emit the `error` event if it fails to generate a valid Passbook
@@ -153,10 +153,9 @@ callback (if supplied).
 
 ```
 server.get("/mypass", function(request, response) {
-  passbook.render(response, function(error) {
+  pass.render(response, function(error) {
     if (error)
       console.error(error);
   });
 });
 ```
-
