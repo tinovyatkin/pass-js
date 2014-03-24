@@ -1,7 +1,7 @@
 { "name": "passbook",
   "description": "iOS Passbook for the Node hacker",
   "homepage": "https://github.com/assaf/node-passbook",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "author": {
     "name": "Assaf Arkin",
     "email": "assaf@labnotes.org"
