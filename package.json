@@ -28,7 +28,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/assaf/node-passbook"
+    "url": "git://github.com/sunsus/node-passbook.git"
   },
   "bugs": {
     "url": "http://github.com/assaf/node-passbook/issues"
