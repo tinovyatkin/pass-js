@@ -1,3 +1,10 @@
+## 2.1.1  April 16, 2015
+
+Update package.json with async dependency (tomasdev)
+
+Emit error if it failed to sign the zip with manifest file (tomasdev)
+
+
 ## 2.1.0  March 2, 2015
 
 Add support for Node.js 0.12 and io.js 1.4
