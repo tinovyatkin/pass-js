@@ -130,6 +130,29 @@ be called when it's time to load the image, and should pass an error, or `null`
 and a buffer to its callback.
 
 
+Additionally localizations can be added if needed:
+```js
+pass.addLocalization("en", {
+  "GATE": "GATE",
+  "DEPART": "DEPART",
+  "ARRIVE": "ARRIVE",
+  "SEAT": "SEAT",
+  "PASSENGER": "PASSENGER",
+  "FLIGHT": "FLIGHT"
+});
+
+pass.addLocalization("ru", {
+  "GATE": "ВЫХОД",
+  "DEPART": "ВЫЛЕТ",
+  "ARRIVE": "ПРИЛЁТ",
+  "SEAT": "МЕСТО",
+  "PASSENGER": "ПАССАЖИР",
+  "FLIGHT": "РЕЙС"
+});
+```
+
+Localization applies for all fields' `label` and `value`. There is a note about that in [documentation](https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/PassKit_PG/Creating.html). 
+
 # Generate the file
 
 To generate a file:
