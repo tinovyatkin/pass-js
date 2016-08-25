@@ -1,16 +1,12 @@
-{ "name": "passbook",
-  "description": "iOS Passbook for the Node hacker",
+{ "name": "busbud-passbook",
+  "description": "iOS Passbook for the Node hacker fork of npm module passbook",
   "homepage": "https://github.com/assaf/node-passbook",
-  "version": "2.1.2",
+  "version": "1.0.0",
   "author": {
     "name": "Assaf Arkin",
     "email": "assaf@labnotes.org"
   },
   "contributors": [
-    {
-      "name": "Sergey Pronin",
-      "email" : "sergey@pronin.me"
-    }
   ],
   "main": "./lib/index.js",
   "bin": {
