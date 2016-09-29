@@ -1,13 +1,7 @@
 { "name": "busbud-passbook",
   "description": "iOS Passbook for the Node hacker fork of npm module passbook",
-  "homepage": "https://github.com/assaf/node-passbook",
-  "version": "1.0.0",
-  "author": {
-    "name": "Assaf Arkin",
-    "email": "assaf@labnotes.org"
-  },
-  "contributors": [
-  ],
+  "homepage": "https://github.com/busbud/node-passbook",
+  "version": "1.0.1",
   "main": "./lib/index.js",
   "bin": {
     "node-passbook": "./bin/node-passbook"
@@ -30,14 +24,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/assaf/node-passbook.git"
+    "url": "git://github.com/busbud/node-passbook.git"
   },
   "bugs": {
-    "url": "http://github.com/assaf/node-passbook/issues"
+    "url": "http://github.com/busbud/node-passbook/issues"
   },
   "licenses": [
     { "type": "MIT",
-      "url": "http://github.com/assaf/node-passbook/blob/master/MIT-LICENSE"
+      "url": "http://github.com/busbud/node-passbook/blob/master/MIT-LICENSE"
     }
   ]
 }
