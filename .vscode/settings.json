@@ -1,3 +1,6 @@
 {
-    "deepscan.enable": true
-}
+    "deepscan.enable": false,
+    "editor.formatOnType": true,
+    "eslint.autoFixOnSave": true,
+    "deepscan.ignoreConfirmWarning": true
+  }
