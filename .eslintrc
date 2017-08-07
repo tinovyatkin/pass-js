@@ -1,0 +1,6 @@
+{
+  "extends": ["@destinationstransfers"],
+  "parserOptions": {
+    "sourceType": "script"
+  }
+}

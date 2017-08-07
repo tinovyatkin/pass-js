@@ -8,16 +8,21 @@
     "node-passbook": "./bin/node-passbook"
   },
   "devDependencies": {
-    "@destinationstransfers/eslint-config": "^1.0.1",
-    "eslint": "^4.4.0",
-    "mocha": "2.1.0",
+    "@destinationstransfers/eslint-config": "^1.0.2",
     "async": "^0.9.0",
-    "cli": "0.6.5"
+    "cli": "0.6.5",
+    "eslint": "^4.4.0",
+    "mocha": "2.1.0"
   },
   "scripts": {
     "test": "mocha"
   },
-  "keywords": ["iOS", "apple", "passbook", "library"],
+  "keywords": [
+    "iOS",
+    "apple",
+    "passbook",
+    "library"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/destinationstransfers/passkit.git"
