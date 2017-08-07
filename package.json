@@ -12,10 +12,10 @@
     "async": "^0.9.0",
     "cli": "0.6.5",
     "eslint": "^4.4.0",
-    "mocha": "2.1.0"
+    "jest": "^20.0.4"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "jest"
   },
   "keywords": [
     "iOS",
@@ -28,7 +28,7 @@
     "url": "https://github.com/destinationstransfers/passkit.git"
   },
   "bugs": {
-    "url": "http://github.com/busbud/node-passbook/issues"
+    "url": "http://github.com/destinationstransfers/passkit/issues"
   },
   "licenses": [
     {
@@ -41,5 +41,16 @@
     "test": "test"
   },
   "author": "Tino Vyatkin <tino@vtkn.io>",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "fs-nextra": "^0.2.0"
+  },
+  "jest": {
+    "bail": true,
+    "testEnvironment": "node",
+    "verbose": true,
+    "collectCoverageFrom": [
+      "lib/*.js"
+    ]
+  }
 }
