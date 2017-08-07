@@ -1,31 +1,26 @@
 {
-  "name": "busbud-passbook",
-  "description": "iOS Passbook for the Node hacker fork of npm module passbook",
-  "homepage": "https://github.com/busbud/node-passbook",
-  "version": "1.1.0",
+  "name": "@destinationstransfers/passkit",
+  "description": "iOS Passbook for the Node",
+  "homepage": "https://github.com/destinationstransfers/passkit",
+  "version": "1.2.0",
   "main": "./lib/index.js",
   "bin": {
     "node-passbook": "./bin/node-passbook"
   },
-  "dependencies": {
+  "devDependencies": {
+    "@destinationstransfers/eslint-config": "^1.0.1",
+    "eslint": "^4.4.0",
+    "mocha": "2.1.0",
     "async": "^0.9.0",
     "cli": "0.6.5"
-  },
-  "devDependencies": {
-    "mocha": "2.1.0"
   },
   "scripts": {
     "test": "mocha"
   },
-  "keywords": [
-    "iOS",
-    "apple",
-    "passbook",
-    "library"
-  ],
+  "keywords": ["iOS", "apple", "passbook", "library"],
   "repository": {
     "type": "git",
-    "url": "git://github.com/busbud/node-passbook.git"
+    "url": "https://github.com/destinationstransfers/passkit.git"
   },
   "bugs": {
     "url": "http://github.com/busbud/node-passbook/issues"
@@ -33,7 +28,13 @@
   "licenses": [
     {
       "type": "MIT",
-      "url": "http://github.com/busbud/node-passbook/blob/master/MIT-LICENSE"
+      "url": "https://github.com/destinationstransfers/passkit/blob/master/MIT-LICENSE"
     }
-  ]
+  ],
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "author": "Tino Vyatkin <tino@vtkn.io>",
+  "license": "ISC"
 }
