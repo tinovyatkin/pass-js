@@ -1,6 +1,18 @@
 {
-  "extends": ["@destinationstransfers"],
+  "plugins": [
+    "node"
+  ],
+  "extends": [
+    "@destinationstransfers",
+    "plugin:node/recommended"
+  ],
+  "env": {
+    "node": true,
+  },
   "parserOptions": {
     "sourceType": "script"
+  },
+  "rules": {
+    "prefer-object-spread/prefer-object-spread": "off"
   }
 }
