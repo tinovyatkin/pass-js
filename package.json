@@ -16,10 +16,15 @@
     "cli": "^1.0.1",
     "eslint": "^4.4.1",
     "eslint-plugin-node": "^5.1.1",
-    "jest": "^20.0.4"
+    "jest": "^20.0.4",
+    "remark-cli": "^4.0.0",
+    "remark-preset-lint-consistent": "^2.0.0",
+    "remark-preset-lint-recommended": "^3.0.0"
   },
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "lint:markdown": "remark . --frail",
+    "lint:js": "eslint *.js --ignore-path .gitignore"
   },
   "keywords": [
     "iOS",
@@ -47,6 +52,12 @@
   "author": "Tino Vyatkin <tino@vtkn.io>",
   "license": "ISC",
   "dependencies": {},
+  "remarkConfig": {
+    "presets": [
+      "lint-recommended",
+      "lint-consistent"
+    ]
+  },
   "jest": {
     "collectCoverage": true,
     "bail": true,
