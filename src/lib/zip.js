@@ -16,7 +16,7 @@ const File = require('./zip-file');
 const { getTimePart, getDatePart } = require('./get-part-time');
 
 // const debug = console.log;
-const debug = () => {}
+const debug = () => {};
 
 // Creates a new zip.
 //
