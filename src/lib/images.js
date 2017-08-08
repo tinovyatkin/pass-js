@@ -12,8 +12,7 @@ const readdirAsync = promisify(readdir);
 const statAsync = promisify(stat);
 
 // Supported images.
-const IMAGES = ['background', 'footer', 'icon', 'logo', 'strip', 'thumbnail'];
-const DENSITIES = ['1x', '2x', '3x'];
+const { IMAGES, DENSITIES } = require('../constants');
 
 class PassImages {
   constructor() {

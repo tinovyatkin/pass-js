@@ -12,30 +12,7 @@ const signManifest = require('./lib/signManifest-openssl');
 const Fields = require('./lib/fields');
 const pipeIntoStream = require('./lib/pipe-into-stream');
 
-// Top-level pass fields.
-const TOP_LEVEL = [
-  'authenticationToken',
-  'backgroundColor',
-  'barcode',
-  'description',
-  'foregroundColor',
-  'labelColor',
-  'locations',
-  'logoText',
-  'organizationName',
-  'relevantDate',
-  'serialNumber',
-  'suppressStripShine',
-  'webServiceURL',
-];
-// These top level fields are required for a valid pass.
-const REQUIRED_TOP_LEVEL = [
-  'description',
-  'organizationName',
-  'passTypeIdentifier',
-  'serialNumber',
-  'teamIdentifier',
-];
+const { TOP_LEVEL_FIELDS } = require('./constants');
 
 // Pass structure keys.
 // https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/LowerLevel.html#//apple_ref/doc/uid/TP40012026-CH3-SW3
@@ -80,9 +57,11 @@ class Pass extends EventEmitter {
     //
     //   pass.description("Unbelievable discount");
     //   console.log(pass.description());
-    TOP_LEVEL.forEach(key => {
+    Object.entries(TOP_LEVEL_FIELDS).forEach(([key, { type }]) => {
       this[key] = v => {
         if (arguments) { // eslint-disable-line
+          if (type === Array && !Array.isArray(v))
+            throw new Error(`${key} must be an Array!`);
           this.fields[key] = v;
           return this;
         }
@@ -109,7 +88,7 @@ class Pass extends EventEmitter {
    * 
    * @param {Array.<{format: string, message: string, messageEncoding: string}>} v
    */
-
+  /*
   barcodes(v) {
     if (arguments.length === 1) {
       if (!Array.isArray(v)) throw new Error('barcodes must be an Array!');
@@ -135,6 +114,7 @@ class Pass extends EventEmitter {
     }
     return this.fields.barcodes;
   }
+  */
 
   // Localization
   addLocalization(lang, values) {
@@ -148,10 +128,11 @@ class Pass extends EventEmitter {
 
   // Validate pass, throws error if missing a mandatory top-level field or image.
   validate() {
-    for (const i in REQUIRED_TOP_LEVEL) {
-      const k1 = REQUIRED_TOP_LEVEL[i];
-      if (!this.fields[k1]) throw new Error(`Missing field ${k1}`);
+    for (const [field, { required }] of Object.entries(TOP_LEVEL_FIELDS)) {
+      if (required && !(field in this.fields))
+        throw new Error(`Missing field ${field}`);
     }
+
     for (const j in REQUIRED_IMAGES) {
       const k2 = REQUIRED_IMAGES[j];
       if (!this.images.map.has(k2)) throw new Error(`Missing image ${k2}.png`);
