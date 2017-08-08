@@ -72,7 +72,7 @@ to load images from:
 
 ```js
 template.keys("/etc/passbook/keys", "secret");
-template.loadImagesFrom("images");
+template.images.loadFromDirectory("images");
 ```
 
 The last part is optional, but if you have images that are common to all passes,
