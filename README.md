@@ -1,8 +1,21 @@
+# Motivation
+
+This is almost complete rewrite of [assaf/node-passbook](http://github.com/assaf/node-passbook).
+The original module lacks new commits in last two years and outdated. This modules:
+
+-   Targetting Node 8 and refactored in ES6 Classes, removing deprecated calls (`new Buffer`, etc)
+-   Aims to replace `openssl` spawning with native Javascript RSA implementation
+-   Adds contants for dictionary fields values
+-   Migrated tests to Jest
+-   Increased test coverage
+-   Adds strict dictionary fields values validation (where possible) to prevent errors earlier
+-   Adding support for geolocation fields and Becon fields
+
 # Get your certificates
 
 To start with, you'll need a certificate issued by [the iOS Provisioning
 Portal](https://developer.apple.com/ios/manage/passtypeids/index.action).  You
-need one certificate per Passbook Type ID.
+need one certificate per Pass Type ID.
 
 After adding this certificate to your Keychain, you need to export it as a
 `.p12` file and copy it into the keys directory.
@@ -17,16 +30,15 @@ node-passbook prepare-keys -p keys
 
 This is the same directory into which you placet the `.p12` files.
 
-
 # Start with a template
 
 Start with a template.  A template has all the common data fields that will be
 shared between your passes, and also defines the keys to use for signing it.
 
 ```js
-var createTemplate = require("passbook");
+const createTemplate = require("@destinationstransfers/passkit");
 
-var template = createTemplate("coupon", {
+const template = createTemplate("coupon", {
   passTypeIdentifier: "pass.com.example.passbook",
   teamIdentifier:     "MXL",
   backgroundColor:   "rgb(255,255,255)"
@@ -66,13 +78,12 @@ template.loadImagesFrom("images");
 The last part is optional, but if you have images that are common to all passes,
 you may want to specify them once in the template.
 
-
 # Create your pass
 
 To create a new pass from a template:
 
 ```js
-var pass = template.createPass({
+const pass = template.createPass({
   serialNumber:  "123456",
   description:   "20% off"
 });
@@ -105,8 +116,8 @@ You can also call `add` with an array of triplets or array of objects.
 To get one or all fields:
 
 ```js
-var dateField = pass.primaryFields.get("date");
-var allFields = pass.primaryFields.all();
+const dateField = pass.primaryFields.get("date");
+const allFields = pass.primaryFields.all();
 ```
 
 To remove one or all fields:
@@ -129,8 +140,8 @@ HTTP/S URL for retrieving the image.  You can also provide a function that will
 be called when it's time to load the image, and should pass an error, or `null`
 and a buffer to its callback.
 
-
 Additionally localizations can be added if needed:
+
 ```js
 pass.addLocalization("en", {
   "GATE": "GATE",
@@ -158,7 +169,7 @@ Localization applies for all fields' `label` and `value`. There is a note about 
 To generate a file:
 
 ```js
-var file = fs.createWriteStream("mypass.pkpass");
+const file = fs.createWriteStream("mypass.pkpass");
 pass.on("error", function(error) {
   console.error(error);
   process.exit(1);

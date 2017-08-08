@@ -1,9 +1,17 @@
+## 3.0.0 August 8, 2017
+
+-   Rewritten in ES6 Classes, targetting Node 8
+-   Moved tests to Jest
+-   Added some fields values validation
+-   Refactored deprecated calls
+-   Addes ESLint + prettier code style enforcement
+-   Moved to `@destinationstransfers` scoped package (original module seems to not merging any PR in last two years)
+
 ## 2.1.1  April 16, 2015
 
 Update package.json with async dependency (tomasdev)
 
 Emit error if it failed to sign the zip with manifest file (tomasdev)
-
 
 ## 2.1.0  March 2, 2015
 
@@ -15,18 +23,16 @@ Fix failing signature check on Node.js 0.12 and io.js 1.4
 
 Remove unused async dependency
 
-
 ## 2.0.1  November 14, 2012
 
 Fix addImage not working with buffers.
-
 
 ## 2.0.0  November 1, 2012
 
 New API for updating structure fields:
 
   passbook.headerFields.add("time", "The Time", "10:00AM");
-  passbook.backFields.add({ key: "url", label: "Web site", value: "http://example.com" });
+  passbook.backFields.add({ key: "url", label: "Web site", value: "<http://example.com>" });
   console.log(passbook.backFields.get("url"));
   passbook.backFields.remove("url");
   console.log(passbook.backFields.all());
@@ -41,11 +47,9 @@ images from URLs).
 
 Renamed `createPassbook` to `createPass`.
 
-
 ## 1.1.1  October 24, 2012
 
 Fix piping support for files/HTTP resources.
-
 
 ## 1.1.0  October 24, 2012
 
@@ -65,13 +69,11 @@ that template will include these images.
 New streaming zip implementation. Passbook is now able to acquire resources
 (images) in paralle.
 
-
 ## 1.0.2  October 15, 2012
 
 Should not fail on boardingPass.
 
 Should be able to inspect pass.json: call getPassbookJSON().
-
 
 ## 1.0.1  October 9, 2012
 
