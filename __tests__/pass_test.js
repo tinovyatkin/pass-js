@@ -172,7 +172,7 @@ describe('generated', () => {
 
   test('should contain a signature', done => {
     execFile(
-      path.resolve(__dirname, '../bin/signpass'),
+      path.resolve(__dirname, './resources/bin/signpass'),
       ['-v', '/tmp/pass.pkpass'],
       (error, stdout) => {
         expect(stdout).toMatch(/\*\*\* SUCCEEDED \*\*\*/);
