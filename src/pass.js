@@ -154,7 +154,7 @@ class Pass extends EventEmitter {
     }
     for (const j in REQUIRED_IMAGES) {
       const k2 = REQUIRED_IMAGES[j];
-      if (!this.images[k2]) throw new Error(`Missing image ${k2}.png`);
+      if (!this.images.map.has(k2)) throw new Error(`Missing image ${k2}.png`);
     }
   }
 
