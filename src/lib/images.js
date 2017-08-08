@@ -4,27 +4,33 @@
 
 'use strict';
 
-const { stat, readdir } = require('fs-nextra');
+const { stat, readdir } = require('fs');
+const { promisify } = require('util');
 const { basename, extname, resolve } = require('path');
+
+const readdirAsync = promisify(readdir);
+const statAsync = promisify(stat);
 
 // Supported images.
 const IMAGES = ['background', 'footer', 'icon', 'logo', 'strip', 'thumbnail'];
-const DENSITIES = ['2x', '3x'];
+const DENSITIES = ['1x', '2x', '3x'];
 
 class PassImages {
   constructor() {
-    this.images = new Map();
+    // Creating this way to make it invisible
+    this.map = new Map();
+
     // define setters and getters for particular images
     IMAGES.forEach(imageType => {
       Object.defineProperty(this, imageType, {
-        enumerable: true,
+        enumerable: false,
         get: this.getImage.bind(this, imageType),
-        set: this.setImage.bind(this, imageType, ''),
+        set: this.setImage.bind(this, imageType, '1x'),
       });
       // setting retina properties too
       DENSITIES.forEach(density => {
         Object.defineProperty(this, imageType + density, {
-          enumerable: true,
+          enumerable: false,
           get: this.getImage.bind(this, imageType, density),
           set: this.setImage.bind(this, imageType, density),
         });
@@ -40,13 +46,13 @@ class PassImages {
    * @returns {string} - image path
    * @memberof PassImages
    */
-  getImage(imageType, density) {
+  getImage(imageType, density = '1x') {
     if (!IMAGES.includes(imageType))
       throw new Error(`Requested unknown image type: ${imageType}`);
-    if (!density) return this.images.get(imageType);
     if (!DENSITIES.includes(density))
       throw new Error(`Invalid desity for "${imageType}": ${density}`);
-    return this.images.get(`${imageType}@${density}`);
+    if (!this.map.has(imageType)) return undefined;
+    return this.map.get(imageType).get(density);
   }
 
   /**
@@ -57,11 +63,12 @@ class PassImages {
    * @param {string} fileName 
    * @memberof PassImages
    */
-  setImage(imageType, density, fileName) {
+  setImage(imageType, density = '1x', fileName) {
     if (!IMAGES.includes(imageType))
       throw new Error(`Attempted to set unknown image type: ${imageType}`);
-    if (!density) this.images.set(imageType, fileName);
-    else this.images.set(`${imageType}@${density}`, fileName);
+    const imgData = this.map.get(imageType) || new Map();
+    imgData.set(density, fileName);
+    this.map.set(imageType, imgData);
   }
 
   /**
@@ -72,11 +79,11 @@ class PassImages {
    * @memberof PassImages
    */
   async loadFromDirectory(dir) {
-    const stats = await stat(dir);
+    const stats = await statAsync(dir);
     if (!stats.isDirectory())
       throw new Error(`Path ${dir} must be a directory!`);
 
-    const files = await readdir(dir);
+    const files = await readdirAsync(dir);
     for (const filePath of files) {
       // we are interesting only in PNG files
       if (extname(filePath) === '.png') {

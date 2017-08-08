@@ -1,0 +1,260 @@
+// Generate a pass file.
+
+'use strict';
+
+const { EventEmitter } = require('events');
+const Path = require('path');
+
+const Zip = require('./lib/zip');
+const PassImages = require('./lib/images');
+const SHAWriteStream = require('./lib/SHAWriteStream');
+const signManifest = require('./lib/signManifest-openssl');
+const Fields = require('./lib/fields');
+const pipeIntoStream = require('./lib/pipe-into-stream');
+
+// Top-level pass fields.
+const TOP_LEVEL = [
+  'authenticationToken',
+  'backgroundColor',
+  'barcode',
+  'description',
+  'foregroundColor',
+  'labelColor',
+  'locations',
+  'logoText',
+  'organizationName',
+  'relevantDate',
+  'serialNumber',
+  'suppressStripShine',
+  'webServiceURL',
+];
+// These top level fields are required for a valid pass.
+const REQUIRED_TOP_LEVEL = [
+  'description',
+  'organizationName',
+  'passTypeIdentifier',
+  'serialNumber',
+  'teamIdentifier',
+];
+// Pass structure keys.
+const STRUCTURE_FIELDS = [
+  'auxiliaryFields',
+  'backFields',
+  'headerFields',
+  'primaryFields',
+  'secondaryFields',
+];
+// These images are required for a valid pass.
+const REQUIRED_IMAGES = ['icon', 'logo'];
+
+// Create a new pass.
+//
+// template  - The template
+// fields    - Pass fields (description, serialNumber, logoText)
+class Pass extends EventEmitter {
+  constructor(template, fields = {}, images) {
+    super();
+
+    this.template = template;
+    this.fields = Object.assign({}, fields);
+    // Structure is basically reference to all the fields under a given style
+    // key, e.g. if style is coupon then structure.primaryFields maps to
+    // fields.coupon.primaryFields.
+    const style = template.style;
+    this.structure = this.fields[style];
+    if (!this.structure) this.structure = this.fields[style] = {};
+    this.images = new PassImages();
+    if (images) Object.assign(this.images, images);
+
+    // For localizations support
+    this.localizations = {};
+
+    // Accessor methods for top-level fields (description, serialNumber, logoText,
+    // etc).
+    //
+    // Call with an argument to set field and return self, call with no argument to
+    // get field value.
+    //
+    //   pass.description("Unbelievable discount");
+    //   console.log(pass.description());
+    TOP_LEVEL.forEach(key => {
+      this[key] = v => {
+        if (arguments) { // eslint-disable-line
+          this.fields[key] = v;
+          return this;
+        }
+        return this.fields[key];
+      };
+    });
+
+    // Accessor methods for structure fields (primaryFields, backFields, etc).
+    //
+    // For example:
+    //
+    //   pass.headerFields.add("time", "The Time", "10:00AM");
+    //   pass.backFields.add("url", "Web site", "http://example.com");
+    STRUCTURE_FIELDS.forEach(key => {
+      Object.defineProperty(this, key, {
+        writable: false,
+        enumerable: true,
+        value: new Fields(this, key),
+      });
+    });
+  }
+
+  // Localization
+  addLocalization(lang, values) {
+    const keys = Object.keys(values);
+    // .string files formatting
+    const strings = keys.map(
+      key => `"${key}" = "${values[key].replace(/"/g, '\\"')}";`,
+    );
+    this.localizations[lang] = strings.join('\n');
+  }
+
+  // Validate pass, throws error if missing a mandatory top-level field or image.
+  validate() {
+    for (const i in REQUIRED_TOP_LEVEL) {
+      const k1 = REQUIRED_TOP_LEVEL[i];
+      if (!this.fields[k1]) throw new Error(`Missing field ${k1}`);
+    }
+    for (const j in REQUIRED_IMAGES) {
+      const k2 = REQUIRED_IMAGES[j];
+      if (!this.images[k2]) throw new Error(`Missing image ${k2}.png`);
+    }
+  }
+
+  // Returns the pass.json object (not a string).
+  getPassJSON() {
+    const fields = Object.assign({}, this.fields);
+    fields.formatVersion = 1;
+    return fields;
+  }
+
+  // Pipe pass to a write stream.
+  //
+  // output - Write stream
+  pipe(output) {
+    const zip = new Zip(output);
+    let lastError;
+
+    zip.on('error', error => {
+      lastError = error;
+    });
+
+    // Validate before attempting to create
+    try {
+      this.validate();
+    } catch (error) {
+      setImmediate(() => {
+        this.emit('error', error);
+      });
+      return;
+    }
+
+    // Construct manifest here
+    const manifest = {};
+    // Add file to zip and it's SHA to manifest
+    function addFile(filename) {
+      const file = zip.addFile(filename);
+      const sha = new SHAWriteStream(manifest, filename, file);
+      return sha;
+    }
+    const doneWithImages = () => {
+      if (lastError) {
+        zip.close();
+        this.emit('error', lastError);
+      } else {
+        setImmediate(() => {
+          this.signZip(zip, manifest, error => {
+            if (error) {
+              return this.emit('error', error);
+            }
+            zip.close();
+            zip.on('end', () => {
+              this.emit('end');
+            });
+            zip.on('error', error => {
+              this.emit('error', error);
+            });
+          });
+        });
+      }
+    };
+
+    // Create pass.json
+    const passJson = Buffer.from(JSON.stringify(this.getPassJSON()), 'utf-8');
+    addFile('pass.json').end(passJson, 'utf8');
+
+    // Localization
+    const langs = Object.keys(this.localizations);
+    for (let i = 0; i < langs.length; i++) {
+      const lang = langs[i];
+      addFile(`${lang}.lproj/pass.strings`).end(
+        Buffer.from(this.localizations[lang]),
+        'utf-16',
+      );
+    }
+
+    let expecting = 0;
+    for (const [imageType, imageVariants] of this.images.map) {
+      for (const [density, file] of imageVariants) {
+        const filename = `${imageType}${density !== '1x'
+          ? `@${density}`
+          : ''}.png`;
+        pipeIntoStream(addFile(filename), file, error => {
+          --expecting;
+          if (error) lastError = error;
+          if (expecting === 0) doneWithImages();
+        });
+        ++expecting;
+      }
+    }
+  }
+
+  /**
+   * Use this to send pass as HTTP response.
+   * Adds appropriate headers and pipes pass to response.
+   * 
+   * @param {any} response - HTTP response
+   * @memberof Pass
+   */
+  render(response) {
+    return new Promise((resolve, reject) => {
+      response.setHeader('Content-Type', 'application/vnd.apple.pkpass');
+      this.on('error', reject);
+      this.on('end', resolve);
+      this.pipe(response);
+    });
+  }
+
+  /**
+   * Add manifest.json and signature files.
+   * 
+   * @param {any} zip 
+   * @param {any} manifest 
+   * @memberof Pass
+   */
+  signZip(zip, manifest, callback) {
+    const json = JSON.stringify(manifest);
+    // Add manifest.json
+    zip.addFile('manifest.json').end(json, 'utf-8');
+    // Create signature
+    const identifier = this.template.passTypeIdentifier().replace(/^pass./, '');
+    signManifest(
+      Path.resolve(this.template.keysPath, `${identifier}.pem`),
+      Path.resolve(__dirname, '../keys/wwdr.pem'),
+      this.template.password,
+      json,
+      (error, signature) => {
+        if (!error) {
+          // Write signature file
+          zip.addFile('signature').end(signature);
+        }
+        callback(error);
+      },
+    );
+  }
+}
+
+module.exports = Pass;
