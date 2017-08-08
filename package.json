@@ -2,7 +2,7 @@
   "name": "@destinationstransfers/passkit",
   "description": "Apple PassKit for the Node",
   "homepage": "https://github.com/destinationstransfers/passkit",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "engines": {
     "node": ">=8"
   },
