@@ -2,6 +2,7 @@
 
 'use strict';
 
+const { URL } = require('url');
 const PassImages = require('./lib/images');
 const Pass = require('./pass');
 
@@ -24,9 +25,29 @@ class Template {
       throw new Error(`Unsupported pass style ${style}`);
 
     this.style = style;
-    this.fields = Object.assign({}, fields);
+    this.fields = {};
+    // we will set all fields via class setters, as in the future we will implement strict validators
+    // values validation: https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/TopLevel.html
+    for (const [field, value] of Object.entries(fields)) {
+      if (typeof this[field] === 'function') this[field](value);
+    }
+
     this.keysPath = 'keys';
     this.images = new PassImages();
+  }
+
+  static validateColorValue(value) {
+    // it must throw on invalid value
+    // valid values are like rgb(123, 2, 22)
+    /^rgb\(\s*(\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\s*\)$/
+      .exec(value)
+      .slice(1)
+      .map(v => parseInt(v, 10))
+      .some(v => {
+        if (isNaN(v) || v < 0 || v > 255)
+          throw new Error(`Invalid color value ${value}`);
+        return false;
+      });
   }
 
   passTypeIdentifier(v) {
@@ -55,6 +76,7 @@ class Template {
 
   foregroundColor(v) {
     if (arguments.length === 1) {
+      Template.validateColorValue(v);
       this.fields.foregroundColor = v;
       return this;
     }
@@ -63,6 +85,7 @@ class Template {
 
   labelColor(v) {
     if (arguments.length === 1) {
+      Template.validateColorValue(v);
       this.fields.labelColor = v;
       return this;
     }
@@ -85,17 +108,45 @@ class Template {
     return this.fields.organizationName;
   }
 
+  groupingIdentifier(v) {
+    if (arguments.length === 1) {
+      this.fields.groupingIdentifier = v;
+      return this;
+    }
+    return this.fields.groupingIdentifier;
+  }
+
+  /**
+   * sets or gets suppressStripShine
+   * 
+   * @param {boolean?} v 
+   * @returns {Template | boolean}
+   * @memberof Template
+   */
   suppressStripShine(v) {
     if (arguments.length === 1) {
+      if (typeof v !== 'boolean')
+        throw new Error('suppressStripShine value must be a boolean!');
       this.fields.suppressStripShine = v;
       return this;
     }
     return this.fields.suppressStripShine;
   }
 
+  /**
+   * gets or sets webServiceURL
+   * 
+   * @param {URL | string} v 
+   * @returns {Template | string}
+   * @memberof Template
+   */
   webServiceURL(v) {
     if (arguments.length === 1) {
-      this.fields.webServiceURL = v;
+      // validating URL, it will throw on bad value
+      const url = v instanceof URL ? v : new URL(v);
+      if (url.protocol !== 'https:')
+        throw new Error(`webServiceURL must be on HTTPS!`);
+      this.fields.webServiceURL = url.toString();
       return this;
     }
     return this.fields.webServiceURL;

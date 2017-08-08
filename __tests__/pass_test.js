@@ -64,6 +64,21 @@ describe('Pass', () => {
     expect(pass.fields.eventTicket).toBeUndefined();
   });
 
+  //
+  test('barcodes as Array', () => {
+    const pass = template.createPass(cloneExcept(fields, 'serialNumber'));
+    expect(() =>
+      pass.barcodes([
+        {
+          format: 'PKBarcodeFormatQR',
+          message: 'Barcode message',
+          messageEncoding: 'iso-8859-1',
+        },
+      ]),
+    ).not.toThrow();
+    expect(() => pass.barcodes('byaka')).toThrow();
+  });
+
   test('without serial number should not be valid', () => {
     const pass = template.createPass(cloneExcept(fields, 'serialNumber'));
     expect(() => pass.validate()).toThrow('Missing field serialNumber');

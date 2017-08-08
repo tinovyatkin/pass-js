@@ -36,13 +36,16 @@ const REQUIRED_TOP_LEVEL = [
   'serialNumber',
   'teamIdentifier',
 ];
+
 // Pass structure keys.
+// https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/LowerLevel.html#//apple_ref/doc/uid/TP40012026-CH3-SW3
 const STRUCTURE_FIELDS = [
   'auxiliaryFields',
   'backFields',
   'headerFields',
   'primaryFields',
   'secondaryFields',
+  'transitType',
 ];
 // These images are required for a valid pass.
 const REQUIRED_IMAGES = ['icon', 'logo'];
@@ -100,6 +103,37 @@ class Pass extends EventEmitter {
         value: new Fields(this, key),
       });
     });
+  }
+
+  /**
+   * 
+   * @param {Array.<{format: string, message: string, messageEncoding: string}>} v
+   */
+
+  barcodes(v) {
+    if (arguments.length === 1) {
+      if (!Array.isArray(v)) throw new Error('barcodes must be an Array!');
+      // Barcodes dictionary: https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/LowerLevel.html#//apple_ref/doc/uid/TP40012026-CH3-SW3
+      v.forEach(barcode => {
+        if (
+          ![
+            'PKBarcodeFormatQR',
+            'PKBarcodeFormatPDF417',
+            'PKBarcodeFormatAztec',
+            'PKBarcodeFormatCode128',
+          ].includes(barcode.format)
+        )
+          throw new Error(`Barcode format value ${barcode.format} is invalid!`);
+        if (typeof barcode.message !== 'string')
+          throw new Error('Barcode message string is required');
+        if (typeof barcode.messageEncoding !== 'string')
+          throw new Error('Barcode messageEncoding is required');
+      });
+      // copy array
+      this.fields.barcodes = [...v];
+      return this;
+    }
+    return this.fields.barcodes;
   }
 
   // Localization
