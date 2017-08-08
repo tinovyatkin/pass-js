@@ -1,29 +1,24 @@
-var assert = require("assert");
-var createTemplate = require("../");
+'use strict';
 
-describe("Template", function() {
+const Template = require('../src/template');
 
-  describe("unsupported style", function() {
-    it("should throw an error", function() {
-      try {
-        createTemplate("discount");
-        assert(false, "Created template with unsupported style 'discount'");
-      } catch(error) {}
-    });
+describe('Template', () => {
+  test('should throw an error on unsupported type', () => {
+    expect(() => new Template('discount')).toThrow();
   });
 
-  describe("fields", function() {
-    before(function() {
-      this.fields = { passTypeIdentifier: "com.example.passbook" };
-      this.template = createTemplate("coupon", this.fields);
-    });
-    it("should come from constructor", function() {
-      assert.equal(this.template.passTypeIdentifier(), "com.example.passbook");
-    });
-    it("should not change when original object changes", function() {
-      this.fields.passTypeIdentifier = "com.example.somethingelse";
-      assert.equal(this.template.passTypeIdentifier(), "com.example.passbook");
-    });
+  test('fields', () => {
+    const originalFields = {
+      passTypeIdentifier: 'com.example.passbook',
+    };
+    const templ = new Template('coupon', originalFields);
+    expect(templ.passTypeIdentifier()).toBe('com.example.passbook');
+    templ.passTypeIdentifier('com.byaka.buka');
+    expect(templ.passTypeIdentifier()).toBe('com.byaka.buka');
+    expect(originalFields.passTypeIdentifier).toBe('com.example.passbook');
+
+    // should not change when original object changes'
+    originalFields.passTypeIdentifier = 'com.example.somethingelse';
+    expect(templ.passTypeIdentifier()).toBe('com.byaka.buka');
   });
-  
 });

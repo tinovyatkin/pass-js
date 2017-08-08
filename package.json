@@ -1,9 +1,12 @@
 {
   "name": "@destinationstransfers/passkit",
-  "description": "iOS Passbook for the Node",
+  "description": "Apple PassKit for the Node",
   "homepage": "https://github.com/destinationstransfers/passkit",
   "version": "1.2.0",
-  "main": "./lib/index.js",
+  "main": "./src/template.js",
+  "engines": {
+    "node": ">=8"
+  },
   "bin": {
     "node-passbook": "./bin/node-passbook"
   },
@@ -12,6 +15,7 @@
     "async": "^0.9.0",
     "cli": "0.6.5",
     "eslint": "^4.4.0",
+    "eslint-plugin-node": "^5.1.1",
     "jest": "^20.0.4"
   },
   "scripts": {
@@ -42,15 +46,14 @@
   },
   "author": "Tino Vyatkin <tino@vtkn.io>",
   "license": "ISC",
-  "dependencies": {
-    "fs-nextra": "^0.2.0"
-  },
+  "dependencies": {},
   "jest": {
+    "collectCoverage": true,
     "bail": true,
     "testEnvironment": "node",
     "verbose": true,
     "collectCoverageFrom": [
-      "lib/*.js"
+      "src/**/*.js"
     ]
   }
 }

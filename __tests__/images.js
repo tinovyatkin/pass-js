@@ -1,6 +1,6 @@
 'use strict';
 
-const PassImages = require('../lib/images');
+const PassImages = require('../src/lib/images');
 
 describe('PassImages', () => {
   test('Class properties', () => {
@@ -18,4 +18,6 @@ describe('PassImages', () => {
     expect(img.background2x).toBe('testBackground2x');
     expect(img.background3x).toBeUndefined();
   });
+
+  test('reading images from directory', () => {});
 });
