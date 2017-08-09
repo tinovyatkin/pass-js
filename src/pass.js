@@ -189,8 +189,8 @@ class Pass extends EventEmitter {
             zip.on('end', () => {
               this.emit('end');
             });
-            zip.on('error', error => {
-              this.emit('error', error);
+            zip.on('error', err => {
+              this.emit('error', err);
             });
           });
         });
