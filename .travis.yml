@@ -1,18 +1,20 @@
 git:
   depth: 10
-
 language: node_js
-
 node_js:
 - node
-
 before_install:
 - openssl aes-256-cbc -K $encrypted_c74283d91f61_key -iv $encrypted_c74283d91f61_iv
   -in com.example.passbook.pem.enc -out keys/com.example.passbook.pem -d
 - npm install -g greenkeeper-lockfile@1
-
 before_script: greenkeeper-lockfile-update
-
 after_script: greenkeeper-lockfile-upload
-
 after_success: bash <(curl -s https://codecov.io/bash)  -t c06c5378-ecfd-4d49-9ac6-8508f77462db
+deploy:
+  provider: npm
+  email: tino@vtkn.io
+  api_key:
+    secure: aOY8Z8SYB0lOkidhP9iS8qaD0Wds8c66UJL7cMMg4WdvckKJorlLrSxUkSTlKj+PbRJpZlcLEgMeEpmd0OlWuBohIawG8ul8qz31oAAM/zOUebo3JXrm/9a9qV5pESn4m7nxrTE0I9Qh4OABNOtwbggSHc2evWN/UCF/ZtpMlzR/HmQc5+soFO1w+ezzmF83CLc+2AdatUD9Wob3awq64SaA7546LR2qxKzd5osd7AhIkewbElgi24+TfUNz0a4Frr3wjuRJ0+EEsEKyaj0KkD4o8efIB7pGqIOBBTJU3UdUwj201sVFCmQnIPfHUCNkH0a5rfTaHJ7KoweIPKxnZkIoKV9SlRXPAR3+6NgUDrC8Pj5jtDoYW9ZMsRStCZgH47uBg7Qc1VNsxDIgNT8FUfzRSmNZRxK+0Z/eDMeIw6umivtYliqCzLHMvMaJxiv2caBeFxK69GaV6IhPknzJHGsJNlbSLV5V/sxuEQ2ejzfWXIfnEOjdD7JXAoTJ5SvjYEBGxO/fLshTgaVPfbJSFROteotenwJV50iFsB0hVeYHLEBakF+miVyE44DT20ev0Pb3FL/EKj8VhFaVvVVIJS49NIqfFjCvPTBOvZi6CYW4eCYszaRH6zDYuI0M6Npaxk2/2nTN/VBaokNV8QD8urenYO+my+V1ebHVg1pjzv0=
+  on:
+    tags: true
+    repo: destinationstransfers/passkit
