@@ -1,9 +1,8 @@
 [![codecov](https://codecov.io/gh/destinationstransfers/passkit/branch/master/graph/badge.svg)](https://codecov.io/gh/destinationstransfers/passkit)
 [![Build Status](https://travis-ci.org/destinationstransfers/passkit.svg?branch=master)](https://travis-ci.org/destinationstransfers/passkit)
+[![Greenkeeper badge](https://badges.greenkeeper.io/destinationstransfers/passkit.svg)](https://greenkeeper.io/)
 
 # Motivation
-
-[![Greenkeeper badge](https://badges.greenkeeper.io/destinationstransfers/passkit.svg)](https://greenkeeper.io/)
 
 This is almost complete rewrite of [assaf/node-passbook](http://github.com/assaf/node-passbook).
 The original module lacks new commits in last two years and outdated. This modules:
@@ -15,6 +14,7 @@ The original module lacks new commits in last two years and outdated. This modul
 -   Increased test coverage
 -   Adds strict dictionary fields values validation (where possible) to prevent errors earlier
 -   Adding support for geolocation fields and Becon fields
+-   Adding easy template and localization load from JSON file
 
 # Get your certificates
 
