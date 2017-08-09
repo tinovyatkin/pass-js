@@ -1,9 +1,18 @@
 git:
   depth: 10
+
 language: node_js
+
 node_js:
 - node
-after_success: bash <(curl -s https://codecov.io/bash)  -t c06c5378-ecfd-4d49-9ac6-8508f77462db
+
 before_install:
 - openssl aes-256-cbc -K $encrypted_c74283d91f61_key -iv $encrypted_c74283d91f61_iv
   -in com.example.passbook.pem.enc -out keys/com.example.passbook.pem -d
+- npm install -g greenkeeper-lockfile@1
+
+before_script: greenkeeper-lockfile-update
+
+after_script: greenkeeper-lockfile-upload
+
+after_success: bash <(curl -s https://codecov.io/bash)  -t c06c5378-ecfd-4d49-9ac6-8508f77462db
