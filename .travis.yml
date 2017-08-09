@@ -1,21 +1,7 @@
 git:
   depth: 10
 
-os: osx
-
-sudo: false
-
-before_install:
-  - rm -rf ~/.nvm/ && git clone --depth 1 https://github.com/creationix/nvm.git ~/.nvm
-  - source ~/.nvm/nvm.sh
-  - nvm install node
-  - nvm use node
-
-install:
-  - npm install
-
-script:
-  - npm test
+language: node_js
 
 after_success: bash <(curl -s https://codecov.io/bash)  -t c06c5378-ecfd-4d49-9ac6-8508f77462db
 
