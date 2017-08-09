@@ -15,6 +15,7 @@ The original module lacks new commits in last two years and outdated. This modul
 -   Adds strict dictionary fields values validation (where possible) to prevent errors earlier
 -   Adding support for geolocation fields and Becon fields
 -   Adding easy template and localization load from JSON file
+-   We use in production at [Transfers.do](https://transfers.do/)
 
 # Get your certificates
 
