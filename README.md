@@ -3,6 +3,8 @@
 
 # Motivation
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/destinationstransfers/passkit.svg)](https://greenkeeper.io/)
+
 This is almost complete rewrite of [assaf/node-passbook](http://github.com/assaf/node-passbook).
 The original module lacks new commits in last two years and outdated. This modules:
 
