@@ -1,19 +1,21 @@
-// Passbook are created from templates
+/**
+ * Passbook are created from templates
+ */
 
 'use strict';
 
 const { URL } = require('url');
+const { stat, readFile, exists } = require('fs');
+const { promisify } = require('util');
+const { join } = require('path');
+
 const PassImages = require('./lib/images');
 const Pass = require('./pass');
+const { PASS_STYLES } = require('./constants');
 
-// Supported passbook styles.
-const STYLES = [
-  'boardingPass',
-  'coupon',
-  'eventTicket',
-  'generic',
-  'storeCard',
-];
+const readFileAsync = promisify(readFile);
+const statAsync = promisify(stat);
+const existsAsync = promisify(exists);
 
 // Create a new template.
 //
@@ -21,7 +23,7 @@ const STYLES = [
 // fields - Pass fields (passTypeIdentifier, teamIdentifier, etc)
 class Template {
   constructor(style, fields = {}) {
-    if (!STYLES.includes(style))
+    if (!PASS_STYLES.includes(style))
       throw new Error(`Unsupported pass style ${style}`);
 
     this.style = style;
@@ -36,6 +38,14 @@ class Template {
     this.images = new PassImages();
   }
 
+  /**
+   * Validates if given string is a correct color value for Pass fields
+   * 
+   * @static
+   * @param {string} value 
+   * @throws - if value is invalid this function will throw
+   * @memberof Template
+   */
   static validateColorValue(value) {
     // it must throw on invalid value
     // valid values are like rgb(123, 2, 22)
@@ -174,6 +184,54 @@ class Template {
   createPass(fields = {}) {
     // Combine template and pass fields
     return new Pass(this, Object.assign({}, this.fields, fields), this.images);
+  }
+
+  /**
+   * Loads Template, images and key from a given path
+   * 
+   * @static
+   * @param {string} folderPath 
+   * @param {string} keyPassword - optional key password
+   * @returns {Template}
+   * @throws - if given folder doesn't contain pass.json or it is's in invalid format
+   * @memberof Template
+   */
+  static async load(folderPath, keyPassword) {
+    // Check if the path is accessible directory actually
+    const stats = await statAsync(folderPath);
+    if (!stats.isDirectory())
+      throw new Error(`Path ${folderPath} must be a directory!`);
+
+    // getting main JSON file
+    const passJson = JSON.parse(
+      await readFileAsync(join(folderPath, 'pass.json')),
+    );
+
+    // Trying to detect the type of pass
+    let type;
+    if (
+      !PASS_STYLES.some(t => {
+        if (t in passJson) {
+          type = t;
+          return true;
+        }
+        return false;
+      })
+    )
+      throw new Error('Unknown pass style!');
+
+    const template = new Template(type, passJson);
+
+    // load images from the same folder
+    await template.images.loadFromDirectory(folderPath);
+
+    // checking if there is a key - must be named ${passTypeIdentifier}.pem
+    const typeIdentifier = passJson.passTypeIdentifier;
+    const keyName = `${typeIdentifier.replace(/^pass\./, '')}.pem`;
+    if (await existsAsync(keyName)) template.keys(folderPath, keyPassword);
+
+    // done
+    return template;
   }
 }
 

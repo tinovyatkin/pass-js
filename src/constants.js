@@ -37,6 +37,16 @@ const DENSITIES = ['1x', '2x', '3x'];
 exports.IMAGES = IMAGES;
 exports.DENSITIES = DENSITIES;
 
+// Supported passbook styles.
+const PASS_STYLES = [
+  'boardingPass',
+  'coupon',
+  'eventTicket',
+  'storeCard',
+  'generic',
+];
+exports.PASS_STYLES = PASS_STYLES;
+
 // Optional top level fields
 // Top-level pass fields.
 // https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/TopLevel.html#//apple_ref/doc/uid/TP40012026-CH2-SW1

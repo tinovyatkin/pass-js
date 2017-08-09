@@ -1,6 +1,7 @@
 'use strict';
 
 const Template = require('../src/template');
+const path = require('path');
 
 const originalFields = {
   passTypeIdentifier: 'com.example.passbook',
@@ -40,5 +41,19 @@ describe('Template', () => {
     expect(() => templ.foregroundColor('rgb(33, 0,287)')).toThrow(
       'Invalid color value',
     );
+  });
+
+  test('loading template from a folder', async () => {
+    const templ = await Template.load(
+      path.resolve(__dirname, './resources/passes/BoardingPass.pass'),
+    );
+    expect(templ.passTypeIdentifier()).toBe('pass.com.apple.devpubs.example');
+    expect(templ.images.logo2x).toBeDefined();
+
+    const templ2 = await Template.load(
+      path.resolve(__dirname, './resources/passes/Event.pass'),
+    );
+    expect(templ2.teamIdentifier()).toBe('A93A5CM278');
+    expect(templ2.images.thumbnail).toBeDefined();
   });
 });

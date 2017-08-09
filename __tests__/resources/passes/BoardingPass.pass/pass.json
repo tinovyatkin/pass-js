@@ -1,0 +1,91 @@
+{
+  "formatVersion": 1,
+  "passTypeIdentifier": "pass.com.apple.devpubs.example",
+  "serialNumber": "gT6zrHkaW",
+  "teamIdentifier": "A93A5CM278",
+  "webServiceURL": "https://example.com/passes/",
+  "authenticationToken": "vxwxd7J8AlNNFPS8k0a0FfUFtq0ewzFdc",
+  "relevantDate": "2012-07-22T14:25-08:00",
+  "locations": [
+    {
+      "longitude": -122.3748889,
+      "latitude": 37.6189722
+    }
+  ],
+  "barcode": {
+    "message": "SFOJFK JOHN APPLESEED LH451 2012-07-22T14:25-08:00",
+    "format": "PKBarcodeFormatPDF417",
+    "messageEncoding": "iso-8859-1"
+  },
+  "organizationName": "Skyport Airways",
+  "description": "Skyport Boarding Pass",
+  "logoText": "Skyport Airways",
+  "foregroundColor": "rgb(22, 55, 110)",
+  "backgroundColor": "rgb(50, 91, 185)",
+  "boardingPass": {
+    "transitType": "PKTransitTypeAir",
+    "headerFields": [
+      {
+        "label": "GATE",
+        "key": "gate",
+        "value": "23",
+        "changeMessage": "Gate changed to %@."
+      }
+    ],
+    "primaryFields": [
+      {
+        "key": "depart",
+        "label": "SAN FRANCISCO",
+        "value": "SFO"
+      },
+      {
+        "key": "arrive",
+        "label": "NEW YORK",
+        "value": "JFK"
+      }
+    ],
+    "secondaryFields": [
+      {
+        "key": "passenger",
+        "label": "PASSENGER",
+        "value": "John Appleseed"
+      }
+    ],
+    "auxiliaryFields": [
+      {
+        "label": "DEPART",
+        "key": "boardingTime",
+        "value": "2:25 PM",
+        "changeMessage": "Boarding time changed to %@."
+      },
+      {
+        "label": "FLIGHT",
+        "key": "flightNewName",
+        "value": "815",
+        "changeMessage": "Flight number changed to %@"
+      },
+      {
+        "key": "class",
+        "label": "DESIG.",
+        "value": "Coach"
+      },
+      {
+        "key": "date",
+        "label": "DATE",
+        "value": "7/22"
+      }
+    ],
+    "backFields": [
+      {
+        "key": "passport",
+        "label": "PASSPORT",
+        "value": "Canadian/Canadien"
+      },
+      {
+        "key": "residence",
+        "label": "RESIDENCE",
+        "value": "999 Infinite Loop, Apartment 42, Cupertino CA"
+      }
+    ]
+  }
+}
