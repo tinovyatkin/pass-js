@@ -1,3 +1,9 @@
+## 3.1.0 August 9, 2017
+
+-   Added `Template.load` static method to load template, images and key from a folder (no localization support yet, but coming)
+-   Added blank templates for all possible images
+-   Increased test coverage
+
 ## 3.0.0 August 8, 2017
 
 -   Rewritten in ES6 Classes, targetting Node 8
