@@ -1,8 +1,17 @@
 git:
   depth: 10
-language: node_js
-node_js:
-- node
+
+os: osx
+
+before_install:
+  - brew update
+  - brew install node
+
+install:
+  - npm install
+
+script:
+  - npm test
 
 after_success: bash <(curl -s https://codecov.io/bash)  -t c06c5378-ecfd-4d49-9ac6-8508f77462db
 
