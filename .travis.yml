@@ -3,9 +3,13 @@ git:
 
 os: osx
 
+sudo: false
+
 before_install:
-  - brew update
-  - brew install node
+  - rm -rf ~/.nvm/ && git clone --depth 1 https://github.com/creationix/nvm.git ~/.nvm
+  - source ~/.nvm/nvm.sh
+  - nvm install $NODE_VERSION
+  - nvm use $NODE_VERSION
 
 install:
   - npm install
