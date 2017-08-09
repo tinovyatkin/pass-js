@@ -1,6 +1,7 @@
 'use strict';
 
 const PassImages = require('../src/lib/images');
+const path = require('path');
 
 describe('PassImages', () => {
   test('Class properties', () => {
@@ -19,5 +20,14 @@ describe('PassImages', () => {
     expect(img.background3x).toBeUndefined();
   });
 
-  test('reading images from directory', () => {});
+  test('reading images from directory', async () => {
+    const img = new PassImages();
+    await img.loadFromDirectory(path.resolve(__dirname, '../images/'));
+    expect(img.map.size).toBe(6);
+    // ensure it loaded all dimensions for all images
+    for (const variations of img.map.values()) {
+      expect(variations).toBeInstanceOf(Map);
+      expect(variations.size).toBe(3);
+    }
+  });
 });
