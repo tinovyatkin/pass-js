@@ -185,16 +185,19 @@ describe('generated', () => {
     });
   });
 
-  test('should contain a signature', done => {
-    execFile(
-      path.resolve(__dirname, './resources/bin/signpass'),
-      ['-v', '/tmp/pass.pkpass'],
-      (error, stdout) => {
-        expect(stdout).toMatch(/\*\*\* SUCCEEDED \*\*\*/);
-        done();
-      },
-    );
-  });
+  // this test depends on MacOS specific signpass, so, skip it on CI
+  if (!process.env.CI) {
+    test('should contain a signature', done => {
+      execFile(
+        path.resolve(__dirname, './resources/bin/signpass'),
+        ['-v', '/tmp/pass.pkpass'],
+        (error, stdout) => {
+          expect(stdout).toMatch(/\*\*\* SUCCEEDED \*\*\*/);
+          done();
+        },
+      );
+    });
+  }
 
   test('should contain the icon', async () => {
     const buffer = await unzip('/tmp/pass.pkpass', 'icon.png');
