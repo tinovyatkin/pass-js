@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/destinationstransfers/passkit/branch/master/graph/badge.svg)](https://codecov.io/gh/destinationstransfers/passkit)
+
 # Motivation
 
 This is almost complete rewrite of [assaf/node-passbook](http://github.com/assaf/node-passbook).

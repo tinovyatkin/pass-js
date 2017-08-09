@@ -1,0 +1,9 @@
+coverage:
+  parsers:
+    javascript:
+      enable_partials: yes
+
+codecov:
+  token: c06c5378-ecfd-4d49-9ac6-8508f77462db
+
+
