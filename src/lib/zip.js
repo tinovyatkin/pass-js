@@ -50,6 +50,10 @@ class Zip extends EventEmitter {
       }
       zip.emit('error', error);
     });
+    output.on('finish', () => {
+      debug('Zip completed');
+      zip.emit('end');
+    });
     output.on('close', () => {
       debug('Zip completed');
       zip.emit('end');
