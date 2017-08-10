@@ -118,12 +118,15 @@ class Pass extends EventEmitter {
 
   // Localization
   addLocalization(lang, values) {
-    const keys = Object.keys(values);
-    // .string files formatting
-    const strings = keys.map(
-      key => `"${key}" = "${values[key].replace(/"/g, '\\"')}";`,
-    );
-    this.localizations[lang] = strings.join('\n');
+    // map, escaping the " symbol
+    this.localizations[lang] =
+      (lang in this.localizations ? `${this.localizations[lang]}\n` : '') +
+      Object.entries(values)
+        .map(
+          ([originalStr, translatedStr]) =>
+            `"${originalStr}" = "${translatedStr.replace(/"/g, '\\"')}";`,
+        )
+        .join('\n');
   }
 
   // Validate pass, throws error if missing a mandatory top-level field or image.
@@ -202,13 +205,8 @@ class Pass extends EventEmitter {
     addFile('pass.json').end(passJson, 'utf8');
 
     // Localization
-    const langs = Object.keys(this.localizations);
-    for (let i = 0; i < langs.length; i++) {
-      const lang = langs[i];
-      addFile(`${lang}.lproj/pass.strings`).end(
-        Buffer.from(this.localizations[lang]),
-        'utf-16',
-      );
+    for (const [lang, strings] of Object.entries(this.localizations)) {
+      addFile(`${lang}.lproj/pass.strings`).end(Buffer.from(strings), 'utf-16');
     }
 
     let expecting = 0;
