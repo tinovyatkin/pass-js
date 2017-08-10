@@ -1,0 +1,7 @@
+{
+  "rules": {
+    "node/shebang": "off",
+    "no-sync": "off",
+    "no-process-exit": "off"
+  }
+}

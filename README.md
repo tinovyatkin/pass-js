@@ -26,12 +26,12 @@ need one certificate per Pass Type ID.
 After adding this certificate to your Keychain, you need to export it as a
 `.p12` file and copy it into the keys directory.
 
-You will also need the 'Apple Worldwide Developer Relations Certification
-Authority' certificate and to conver the `.p12` files into `.pem` files.  You
-can do both using the `node-passbook prepare-keys` command:
+You will also need the [Apple Worldwide Developer Relations Certification
+Authority](https://www.apple.com/certificateauthority/) certificate and to convert the `.p12` files into `.pem` files.  You
+can do both using the `passkit-keys` command:
 
 ```sh
-node-passbook prepare-keys -p keys
+./bin/passkit-keys ./pathToKeysFolder
 ```
 
 This is the same directory into which you placet the `.p12` files.
