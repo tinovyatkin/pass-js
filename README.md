@@ -1,6 +1,6 @@
 [![codecov](https://codecov.io/gh/destinationstransfers/passkit/branch/master/graph/badge.svg)](https://codecov.io/gh/destinationstransfers/passkit)
 [![Build Status](https://travis-ci.org/destinationstransfers/passkit.svg?branch=master)](https://travis-ci.org/destinationstransfers/passkit)
-[![Greenkeeper badge](https://badges.greenkeeper.io/destinationstransfers/passkit.svg)](https://greenkeeper.io/)
+[![Greenkeeper badge](https://badges.greenkeeper.io/destinationstransfers/passkit.svg)](https://greenkeeper.io/) [![Known Vulnerabilities](https://snyk.io/test/github/destinationstransfers/passkit/badge.svg)](https://snyk.io/test/github/destinationstransfers/passkit)
 
 # Motivation
 
@@ -52,7 +52,9 @@ const template = new Template("coupon", {
 
 // or
 
-const template = Template.load('./path/to/templateFolder');
+const template = Template.load('./path/to/templateFolder', 'secretKeyPasswod');
+// .load will load all "templateable" fields from pass.json,
+// as well as all images and com.example.passbook.pem file as key
 ```
 
 The first argument is the pass style (`coupon`, `eventTicket`, etc), and the
