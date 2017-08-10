@@ -228,7 +228,7 @@ class Template {
     const typeIdentifier = passJson.passTypeIdentifier;
     const keyName = `${typeIdentifier.replace(/^pass\./, '')}.pem`;
     try {
-      const keyStat = await statAsync(keyName);
+      const keyStat = await statAsync(join(folderPath, keyName));
       if (keyStat.isFile()) template.keys(folderPath, keyPassword);
     } catch (_) {} // eslint-disable
 
