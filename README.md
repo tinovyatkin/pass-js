@@ -52,7 +52,7 @@ const template = new Template("coupon", {
 
 // or
 
-const template = Template.load('./path/to/templateFolder', 'secretKeyPasswod');
+const template = await Template.load('./path/to/templateFolder', 'secretKeyPasswod');
 // .load will load all "templateable" fields from pass.json,
 // as well as all images and com.example.passbook.pem file as key
 ```
