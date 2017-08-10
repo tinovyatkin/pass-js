@@ -24,7 +24,9 @@
   "scripts": {
     "test": "jest",
     "lint:markdown": "remark . --frail",
-    "lint:js": "eslint *.js --ignore-path .gitignore"
+    "lint:js": "eslint *.js --ignore-path .gitignore",
+    "preversion": "npm test",
+    "postversion": "git push && git push --tags"
   },
   "keywords": [
     "iOS",
