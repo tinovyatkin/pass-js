@@ -5,7 +5,7 @@
 'use strict';
 
 const { URL } = require('url');
-const { stat, readFile, exists } = require('fs');
+const { stat, readFile } = require('fs');
 const { promisify } = require('util');
 const { join } = require('path');
 
@@ -15,7 +15,6 @@ const { PASS_STYLES } = require('./constants');
 
 const readFileAsync = promisify(readFile);
 const statAsync = promisify(stat);
-const existsAsync = promisify(exists);
 
 // Create a new template.
 //
@@ -228,7 +227,10 @@ class Template {
     // checking if there is a key - must be named ${passTypeIdentifier}.pem
     const typeIdentifier = passJson.passTypeIdentifier;
     const keyName = `${typeIdentifier.replace(/^pass\./, '')}.pem`;
-    if (await existsAsync(keyName)) template.keys(folderPath, keyPassword);
+    try {
+      const keyStat = await statAsync(keyName);
+      if (keyStat.isFile()) template.keys(folderPath, keyPassword);
+    } catch (_) {} // eslint-disable
 
     // done
     return template;
