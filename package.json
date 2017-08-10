@@ -46,8 +46,8 @@
     }
   ],
   "directories": {
-    "lib": "lib",
-    "test": "test"
+    "lib": "src",
+    "test": "__tests__"
   },
   "author": "Tino Vyatkin <tino@vtkn.io>",
   "license": "ISC",
