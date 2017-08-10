@@ -30,9 +30,9 @@ class Template {
     this.fields = {};
     // we will set all fields via class setters, as in the future we will implement strict validators
     // values validation: https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/TopLevel.html
-    for (const [field, value] of Object.entries(fields)) {
+    Object.entries(fields).forEach(([field, value]) => {
       if (typeof this[field] === 'function') this[field](value);
-    }
+    });
 
     this.keysPath = 'keys';
     this.images = new PassImages();

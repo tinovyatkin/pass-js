@@ -131,15 +131,17 @@ class Pass extends EventEmitter {
 
   // Validate pass, throws error if missing a mandatory top-level field or image.
   validate() {
-    for (const [field, { required }] of Object.entries(TOP_LEVEL_FIELDS)) {
+    Object.entries(TOP_LEVEL_FIELDS).some(([field, { required }]) => {
       if (required && !(field in this.fields))
         throw new Error(`Missing field ${field}`);
-    }
+      return false;
+    });
 
-    for (const j in REQUIRED_IMAGES) {
-      const k2 = REQUIRED_IMAGES[j];
-      if (!this.images.map.has(k2)) throw new Error(`Missing image ${k2}.png`);
-    }
+    REQUIRED_IMAGES.some(image => {
+      if (!this.images.map.has(image))
+        throw new Error(`Missing image ${image}.png`);
+      return false;
+    });
   }
 
   // Returns the pass.json object (not a string).
@@ -205,13 +207,13 @@ class Pass extends EventEmitter {
     addFile('pass.json').end(passJson, 'utf8');
 
     // Localization
-    for (const [lang, strings] of Object.entries(this.localizations)) {
+    Object.entries(this.localizations).forEach(([lang, strings]) => {
       addFile(`${lang}.lproj/pass.strings`).end(Buffer.from(strings), 'utf-16');
-    }
+    });
 
     let expecting = 0;
-    for (const [imageType, imageVariants] of this.images.map) {
-      for (const [density, file] of imageVariants) {
+    this.images.map.forEach((imageVariants, imageType) => {
+      imageVariants.forEach((file, density) => {
         const filename = `${imageType}${density !== '1x'
           ? `@${density}`
           : ''}.png`;
@@ -221,8 +223,8 @@ class Pass extends EventEmitter {
           if (expecting === 0) doneWithImages();
         });
         ++expecting;
-      }
-    }
+      });
+    });
   }
 
   /**
@@ -244,8 +246,9 @@ class Pass extends EventEmitter {
   /**
    * Add manifest.json and signature files.
    * 
-   * @param {any} zip 
-   * @param {any} manifest 
+   * @param {Zip} zip 
+   * @param {Object} manifest 
+   * @param {Function} callback
    * @memberof Pass
    */
   signZip(zip, manifest, callback) {
