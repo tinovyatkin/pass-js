@@ -9,13 +9,13 @@ The original module lacks new commits in last two years and outdated. This modul
 
 -   Targetting Node 8 and refactored in ES6 Classes, removing deprecated calls (`new Buffer`, etc)
 -   Aims to replace `openssl` spawning with native Javascript RSA implementation
--   Adds contants for dictionary fields values
+-   Adds constants for dictionary fields string values
 -   Migrated tests to Jest
 -   Increased test coverage
 -   Adds strict dictionary fields values validation (where possible) to prevent errors earlier
 -   Adding support for geolocation fields and Becon fields
 -   Adding easy template and localization load from JSON file
--   We use in production at [Transfers.do](https://transfers.do/)
+-   We use it in production at [Transfers.do](https://transfers.do/)
 
 # Get your certificates
 
@@ -42,13 +42,17 @@ Start with a template.  A template has all the common data fields that will be
 shared between your passes, and also defines the keys to use for signing it.
 
 ```js
-const createTemplate = require("@destinationstransfers/passkit");
+const { Template } = require("@destinationstransfers/passkit");
 
-const template = createTemplate("coupon", {
+const template = new Template("coupon", {
   passTypeIdentifier: "pass.com.example.passbook",
   teamIdentifier:     "MXL",
   backgroundColor:   "rgb(255,255,255)"
 });
+
+// or
+
+const template = Template.load('./path/to/templateFolder');
 ```
 
 The first argument is the pass style (`coupon`, `eventTicket`, etc), and the
@@ -66,7 +70,7 @@ template.teamIdentifier("MXL").
 ```
 
 The following template fields are required:
-`passTypeIdentifier`  - The Passbook Type ID, begins with "pass."
+`passTypeIdentifier`  - The Apple Pass Type ID, begins with "pass."
 `teamIdentifier`      - May contain an I
 
 Optional fields that you can set on the template (or pass): `backgroundColor`,
@@ -78,7 +82,7 @@ to load images from:
 
 ```js
 template.keys("/etc/passbook/keys", "secret");
-template.images.loadFromDirectory("images");
+await template.images.loadFromDirectory("./images"); // loadFromDirectory returns Promise
 ```
 
 The last part is optional, but if you have images that are common to all passes,
@@ -138,15 +142,14 @@ Adding images to a pass is the same as adding images to a template:
 ```js
 pass.images.icon = iconFilename;
 pass.icon(iconFilename);
-pass.loadImagesFrom("images");
+await pass.images.loadFromDirectory('./images');
 ```
 
-You can add the image itself (a `Buffer`), or provide the name of a file or an
-HTTP/S URL for retrieving the image.  You can also provide a function that will
+You can add the image itself or a `Buffer`. You can also provide a function that will
 be called when it's time to load the image, and should pass an error, or `null`
 and a buffer to its callback.
 
-Additionally localizations can be added if needed:
+Additionally localizations can be added if needed (images localizations are not supported at the moment, but will be added soon):
 
 ```js
 pass.addLocalization("en", {
@@ -176,7 +179,7 @@ To generate a file:
 
 ```js
 const file = fs.createWriteStream("mypass.pkpass");
-pass.on("error", function(error) {
+pass.on("error", error => {
   console.error(error);
   process.exit(1);
 })
@@ -192,8 +195,8 @@ method will set the content type, pipe to the HTTP response, and make use of a
 callback (if supplied).
 
 ```js
-server.get("/mypass", function(request, response) {
-  pass.render(response, function(error) {
+server.get("/mypass", (request, response) => {
+  pass.render(response, error => {
     if (error)
       console.error(error);
   });

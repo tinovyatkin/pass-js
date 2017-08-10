@@ -78,11 +78,12 @@ class PassImages {
    * @memberof PassImages
    */
   async loadFromDirectory(dir) {
-    const stats = await statAsync(dir);
+    const fullPath = resolve(dir);
+    const stats = await statAsync(fullPath);
     if (!stats.isDirectory())
-      throw new Error(`Path ${dir} must be a directory!`);
+      throw new Error(`Path ${fullPath} must be a directory!`);
 
-    const files = await readdirAsync(dir);
+    const files = await readdirAsync(fullPath);
     for (const filePath of files) {
       // we are interesting only in PNG files
       if (extname(filePath) === '.png') {
@@ -94,7 +95,7 @@ class PassImages {
           IMAGES.includes(imageType) &&
           (!density || DENSITIES.includes(density))
         )
-          this.setImage(imageType, density, resolve(dir, filePath));
+          this.setImage(imageType, density, resolve(fullPath, filePath));
       }
     }
 

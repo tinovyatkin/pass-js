@@ -29,5 +29,7 @@ describe('PassImages', () => {
       expect(variations).toBeInstanceOf(Map);
       expect(variations.size).toBe(3);
     }
+
+    // relative path
   });
 });
