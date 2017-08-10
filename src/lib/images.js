@@ -20,7 +20,7 @@ class PassImages {
     this.map = new Map();
 
     // define setters and getters for particular images
-    IMAGES.forEach(imageType => {
+    Object.keys(IMAGES).forEach(imageType => {
       Object.defineProperty(this, imageType, {
         enumerable: false,
         get: this.getImage.bind(this, imageType),
@@ -46,7 +46,7 @@ class PassImages {
    * @memberof PassImages
    */
   getImage(imageType, density = '1x') {
-    if (!IMAGES.includes(imageType))
+    if (!(imageType in IMAGES))
       throw new Error(`Requested unknown image type: ${imageType}`);
     if (!DENSITIES.includes(density))
       throw new Error(`Invalid desity for "${imageType}": ${density}`);
@@ -63,7 +63,7 @@ class PassImages {
    * @memberof PassImages
    */
   setImage(imageType, density = '1x', fileName) {
-    if (!IMAGES.includes(imageType))
+    if (!(imageType in IMAGES))
       throw new Error(`Attempted to set unknown image type: ${imageType}`);
     const imgData = this.map.get(imageType) || new Map();
     imgData.set(density, fileName);
@@ -91,10 +91,7 @@ class PassImages {
         // this will split imagename like background@2x into 'background' and '2x' and fail on anything else
         const [, imageType, , density] =
           /^([a-z]+)(@([2-3]x))?$/.exec(fileName) || [];
-        if (
-          IMAGES.includes(imageType) &&
-          (!density || DENSITIES.includes(density))
-        )
+        if (imageType in IMAGES && (!density || DENSITIES.includes(density)))
           this.setImage(imageType, density, resolve(fullPath, filePath));
       }
     }

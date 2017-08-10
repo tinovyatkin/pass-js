@@ -6,6 +6,7 @@ const File = require('fs');
 const path = require('path');
 
 const Template = require('../src/template');
+const constants = require('../src/constants');
 
 // Clone all the fields in object, except the named field, and return a new
 // object.
@@ -111,6 +112,15 @@ describe('Pass', () => {
     });
 
     expect(validationError).toHaveProperty('message', 'Missing image logo.png');
+  });
+
+  test('boarding pass has string-only property in sctructure fields', async () => {
+    const template = await Template.load(
+      path.resolve(__dirname, './resources/passes/BoardingPass.pass/'),
+    );
+    expect(template.style).toBe('boardingPass');
+    // switching transit type
+    // const pass = template.createPass({});
   });
 });
 

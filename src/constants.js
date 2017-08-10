@@ -32,7 +32,35 @@ const dataDetector = {
 exports.dataDetector = dataDetector;
 
 // Supported images.
-const IMAGES = ['background', 'footer', 'icon', 'logo', 'strip', 'thumbnail'];
+const IMAGES = {
+  icon: {
+    width: 29,
+    height: 29,
+    required: true,
+  },
+  logo: {
+    width: 160,
+    height: 50,
+    required: true,
+  },
+  background: {
+    width: 180,
+    height: 220,
+  },
+  footer: {
+    width: 295,
+    height: 15,
+  },
+  strip: {
+    width: 375,
+    height: 123,
+  },
+  thumbnail: {
+    width: 90,
+    height: 90,
+  },
+};
+
 const DENSITIES = ['1x', '2x', '3x'];
 exports.IMAGES = IMAGES;
 exports.DENSITIES = DENSITIES;
@@ -140,3 +168,19 @@ const TOP_LEVEL_FIELDS = {
   },
 };
 exports.TOP_LEVEL_FIELDS = TOP_LEVEL_FIELDS;
+
+// Pass structure keys.
+// https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/LowerLevel.html#//apple_ref/doc/uid/TP40012026-CH3-SW3
+const STRUCTURE_FIELDS = [
+  'auxiliaryFields',
+  'backFields',
+  'headerFields',
+  'primaryFields',
+  'secondaryFields',
+  'transitType',
+];
+exports.STRUCTURE_FIELDS = STRUCTURE_FIELDS;
+
+// These images are required for a valid pass.
+const REQUIRED_IMAGES = ['icon', 'logo'];
+exports.REQUIRED_IMAGES = REQUIRED_IMAGES;

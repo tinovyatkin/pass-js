@@ -12,20 +12,11 @@ const signManifest = require('./lib/signManifest-openssl');
 const Fields = require('./lib/fields');
 const pipeIntoStream = require('./lib/pipe-into-stream');
 
-const { TOP_LEVEL_FIELDS } = require('./constants');
+const { TOP_LEVEL_FIELDS, IMAGES, STRUCTURE_FIELDS } = require('./constants');
 
-// Pass structure keys.
-// https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/LowerLevel.html#//apple_ref/doc/uid/TP40012026-CH3-SW3
-const STRUCTURE_FIELDS = [
-  'auxiliaryFields',
-  'backFields',
-  'headerFields',
-  'primaryFields',
-  'secondaryFields',
-  'transitType',
-];
-// These images are required for a valid pass.
-const REQUIRED_IMAGES = ['icon', 'logo'];
+const REQUIRED_IMAGES = Object.entries(IMAGES)
+  .filter(([, { required }]) => required)
+  .map(([imageType]) => imageType);
 
 // Create a new pass.
 //
