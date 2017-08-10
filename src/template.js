@@ -230,7 +230,7 @@ class Template {
     try {
       const keyStat = await statAsync(keyName);
       if (keyStat.isFile()) template.keys(folderPath, keyPassword);
-    } catch (_) {} // eslint-disable
+    } catch (_) {} // eslint-disable-line
 
     // done
     return template;
