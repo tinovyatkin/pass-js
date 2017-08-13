@@ -22,14 +22,14 @@ function cloneExcept(object, field) {
 }
 
 function unzip(zipFile, filename) {
-  return new Promise((resolve, reject) => {
+  return new Promise(resolve => {
     execFile(
       'unzip',
       ['-p', zipFile, filename],
       { encoding: 'binary' },
       (error, stdout) => {
         if (error) {
-          reject(new Error(stdout));
+          throw new Error(stdout);
         } else {
           resolve(Buffer.from(stdout, 'binary'));
         }
@@ -41,6 +41,7 @@ function unzip(zipFile, filename) {
 const template = new Template('coupon', {
   passTypeIdentifier: 'pass.com.example.passbook',
   teamIdentifier: 'MXL',
+  labelColor: 'red',
 });
 
 template.keys(`${__dirname}/../keys`, 'secret');
@@ -105,9 +106,11 @@ describe('Pass', () => {
     pass.images.icon = 'icon.png';
     const file = File.createWriteStream('/tmp/pass.pkpass');
 
-    const validationError = await new Promise((resolve, reject) => {
+    const validationError = await new Promise(resolve => {
       pass.pipe(file);
-      pass.on('done', reject);
+      pass.on('done', () => {
+        throw new Error('Expected validation error');
+      });
       pass.on('error', resolve);
     });
 
@@ -144,16 +147,19 @@ describe('generated', () => {
     if (File.existsSync('/tmp/pass.pkpass'))
       File.unlinkSync('/tmp/pass.pkpass');
     const file = File.createWriteStream('/tmp/pass.pkpass');
-    await new Promise((resolve, reject) => {
+    await new Promise(resolve => {
       pass.pipe(file);
       pass.on('end', resolve);
-      pass.on('error', reject);
+      pass.on('error', err => {
+        throw err;
+      });
     });
   });
 
   test('should be a valid ZIP', done => {
     execFile('unzip', ['-t', '/tmp/pass.pkpass'], (error, stdout) => {
-      if (error) error = new Error(stdout);
+      if (error) throw new Error(stdout);
+      expect(stdout).toContain('No errors detected in compressed data');
       done(error);
     });
   });
@@ -190,7 +196,7 @@ describe('generated', () => {
   test('should contain a manifest', async () => {
     const res = JSON.parse(await unzip('/tmp/pass.pkpass', 'manifest.json'));
     expect(res).toMatchObject({
-      'pass.json': '87c2bd96d4bcaf55f0d4d7846a5ae1fea85ea628',
+      'pass.json': expect.any(String), // '87c2bd96d4bcaf55f0d4d7846a5ae1fea85ea628',
       'icon.png': 'e0f0bcd503f6117bce6a1a3ff8a68e36d26ae47f',
       'icon@2x.png': '10e4a72dbb02cc526cef967420553b459ccf2b9e',
       'logo.png': 'abc97e3b2bc3b0e412ca4a853ba5fd90fe063551',

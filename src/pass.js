@@ -173,7 +173,6 @@ class Pass extends EventEmitter {
       .filter(v => v.endsWith('Color'))
       .filter(v => v in this.fields)
       .forEach(colorFieldName => {
-        console.log(colorFieldName);
         const value = this.fields[colorFieldName];
         try {
           /^rgb\(\s*(\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\s*\)$/

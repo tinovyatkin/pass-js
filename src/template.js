@@ -8,6 +8,7 @@ const { URL } = require('url');
 const { stat, readFile } = require('fs');
 const { promisify } = require('util');
 const { join } = require('path');
+const colorString = require('color-string');
 
 const PassImages = require('./lib/images');
 const Pass = require('./pass');
@@ -45,22 +46,17 @@ class Template {
    * Validates if given string is a correct color value for Pass fields
    * 
    * @static
-   * @param {string} value 
+   * @param {string} value - a CSS color value, like 'red', '#fff', etc
    * @throws - if value is invalid this function will throw
+   * @returns {string} - value converted to "rgb(222, 33, 22)" string
    * @memberof Template
    */
-  static validateColorValue(value) {
-    // it must throw on invalid value
-    // valid values are like rgb(123, 2, 22)
-    /^rgb\(\s*(\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\s*\)$/
-      .exec(value)
-      .slice(1)
-      .map(v => parseInt(v, 10))
-      .some(v => {
-        if (isNaN(v) || v < 0 || v > 255)
-          throw new Error(`Invalid color value ${value}`);
-        return false;
-      });
+  static convertToRgb(value) {
+    const rgb = colorString.get.rgb(value);
+    console.log(value, rgb);
+    if (rgb === null) throw new Error(`Invalid color value ${value}`);
+    // convert to rgb(), stripping alpha channel
+    return colorString.to.rgb(rgb.slice(0, 3));
   }
 
   passTypeIdentifier(v) {
@@ -89,7 +85,7 @@ class Template {
 
   backgroundColor(v) {
     if (arguments.length === 1) {
-      this.fields.backgroundColor = v;
+      this.fields.backgroundColor = Template.convertToRgb(v);
       return this;
     }
     return this.fields.backgroundColor;
@@ -97,8 +93,7 @@ class Template {
 
   foregroundColor(v) {
     if (arguments.length === 1) {
-      Template.validateColorValue(v);
-      this.fields.foregroundColor = v;
+      this.fields.foregroundColor = Template.convertToRgb(v);
       return this;
     }
     return this.fields.foregroundColor;
@@ -106,8 +101,7 @@ class Template {
 
   labelColor(v) {
     if (arguments.length === 1) {
-      Template.validateColorValue(v);
-      this.fields.labelColor = v;
+      this.fields.labelColor = Template.convertToRgb(v);
       return this;
     }
     return this.fields.labelColor;

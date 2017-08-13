@@ -51,7 +51,9 @@
   },
   "author": "Tino Vyatkin <tino@vtkn.io>",
   "license": "ISC",
-  "dependencies": {},
+  "dependencies": {
+    "color-string": "^1.5.2"
+  },
   "remarkConfig": {
     "presets": [
       "lint-recommended",

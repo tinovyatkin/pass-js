@@ -36,9 +36,14 @@ describe('Template', () => {
   test('color values as RGB triplets', () => {
     const templ = new Template('coupon', originalFields);
     expect(() => templ.backgroundColor('rgb(125, 125,0)')).not.toThrow();
-    // should throw on bad url
-    expect(() => templ.labelColor('rgba(33, 344,3)')).toThrow();
-    expect(() => templ.foregroundColor('rgb(33, 0,287)')).toThrow(
+    // color-string reduces maximum to 255 but still generates the color
+    expect(() => templ.labelColor('rgba(33, 344,3)')).not.toThrow();
+    expect(() => templ.foregroundColor('rgb(33, 0,287)')).not.toThrow();
+    // should convert values to rgb
+    templ.foregroundColor('white');
+    expect(templ.foregroundColor()).toBe('rgb(255, 255, 255)');
+    // should throw on bad color
+    expect(() => templ.foregroundColor('byaka a ne color')).toThrow(
       'Invalid color value',
     );
   });
