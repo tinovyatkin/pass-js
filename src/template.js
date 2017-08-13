@@ -79,6 +79,14 @@ class Template {
     return this.fields.teamIdentifier;
   }
 
+  description(v) {
+    if (arguments.length === 1) {
+      this.fields.description = v;
+      return this;
+    }
+    return this.fields.description;
+  }
+
   backgroundColor(v) {
     if (arguments.length === 1) {
       this.fields.backgroundColor = v;
