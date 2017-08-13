@@ -17,6 +17,7 @@ const {
   IMAGES,
   STRUCTURE_FIELDS,
   TRANSIT,
+  PASS_MIME_TYPE,
 } = require('./constants');
 
 const REQUIRED_IMAGES = Object.entries(IMAGES)
@@ -123,6 +124,8 @@ class Pass extends EventEmitter {
       });
       // copy array
       this.fields.barcodes = [...v];
+      // set backward compatibility field
+      Object.assign(this.fields, { barcode: v[0] });
       return this;
     }
     return this.fields.barcodes;
@@ -164,6 +167,31 @@ class Pass extends EventEmitter {
         'authenticationToken is presented in Pass data while webServiceURL is missing!',
       );
 
+    // validate color fields
+    // valid values must be like rgb(123, 2, 22)
+    Object.keys(TOP_LEVEL_FIELDS)
+      .filter(v => v.endsWith('Color'))
+      .filter(v => v in this.fields)
+      .forEach(colorFieldName => {
+        console.log(colorFieldName);
+        const value = this.fields[colorFieldName];
+        try {
+          /^rgb\(\s*(\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\s*\)$/
+            .exec(value)
+            .slice(1)
+            .map(v => parseInt(v, 10))
+            .some(v => {
+              if (isNaN(v) || v < 0 || v > 255)
+                throw new Error(`Invalid color value ${value}`);
+              return false;
+            });
+        } catch (e) {
+          throw new Error(
+            `Color value "${value}" for field "${colorFieldName}" is invalid, must be an rgb(...)`,
+          );
+        }
+      });
+
     REQUIRED_IMAGES.some(image => {
       if (!this.images.map.has(image))
         throw new Error(`Missing image ${image}.png`);
@@ -173,14 +201,15 @@ class Pass extends EventEmitter {
 
   // Returns the pass.json object (not a string).
   getPassJSON() {
-    const fields = Object.assign({}, this.fields);
-    fields.formatVersion = 1;
-    return fields;
+    return Object.assign({}, this.fields, { formatVersion: 1 });
   }
 
-  // Pipe pass to a write stream.
-  //
-  // output - Write stream
+  /**
+   * Pipe pass to a write stream.
+   * 
+   * @param {Writable} output - Write stream
+   * @memberof Pass
+   */
   pipe(output) {
     const zip = new Zip(output);
     let lastError;
@@ -201,12 +230,16 @@ class Pass extends EventEmitter {
 
     // Construct manifest here
     const manifest = {};
-    // Add file to zip and it's SHA to manifest
-    function addFile(filename) {
-      const file = zip.addFile(filename);
-      const sha = new SHAWriteStream(manifest, filename, file);
-      return sha;
-    }
+
+    /**
+     * Add file to zip and it's SHA to manifest
+     * 
+     * @param {string} filename 
+     * @returns {SHAWriteStream}
+     */
+    const addFile = filename =>
+      new SHAWriteStream(manifest, filename, zip.addFile(filename));
+
     const doneWithImages = () => {
       if (lastError) {
         zip.close();
@@ -258,12 +291,12 @@ class Pass extends EventEmitter {
    * Use this to send pass as HTTP response.
    * Adds appropriate headers and pipes pass to response.
    * 
-   * @param {any} response - HTTP response
+   * @param {http.response} response - HTTP response
    * @memberof Pass
    */
   render(response) {
     return new Promise((resolve, reject) => {
-      response.setHeader('Content-Type', 'application/vnd.apple.pkpass');
+      response.setHeader('Content-Type', PASS_MIME_TYPE);
       this.on('error', reject);
       this.on('end', resolve);
       this.pipe(response);
