@@ -115,12 +115,19 @@ describe('Pass', () => {
   });
 
   test('boarding pass has string-only property in sctructure fields', async () => {
-    const template = await Template.load(
+    const templ = await Template.load(
       path.resolve(__dirname, './resources/passes/BoardingPass.pass/'),
     );
-    expect(template.style).toBe('boardingPass');
+    expect(templ.style).toBe('boardingPass');
     // switching transit type
-    // const pass = template.createPass({});
+    const pass = templ.createPass();
+    expect(pass.transitType()).toBe(constants.TRANSIT.AIR);
+    pass.transitType(constants.TRANSIT.BUS);
+    expect(pass.transitType()).toBe(constants.TRANSIT.BUS);
+    expect(pass.getPassJSON().boardingPass).toHaveProperty(
+      'transitType',
+      constants.TRANSIT.BUS,
+    );
   });
 });
 

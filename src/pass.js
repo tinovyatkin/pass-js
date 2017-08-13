@@ -12,7 +12,7 @@ const signManifest = require('./lib/signManifest-openssl');
 const Fields = require('./lib/fields');
 const pipeIntoStream = require('./lib/pipe-into-stream');
 
-const { TOP_LEVEL_FIELDS, IMAGES, STRUCTURE_FIELDS } = require('./constants');
+const { TOP_LEVEL_FIELDS, IMAGES, STRUCTURE_FIELDS, TRANSIT } = require('./constants');
 
 const REQUIRED_IMAGES = Object.entries(IMAGES)
   .filter(([, { required }]) => required)
@@ -49,15 +49,16 @@ class Pass extends EventEmitter {
     //   pass.description("Unbelievable discount");
     //   console.log(pass.description());
     Object.entries(TOP_LEVEL_FIELDS).forEach(([key, { type }]) => {
-      this[key] = v => {
+      if (typeof this[key] !== 'function')
+        this[key] = v => {
         if (arguments) { // eslint-disable-line
-          if (type === Array && !Array.isArray(v))
-            throw new Error(`${key} must be an Array!`);
-          this.fields[key] = v;
-          return this;
-        }
-        return this.fields[key];
-      };
+            if (type === Array && !Array.isArray(v))
+              throw new Error(`${key} must be an Array!`);
+            this.fields[key] = v;
+            return this;
+          }
+          return this.fields[key];
+        };
     });
 
     // Accessor methods for structure fields (primaryFields, backFields, etc).
@@ -67,19 +68,34 @@ class Pass extends EventEmitter {
     //   pass.headerFields.add("time", "The Time", "10:00AM");
     //   pass.backFields.add("url", "Web site", "http://example.com");
     STRUCTURE_FIELDS.forEach(key => {
-      Object.defineProperty(this, key, {
-        writable: false,
-        enumerable: true,
-        value: new Fields(this, key),
-      });
+      if (!(key in this))
+        Object.defineProperty(this, key, {
+          writable: false,
+          enumerable: true,
+          value: new Fields(this, key),
+        });
     });
   }
 
+
+  transitType(v) {
+    if (arguments.length === 1) {
+      // setting transit type
+      // only allowed at boardingPass
+      if (this.template.style !== 'boardingPass') throw new Error('transitType field is only allowed at boarding passes');
+      if (!Object.values(TRANSIT).includes(v)) throw new Error(`Unknown value ${v} for transit type`);
+      this.structure.transitType = v;
+      return this;
+    }
+    // getting value
+    return this.structure.transitType;
+  }
+
   /**
+   * Gets or sets Pass barcodes field
    * 
    * @param {Array.<{format: string, message: string, messageEncoding: string}>} v
    */
-  /*
   barcodes(v) {
     if (arguments.length === 1) {
       if (!Array.isArray(v)) throw new Error('barcodes must be an Array!');
@@ -105,7 +121,6 @@ class Pass extends EventEmitter {
     }
     return this.fields.barcodes;
   }
-  */
 
   // Localization
   addLocalization(lang, values) {

@@ -6,14 +6,14 @@
 
 'use strict';
 
-const transitType = {
+const TRANSIT = {
   AIR: 'PKTransitTypeAir',
   BOAT: 'PKTransitTypeBoat',
   BUS: 'PKTransitTypeBus',
   TRAIN: 'PKTransitTypeTrain',
   GENERIC: 'PKTransitTypeGeneric',
 };
-exports.transitType = transitType;
+exports.TRANSIT = TRANSIT;
 
 const barcodeFormat = {
   QR: 'PKBarcodeFormatQR',
