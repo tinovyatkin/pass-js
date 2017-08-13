@@ -1,3 +1,8 @@
+## 3.3.0 August 12, 2017
+
+-   implemented `Pass.transitType()` to set/get transit type for board passes (with values validation and constants)
+-   `Temlate` now loads/stores structure level values and passes them to Passes
+
 ## 3.1.0 August 9, 2017
 
 -   Added `Template.load` static method to load template, images and key from a folder (no localization support yet, but coming)
