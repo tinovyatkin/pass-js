@@ -53,7 +53,6 @@ class Template {
    */
   static convertToRgb(value) {
     const rgb = colorString.get.rgb(value);
-    console.log(value, rgb);
     if (rgb === null) throw new Error(`Invalid color value ${value}`);
     // convert to rgb(), stripping alpha channel
     return colorString.to.rgb(rgb.slice(0, 3));
