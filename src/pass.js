@@ -12,7 +12,12 @@ const signManifest = require('./lib/signManifest-openssl');
 const Fields = require('./lib/fields');
 const pipeIntoStream = require('./lib/pipe-into-stream');
 
-const { TOP_LEVEL_FIELDS, IMAGES, STRUCTURE_FIELDS, TRANSIT } = require('./constants');
+const {
+  TOP_LEVEL_FIELDS,
+  IMAGES,
+  STRUCTURE_FIELDS,
+  TRANSIT,
+} = require('./constants');
 
 const REQUIRED_IMAGES = Object.entries(IMAGES)
   .filter(([, { required }]) => required)
@@ -77,13 +82,14 @@ class Pass extends EventEmitter {
     });
   }
 
-
   transitType(v) {
     if (arguments.length === 1) {
       // setting transit type
       // only allowed at boardingPass
-      if (this.template.style !== 'boardingPass') throw new Error('transitType field is only allowed at boarding passes');
-      if (!Object.values(TRANSIT).includes(v)) throw new Error(`Unknown value ${v} for transit type`);
+      if (this.template.style !== 'boardingPass')
+        throw new Error('transitType field is only allowed at boarding passes');
+      if (!Object.values(TRANSIT).includes(v))
+        throw new Error(`Unknown value ${v} for transit type`);
       this.structure.transitType = v;
       return this;
     }
@@ -142,6 +148,21 @@ class Pass extends EventEmitter {
         throw new Error(`Missing field ${field}`);
       return false;
     });
+
+    // authenticationToken && webServiceURL must be either both or none
+    if ('webServiceURL' in this.fields) {
+      if (!('authenticationToken' in this.fields))
+        throw new Error(
+          'While webServiceURL is present, authenticationToken also required!',
+        );
+      if (this.fields.authenticationToken.length < 16)
+        throw new Error(
+          'authenticationToken must be at least 16 characters long!',
+        );
+    } else if ('authenticationToken' in this.fields)
+      throw new Error(
+        'authenticationToken is presented in Pass data while webServiceURL is missing!',
+      );
 
     REQUIRED_IMAGES.some(image => {
       if (!this.images.map.has(image))
