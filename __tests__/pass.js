@@ -7,6 +7,7 @@ const path = require('path');
 
 const Template = require('../src/template');
 const constants = require('../src/constants');
+const Pass = require('../src/pass');
 
 // Clone all the fields in object, except the named field, and return a new
 // object.
@@ -64,6 +65,50 @@ describe('Pass', () => {
     // should create a structure based on style
     expect(pass.fields.coupon).toBeDefined();
     expect(pass.fields.eventTicket).toBeUndefined();
+  });
+
+  test('isValidW3CDateString', () => {
+    expect(Pass.isValidW3CDateString('2012-07-22T14:25-08:00')).toBeTruthy();
+    // allow seconds too
+    expect(Pass.isValidW3CDateString('2018-07-16T19:20:30+01:00')).toBeTruthy();
+    expect(Pass.isValidW3CDateString('2012-07-22')).toBeFalsy();
+  });
+
+  test('getW3CDateString', () => {
+    const date = new Date();
+    const res = Pass.getW3CDateString(date);
+    expect(Pass.isValidW3CDateString(res)).toBeTruthy();
+    expect(() => Pass.getW3CDateString({ byaka: 'buka' })).toThrow();
+    // must not cust seconds if supplied as string
+    expect(Pass.getW3CDateString('2018-07-16T19:20:30+01:00')).toBe(
+      '2018-07-16T19:20:30+01:00',
+    );
+  });
+
+  test('getGeoPoint', () => {
+    expect(Pass.getGeoPoint([14.235, 23.3444, 23.4444])).toMatchObject({
+      longitude: expect.any(Number),
+      latitude: expect.any(Number),
+      altitude: expect.any(Number),
+    });
+
+    expect(() => Pass.getGeoPoint([14.235, 'brrrr', 23.4444])).toThrow();
+
+    expect(Pass.getGeoPoint({ lat: 1, lng: 2, alt: 3 })).toMatchObject({
+      longitude: 2,
+      latitude: 1,
+      altitude: 3,
+    });
+
+    expect(Pass.getGeoPoint({ longitude: 10, latitude: 20 })).toMatchObject({
+      longitude: 10,
+      latitude: 20,
+      altitude: undefined,
+    });
+
+    expect(() => Pass.getGeoPoint({ lat: 1, log: 3 })).toThrow(
+      'Unknown geopoint format',
+    );
   });
 
   //

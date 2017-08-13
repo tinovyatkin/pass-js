@@ -98,6 +98,173 @@ class Pass extends EventEmitter {
     return this.structure.transitType;
   }
 
+  static isValidW3CDateString(dateStr) {
+    if (typeof dateStr !== 'string') return false;
+    // W3C date format with optional seconds
+    return /^20[1-9]{2}-[0-1][0-9]-[0-3][0-9]T[0-5][0-9]:[0-5][0-9](:[0-5][0-9])?(Z|([-+][0-1][0-9]:[03]0)$)/.test(
+      dateStr,
+    );
+  }
+
+  static getW3CDateString(value) {
+    if (typeof value !== 'string' && !(value instanceof Date))
+      throw new Error('Argument must be either a string or Date object');
+    if (Pass.isValidW3CDateString(value)) return value;
+
+    const date = value instanceof Date ? value : new Date(value);
+    if (!isFinite(date)) throw new Error('Invalid date value!');
+    // creating W3C date (we will always do without seconds)
+    const year = date.getFullYear();
+    const month = (1 + date.getMonth()).toFixed().padStart(2, '0');
+    const day = date.getDate().toFixed().padStart(2, '0');
+    const hours = date.getHours().toFixed().padStart(2, '0');
+    const minutes = date.getMinutes().toFixed().padStart(2, '0');
+    const offset = -date.getTimezoneOffset();
+    const offsetHours = Math.abs(Math.floor(offset / 60))
+      .toFixed()
+      .padStart(2, '0');
+    const offsetMinutes = (Math.abs(offset) - offsetHours * 60)
+      .toFixed()
+      .padStart(2, '0');
+    const offsetSign = offset < 0 ? '-' : '+';
+    return `${year}-${month}-${day}T${hours}:${minutes}${offsetSign}${offsetHours}:${offsetMinutes}`;
+  }
+
+  /**
+   * Date and time when the pass expires.
+   * 
+   * @param {string | Date} v - value to set
+   * @returns {Pass | string}
+   * @throws when passed value can't be interpreted as W3C string
+   * @memberof Pass
+   */
+  expirationDate(v) {
+    if (arguments.length === 1) {
+      this.fields.expirationDate = Pass.getW3CDateString(v);
+      return this;
+    }
+    return this.fields.expirationDate;
+  }
+
+  /**
+   *  Indicates that the pass is void—for example, a one time use coupon that has been redeemed.
+   * 
+   * @param {boolean} v 
+   * @returns {Pass | boolean}
+   * @memberof Pass
+   */
+  voided(v) {
+    if (arguments.length === 1) {
+      if (v) this.fields.voided = true;
+      else delete this.fields.voided;
+      return this;
+    }
+    return !!this.fields.voided;
+  }
+
+  /**
+   * Date and time when the pass becomes relevant. For example, the start time of a movie.
+   * Recommended for event tickets and boarding passes; otherwise optional.
+   * 
+   * @param {string | Date} v - value to set
+   * @returns {Pass | string}
+   * @throws when passed value can't be interpreted as W3C string
+   * @memberof Pass
+   */
+  relevantDate(v) {
+    if (arguments.length === 1) {
+      this.fields.relevantDate = Pass.getW3CDateString(v);
+      return this;
+    }
+    return this.fields.relevantDate;
+  }
+
+  /**
+   * Maximum distance in meters from a relevant latitude and longitude that the pass is relevant.
+   * This number is compared to the pass’s default distance and the smaller value is used.
+   * 
+   * @param {number} v - distance in meters
+   * @returns {Pass | number}
+   * @memberof Pass
+   */
+  maxDistance(v) {
+    if (arguments.length === 1) {
+      if (!Number.isInteger(v) || v <= 0)
+        throw new Error(
+          'Number must be a positive integer distance in meters!',
+        );
+      this.fields.maxDistance = v;
+      return this;
+    }
+    return this.fields.maxDistance;
+  }
+
+  /**
+   * Returns normalized geopoint object from geoJSON, {lat, lng} or {lattitude,longutude,altitude}
+   * 
+   * @param {number[] | { lat: number, lng: number, alt?: number } | { longitude: number, latitude: number, altitude?: number }} point
+   * @returns {{ longitude: number, latitude: number, altitude: number }}
+   * @throws on unknown point format
+   * @memberof Pass
+   */
+  static getGeoPoint(point) {
+    if (!point) throw new Error("Can't get coordinates from undefined");
+
+    // GeoJSON Array [longitude, latitude(, elevation)]
+    if (Array.isArray(point)) {
+      if (point.length < 2 || !point.every(n => Number.isFinite(n)))
+        throw new Error(
+          `Invalid GeoJSON array of numbers, length must be 2 to 3, received ${point.length}`,
+        );
+      return {
+        longitude: point[0],
+        latitude: point[1],
+        altitude: point[2],
+      };
+    }
+
+    // it can be an object with both lat and lng properties
+    if ('lat' in point && 'lng' in point) {
+      return {
+        longitude: point.lng,
+        latitude: point.lat,
+        altitude: point.alt,
+      };
+    }
+
+    if ('longitude' in point && 'latitude' in point) {
+      // returning a copy
+      return {
+        longitude: point.longitude,
+        latitude: point.latitude,
+        altitude: point.altitude || point.elevation,
+      };
+    }
+
+    // If we are here it means we can't understand what a hell is it
+    throw new Error(`Unknown geopoint format: ${JSON.stringify(point)}`);
+  }
+
+  /**
+   * Adds a location where a pass is relevant.
+   * 
+   * @param {number[] | { lat: number, lng: number, alt?: number } | { longitude: number, latitude: number, altitude?: number }} point
+   * @param {string} relevantText 
+   * @returns {Pass}
+   * @memberof Pass
+   */
+  addLocation(point, relevantText) {
+    if (!Array.isArray(this.fields.locations)) this.fields.locations = [];
+    const { longitude, latitude, altitude } = Pass.getGeoPoint(point);
+    this.fields.locations.push({
+      longitude,
+      latitude,
+      altitude,
+      relevantText,
+    });
+    return this;
+  }
+
   /**
    * Gets or sets Pass barcodes field
    * 
