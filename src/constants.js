@@ -6,6 +6,9 @@
 
 'use strict';
 
+const PASS_MIME_TYPE = 'application/vnd.apple.pkpass';
+exports.PASS_MIME_TYPE = PASS_MIME_TYPE;
+
 const TRANSIT = {
   AIR: 'PKTransitTypeAir',
   BOAT: 'PKTransitTypeBoat',
