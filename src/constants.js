@@ -83,6 +83,7 @@ const TOP_LEVEL_FIELDS = {
   description: {
     required: true,
     type: 'string',
+    templatable: true,
     localizable: true,
   },
   organizationName: {
