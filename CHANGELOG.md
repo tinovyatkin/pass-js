@@ -1,4 +1,4 @@
-## 3.3.0 August 12, 2017
+## 3.3 August 12, 2017
 
 -   implemented `Pass.transitType()` to set/get transit type for board passes (with values validation and constants)
 -   `Temlate` now loads/stores structure level values and passes them to Passes
