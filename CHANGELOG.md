@@ -1,3 +1,12 @@
+## 3.4 August 13, 2017
+
+-   Color values setters at `Template` (`backgroundColor`, `foregroundColor` and `labelColor`) now can accept any valid CSS color string (like 'purple', '#fff', etc) and converts them into `rgb(...)` format that is only acceptable by Apple Wallet pass
+-   `Pass.validate` enforces `rgb()` style values for color fields
+-   `Pass.validate` enforces `webServiceURL` and `authenticationToken` to be either both present or both missing
+-   Exporting `PASS_MIME_TYPE` from `contants`
+-   Added `expirationDate` and `relevantDate` setters and getter to the `Pass` class that accepts both, `Date` or a `string` and converts that to correct W3C date string (or throws if it's impossible)
+-   Added `Pass.addLocation` that accepts point value either as GeoJSON array, `{lat, lng}` or `{ longitude: number, latitude: number, altitude?: number }`
+
 ## 3.3 August 12, 2017
 
 -   implemented `Pass.transitType()` to set/get transit type for board passes (with values validation and constants)
