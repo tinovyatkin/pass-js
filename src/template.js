@@ -33,6 +33,10 @@ class Template {
       if (typeof this[field] === 'function') this[field](value);
     });
 
+    if (style in fields) {
+      Object.assign(this.fields, { [style]: fields[style] });
+    }
+
     this.keysPath = 'keys';
     this.images = new PassImages();
   }
