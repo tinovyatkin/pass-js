@@ -4,6 +4,7 @@ const Crypto = require('crypto');
 const { execFile } = require('child_process');
 const File = require('fs');
 const path = require('path');
+const { Readable } = require('stream');
 
 const Template = require('../src/template');
 const constants = require('../src/constants');
@@ -176,6 +177,34 @@ describe('Pass', () => {
       'transitType',
       constants.TRANSIT.BUS,
     );
+  });
+
+  test('stream', async () => {
+    const pass = template.createPass(fields);
+    await pass.images.loadFromDirectory(path.resolve(__dirname, './resources'));
+    pass.headerFields.add('date', 'Date', 'Nov 1');
+    pass.primaryFields.add([
+      { key: 'location', label: 'Place', value: 'High ground' },
+    ]);
+    const stream = pass.stream();
+    expect(stream).toBeInstanceOf(Readable);
+    const file = File.createWriteStream('/tmp/pass1.pkpass');
+    stream.pipe(file);
+    await new Promise(resolve => {
+      stream.on('end', resolve);
+      stream.on('error', e => {
+        throw e;
+      });
+    });
+    // test that result is valid ZIP at least
+    const res = await new Promise(resolve => {
+      execFile('unzip', ['-t', '/tmp/pass1.pkpass'], (error, stdout) => {
+        if (error) throw new Error(stdout);
+        resolve(stdout);
+      });
+    });
+    File.unlinkSync('/tmp/pass1.pkpass');
+    expect(res).toContain('No errors detected in compressed data');
   });
 });
 

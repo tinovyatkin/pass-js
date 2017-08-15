@@ -4,6 +4,7 @@
 
 const { EventEmitter } = require('events');
 const Path = require('path');
+const { PassThrough } = require('stream');
 
 const Zip = require('./lib/zip');
 const PassImages = require('./lib/images');
@@ -467,6 +468,18 @@ class Pass extends EventEmitter {
       this.on('end', resolve);
       this.pipe(response);
     });
+  }
+
+  /**
+   * Returns the Pass as a Readable strem
+   * 
+   * @returns {Stream}
+   * @memberof Pass
+   */
+  stream() {
+    const stream = new PassThrough();
+    this.pipe(stream);
+    return stream;
   }
 
   /**

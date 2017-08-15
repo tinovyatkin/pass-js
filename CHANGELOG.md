@@ -1,3 +1,7 @@
+## 3.5 August 14, 2017
+
+-   Impletment `Pass.stream` that returns `Pass` as a readable stream. Useful for `Koa` responses, etc.
+
 ## 3.4 August 13, 2017
 
 -   Color values setters at `Template` (`backgroundColor`, `foregroundColor` and `labelColor`) now can accept any valid CSS color string (like 'purple', '#fff', etc) and converts them into `rgb(...)` format that is only acceptable by Apple Wallet pass
