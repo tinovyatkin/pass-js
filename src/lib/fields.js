@@ -1,93 +1,110 @@
 'use strict';
 
-// Field accessors.
+/**
+ * Field accessors class
+ */
+
 class Fields {
+  /**
+   * Creates an instance of Fields
+   * 
+   * @param {Pass} pass - parent Pass class
+   * @param {string} key - key name that these fields are bound to
+   * @memberof Fields
+   */
   constructor(pass, key) {
     this.pass = pass;
     this.key = key;
   }
 
-  // Adds a field to the end of the list.
-  //
-  // You can call this method with three/four arguments:
-  // key      - Field key
-  // label    - Field label (optional)
-  // value    - Field value
-  // options  - Other field options (e.g. dateStyle)
-  //
-  // You can call this method with a single object that contains all field
-  // properties (key, label, etc).
-  //
-  // You can also call with an array of either one.
-  //
-  // Returns self.
+  /**
+   * Returns an array of all fields.
+   * 
+   * @returns {{key: string, value: string, label: string}[]}
+   * @memberof Fields
+   */
+  all() {
+    if (!(this.key in this.pass.structure)) this.pass.structure[this.key] = [];
+    return this.pass.structure[this.key];
+  }
+
+  /**
+   * Adds a field to the end of the list
+   * 
+   * @param {string | {key: string, label: string, value: string}} key - Field key or object with all fields
+   * @param {string} [label] - Field label (optional)
+   * @param {string} [value] - Field value
+   * @param {Object} [options] - Other field options (e.g. dateStyle)
+   * @returns {Fields}
+   * @memberof Fields
+   */
   add(key, label, value, options) {
-    let field;
-    let k;
     if (arguments.length > 1) {
       this.remove(key);
-      field = { key, value };
+      const field = { key, value };
       if (label) field.label = label;
-      if (options) {
-        for (k in options) field[k] = options[k];
-      }
+      if (options) Object.assign(field, options);
       this.all().push(field);
-    } else if (Array.isArray(arguments[0])) {
-      const array = arguments[0];
-      for (const i in array) this.add.call(this, array[i]);
+    } else if (Array.isArray(key)) {
+      for (const k of key) this.add(k);
     } else {
-      const properties = arguments[0];
-      key = properties.key;
-      this.remove(key);
-      field = {};
-      for (k in properties) field[k] = properties[k];
-      this.all().push(field);
+      this.remove(key.key);
+      // save object copy
+      this.all().push(Object.assign({}, key));
     }
     return this;
   }
 
-  // Returns a field.
-  //
-  // If field exists, returns an object with:
-  // key      - Field key
-  // label    - Field label (optional)
-  // value    - Field value
-  // Other field options (e.g. dateStyle)
+  /**
+   * Returns a field
+   * 
+   * @param {string} key 
+   * @returns {{key: string, label: string, value: string}} If field exists, returns an object with common keys and rest of keys
+   * @memberof Fields
+   */
   get(key) {
-    const fields = this.pass.structure[this.key];
-    if (fields) {
-      for (const i in fields) {
-        const field = fields[i];
-        if (field.key === key) return field;
-      }
-    }
-    return null;
+    return this.all().find(v => v.key === key);
   }
 
-  // Returns an array of all fields.
-  all() {
-    let fields = this.pass.structure[this.key];
-    if (!fields) this.pass.structure[this.key] = fields = [];
-    return fields;
+  /**
+   * Sets value field for a given key
+   * 
+   * @param {string} key 
+   * @param {string} value 
+   * @memberof Fields
+   */
+  setValue(key, value) {
+    const field = this.get(key);
+    if (!field) return this.add({ key, value });
+    field.value = value;
+    return this;
   }
 
-  // Removes a given field.
+  /**
+   * Removes a given field.
+   * 
+   * @param {string} key 
+   * @returns {Fields}
+   * @memberof Fields
+   */
   remove(key) {
-    const fields = this.pass.structure[this.key];
-    if (fields) {
-      for (const i in fields) {
-        if (fields[i].key === key) {
-          fields.splice(i, 1);
-          break;
-        }
-      }
+    const idx = this.all().findIndex(v => v.key === key);
+    if (idx > -1) {
+      this.all().splice(idx, 1);
+      // remove property completely if there is no fields left
+      if (this.all().length === 0) this.clear();
     }
     return this;
   }
 
-  // Removes all fields.
+  /**
+   * Removes all fields.
+   * 
+   * @returns {Fields}
+   * @memberof Fields
+   */
   clear() {
-    this.pass.structure[this.key] = [];
+    delete this.pass.structure[this.key];
     return this;
   }
 }

@@ -1,3 +1,8 @@
+## 3.6 August 14, 2017
+
+-   Added `setValue(key, value)` method for structure fields to make templating easier. Example: `pass.headerFields.setValue('port', 'New Port')`
+-   Added tests for `Fields` class to increase test coverage
+
 ## 3.5 August 14, 2017
 
 -   Impletment `Pass.stream` that returns `Pass` as a readable stream. Useful for `Koa` responses, etc.
