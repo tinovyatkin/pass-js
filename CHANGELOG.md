@@ -1,3 +1,7 @@
+## 3.7 August 15, 2017
+
+-   implemented `Fields.setDateTime(key, label, date, formatOptions = {})` to set date/time style values to a structure fields. Example: `pass.auxiliaryFields.setDateTime('arrival', 'ARRIVAL TIME', arrivalDateObj, { dateStyle: constants.dateTimeFormat.NONE, timeStyle: constants.dateTimeFormat.SHORT })`
+
 ## 3.6 August 14, 2017
 
 -   Added `setValue(key, value)` method for structure fields to make templating easier. Example: `pass.headerFields.setValue('port', 'New Port')`

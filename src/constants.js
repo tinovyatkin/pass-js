@@ -26,6 +26,15 @@ const barcodeFormat = {
 };
 exports.barcodeFormat = barcodeFormat;
 
+const dateTimeFormat = {
+  NONE: 'PKDateStyleNone',
+  SHORT: 'PKDateStyleShort',
+  MEDIUM: 'PKDateStyleMedium',
+  LONG: 'PKDateStyleLong',
+  FULL: 'PKDateStyleFull',
+};
+exports.dateTimeFormat = dateTimeFormat;
+
 const dataDetector = {
   PHONE: 'PKDataDetectorTypePhoneNumber',
   LINK: 'PKDataDetectorTypeLink',

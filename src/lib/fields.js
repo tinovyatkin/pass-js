@@ -4,6 +4,9 @@
  * Field accessors class
  */
 
+const Pass = require('../pass');
+const only = require('./only');
+
 class Fields {
   /**
    * Creates an instance of Fields
@@ -94,6 +97,44 @@ class Fields {
       // remove property completely if there is no fields left
       if (this.all().length === 0) this.clear();
     }
+    return this;
+  }
+
+  /**
+   * Set a field as Date value with appropriated options
+   * 
+   * @param {string} key
+   * @param {string} label
+   * @param {Date} date 
+   * @param {{dateStyle?: string, ignoresTimeZone?: boolean, isRelative?: boolean, timeStyle?:string}} [formatOptions]
+   * @returns {Fields}
+   * @throws if date is not a Date or invalid Date
+   * @memberof Fields
+   */
+  setDateTime(key, label, date, formatOptions = {}) {
+    if (!(date instanceof Date) || !isFinite(date))
+      throw new Error(
+        'First parameter of setDateTime must be an instance of Date',
+      );
+    //  Either specify both a date style and a time style, or neither.
+    if (
+      (!('dateStyle' in formatOptions) && 'timeStyle' in formatOptions) ||
+      ('dateStyle' in formatOptions && !('timeStyle' in formatOptions))
+    )
+      throw new Error(
+        'Either specify both a date style and a time style, or neither',
+      );
+    // adding
+    this.add(
+      Object.assign(
+        {
+          key,
+          label,
+          value: Pass.getW3CDateString(date),
+        },
+        only(formatOptions, 'dateStyle timeStyle ignoresTimeZone isRelative'),
+      ),
+    );
     return this;
   }
 
