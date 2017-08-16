@@ -133,7 +133,10 @@ class Fields {
           label,
           value: Pass.getW3CDateString(date),
         },
-        only(formatOptions, 'dateStyle timeStyle ignoresTimeZone isRelative'),
+        only(
+          formatOptions,
+          'dateStyle timeStyle ignoresTimeZone isRelative changeMessage',
+        ),
       ),
     );
     return this;
