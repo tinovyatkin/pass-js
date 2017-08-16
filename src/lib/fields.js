@@ -18,6 +18,7 @@ class Fields {
   constructor(pass, key) {
     this.pass = pass;
     this.key = key;
+    Object.preventExtensions(this);
   }
 
   /**

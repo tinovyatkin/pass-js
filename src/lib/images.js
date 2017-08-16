@@ -35,6 +35,8 @@ class PassImages {
         });
       });
     });
+
+    Object.preventExtensions(this);
   }
 
   /**

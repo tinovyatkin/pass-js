@@ -82,6 +82,8 @@ class Pass extends EventEmitter {
           value: new Fields(this, key),
         });
     });
+
+    Object.preventExtensions(this);
   }
 
   transitType(v) {

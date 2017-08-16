@@ -58,6 +58,8 @@ class Zip extends EventEmitter {
       debug('Zip completed');
       zip.emit('end');
     });
+
+    Object.preventExtensions(this);
   }
 
   /**

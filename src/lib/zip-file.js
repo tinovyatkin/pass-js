@@ -91,6 +91,8 @@ class File extends Stream {
     this._deflate.on('end', buffer => {
       this._doneWritingFile();
     });
+
+    Object.preventExtensions(this);
   }
 
   /**

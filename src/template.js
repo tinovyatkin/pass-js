@@ -39,7 +39,9 @@ class Template {
     }
 
     this.keysPath = 'keys';
+    this.password = null;
     this.images = new PassImages();
+    Object.preventExtensions(this);
   }
 
   /**

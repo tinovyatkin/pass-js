@@ -21,6 +21,8 @@ class SHAWriteStream extends Writable {
     this.sha = createHash('sha1');
     output.on('close', this.emit.bind(this, 'close'));
     output.on('error', this.emit.bind(this, 'error'));
+
+    Object.preventExtensions(this);
   }
 
   write(buffer, encoding) {
