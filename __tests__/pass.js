@@ -68,24 +68,6 @@ describe('Pass', () => {
     expect(pass.fields.eventTicket).toBeUndefined();
   });
 
-  test('isValidW3CDateString', () => {
-    expect(Pass.isValidW3CDateString('2012-07-22T14:25-08:00')).toBeTruthy();
-    // allow seconds too
-    expect(Pass.isValidW3CDateString('2018-07-16T19:20:30+01:00')).toBeTruthy();
-    expect(Pass.isValidW3CDateString('2012-07-22')).toBeFalsy();
-  });
-
-  test('getW3CDateString', () => {
-    const date = new Date();
-    const res = Pass.getW3CDateString(date);
-    expect(Pass.isValidW3CDateString(res)).toBeTruthy();
-    expect(() => Pass.getW3CDateString({ byaka: 'buka' })).toThrow();
-    // must not cust seconds if supplied as string
-    expect(Pass.getW3CDateString('2018-07-16T19:20:30+01:00')).toBe(
-      '2018-07-16T19:20:30+01:00',
-    );
-  });
-
   test('getGeoPoint', () => {
     expect(Pass.getGeoPoint([14.235, 23.3444, 23.4444])).toMatchObject({
       longitude: expect.any(Number),

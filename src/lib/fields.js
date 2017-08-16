@@ -4,7 +4,7 @@
  * Field accessors class
  */
 
-const Pass = require('../pass');
+const { getW3CDateString } = require('./w3cdate');
 const only = require('./only');
 
 class Fields {
@@ -131,7 +131,7 @@ class Fields {
         {
           key,
           label,
-          value: Pass.getW3CDateString(date),
+          value: getW3CDateString(date),
         },
         only(
           formatOptions,

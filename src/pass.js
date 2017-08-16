@@ -12,6 +12,7 @@ const SHAWriteStream = require('./lib/SHAWriteStream');
 const signManifest = require('./lib/signManifest-openssl');
 const Fields = require('./lib/fields');
 const pipeIntoStream = require('./lib/pipe-into-stream');
+const { getW3CDateString } = require('./lib/w3cdate');
 
 const {
   TOP_LEVEL_FIELDS,
@@ -101,38 +102,6 @@ class Pass extends EventEmitter {
     return this.structure.transitType;
   }
 
-  static isValidW3CDateString(dateStr) {
-    if (typeof dateStr !== 'string') return false;
-    // W3C date format with optional seconds
-    return /^20[1-9]{2}-[0-1][0-9]-[0-3][0-9]T[0-5][0-9]:[0-5][0-9](:[0-5][0-9])?(Z|([-+][0-1][0-9]:[03]0)$)/.test(
-      dateStr,
-    );
-  }
-
-  static getW3CDateString(value) {
-    if (typeof value !== 'string' && !(value instanceof Date))
-      throw new Error('Argument must be either a string or Date object');
-    if (Pass.isValidW3CDateString(value)) return value;
-
-    const date = value instanceof Date ? value : new Date(value);
-    if (!isFinite(date)) throw new Error('Invalid date value!');
-    // creating W3C date (we will always do without seconds)
-    const year = date.getFullYear();
-    const month = (1 + date.getMonth()).toFixed().padStart(2, '0');
-    const day = date.getDate().toFixed().padStart(2, '0');
-    const hours = date.getHours().toFixed().padStart(2, '0');
-    const minutes = date.getMinutes().toFixed().padStart(2, '0');
-    const offset = -date.getTimezoneOffset();
-    const offsetHours = Math.abs(Math.floor(offset / 60))
-      .toFixed()
-      .padStart(2, '0');
-    const offsetMinutes = (Math.abs(offset) - offsetHours * 60)
-      .toFixed()
-      .padStart(2, '0');
-    const offsetSign = offset < 0 ? '-' : '+';
-    return `${year}-${month}-${day}T${hours}:${minutes}${offsetSign}${offsetHours}:${offsetMinutes}`;
-  }
-
   /**
    * Date and time when the pass expires.
    * 
@@ -143,7 +112,7 @@ class Pass extends EventEmitter {
    */
   expirationDate(v) {
     if (arguments.length === 1) {
-      this.fields.expirationDate = Pass.getW3CDateString(v);
+      this.fields.expirationDate = getW3CDateString(v);
       return this;
     }
     return this.fields.expirationDate;
@@ -176,7 +145,7 @@ class Pass extends EventEmitter {
    */
   relevantDate(v) {
     if (arguments.length === 1) {
-      this.fields.relevantDate = Pass.getW3CDateString(v);
+      this.fields.relevantDate = getW3CDateString(v);
       return this;
     }
     return this.fields.relevantDate;

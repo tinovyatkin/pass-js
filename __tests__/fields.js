@@ -1,7 +1,7 @@
 'use strict';
 
 const Fields = require('../src/lib/fields');
-const Pass = require('../src/pass');
+const { isValidW3CDateString } = require('../src/lib/w3cdate');
 
 test('Fields Class', () => {
   const pass = { structure: {} };
@@ -35,5 +35,5 @@ test('Fields Class', () => {
 
   // setDateTime
   fields.setDateTime('testDate', 'labelDate', new Date());
-  expect(Pass.isValidW3CDateString(fields.get('testDate').value)).toBeTruthy();
+  expect(isValidW3CDateString(fields.get('testDate').value)).toBeTruthy();
 });
