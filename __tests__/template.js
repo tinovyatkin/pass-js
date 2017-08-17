@@ -61,4 +61,25 @@ describe('Template', () => {
     expect(templ2.teamIdentifier()).toBe('A93A5CM278');
     expect(templ2.images.thumbnail).toBeDefined();
   });
+
+  /*
+  test('push updates', async () => {
+    const template = new Template('coupon', {
+      passTypeIdentifier: 'pass.com.example.passbook',
+      teamIdentifier: 'MXL',
+      labelColor: 'red',
+    });
+
+    template.keys(`${__dirname}/../keys`, 'secret');
+
+    const res = await template.pushUpdates(
+      '0e40d22a36e101a59ab296d9e6021df3ee1dcf95e29e8ab432213b12ba522dbb',
+    );
+    console.log(JSON.stringify(res));
+    // shutting down APN
+    if (template.apn) template.apn.shutdown();
+    expect(res.sent).toBeInstanceOf(Array);
+    expect(res.sent).toHaveLength(1);
+  });
+  */
 });

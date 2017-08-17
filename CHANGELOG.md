@@ -1,3 +1,7 @@
+## 3.8 August 17, 2017
+
+-   implemented `Template.pushUpdates(pushToken)` that sends APN update request for a given pass type to a pushToken (get pushToken at PassKit Web Service)
+
 ## 3.7 August 15, 2017
 
 -   implemented `Fields.setDateTime(key, label, date, formatOptions = {})` to set date/time style values to a structure fields. Example: `pass.auxiliaryFields.setDateTime('arrival', 'ARRIVAL TIME', arrivalDateObj, { dateStyle: constants.dateTimeFormat.NONE, timeStyle: constants.dateTimeFormat.SHORT })`

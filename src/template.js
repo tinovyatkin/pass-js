@@ -6,9 +6,11 @@
 
 const { URL } = require('url');
 const { stat, readFile } = require('fs');
+const path = require('path');
 const { promisify } = require('util');
 const { join } = require('path');
 const colorString = require('color-string');
+const apn = require('@destinationstransfers/apn');
 
 const PassImages = require('./lib/images');
 const Pass = require('./pass');
@@ -40,8 +42,28 @@ class Template {
 
     this.keysPath = 'keys';
     this.password = null;
+    this.apn = null;
     this.images = new PassImages();
     Object.preventExtensions(this);
+  }
+
+  pushUpdates(pushToken) {
+    if (!this.apn) {
+      // creating APN Provider
+      const identifier = this.passTypeIdentifier().replace(/^pass./, '');
+      const key = path.resolve(this.keysPath, `${identifier}.pem`);
+
+      this.apn = new apn.Provider({
+        production: true,
+        cert: key /* Certificate file path - we have both in the same file */,
+        key /* Key file path */,
+        passphrase: this.password,
+      });
+    }
+    // sending notification
+    const note = new apn.Notification();
+    note.payload = {}; // payload must be empty
+    return this.apn.send(note, pushToken);
   }
 
   /**
