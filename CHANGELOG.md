@@ -1,3 +1,7 @@
+## 4.0 August 19, 2017
+
+-   replaced `openssl` spawning for native JavaScript `node-forge` implementation of manifest signing.
+
 ## 3.8 August 17, 2017
 
 -   implemented `Template.pushUpdates(pushToken)` that sends APN update request for a given pass type to a pushToken (get pushToken at PassKit Web Service)

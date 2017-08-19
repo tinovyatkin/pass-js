@@ -8,7 +8,8 @@ This is almost complete rewrite of [assaf/node-passbook](http://github.com/assaf
 The original module lacks new commits in last two years and outdated. This modules:
 
 -   Targetting Node 8 and refactored in ES6 Classes, removing deprecated calls (`new Buffer`, etc)
--   Aims to replace `openssl` spawning with native Javascript RSA implementation
+-   Replaces `openssl` spawning with native Javascript RSA implementation (via `node-forge`)
+-   Includes `Template.pushUpdates(pushToken)` that sends APN update request for a given pass type to a pushToken (get `pushToken` at your PassKit Web Service implementation)
 -   Adds constants for dictionary fields string values
 -   Migrated tests to Jest
 -   Increased test coverage

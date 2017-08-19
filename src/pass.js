@@ -9,7 +9,7 @@ const { PassThrough } = require('stream');
 const Zip = require('./lib/zip');
 const PassImages = require('./lib/images');
 const SHAWriteStream = require('./lib/SHAWriteStream');
-const signManifest = require('./lib/signManifest-openssl');
+const signManifest = require('./lib/signManifest-forge');
 const Fields = require('./lib/fields');
 const pipeIntoStream = require('./lib/pipe-into-stream');
 const { getW3CDateString } = require('./lib/w3cdate');
@@ -469,7 +469,6 @@ class Pass extends EventEmitter {
     const identifier = this.template.passTypeIdentifier().replace(/^pass./, '');
     signManifest(
       Path.resolve(this.template.keysPath, `${identifier}.pem`),
-      Path.resolve(__dirname, '../keys/wwdr.pem'),
       this.template.password,
       json,
       (error, signature) => {

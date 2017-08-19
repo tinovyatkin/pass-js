@@ -264,14 +264,14 @@ describe('generated', () => {
     });
   });
 
-  // this test depends on MacOS specific signpass, so, skip it on CI
-  if (!process.env.CI) {
+  // this test depends on MacOS specific signpass, so, run only on MacOS
+  if (process.platform === 'darwin') {
     test('should contain a signature', done => {
       execFile(
         path.resolve(__dirname, './resources/bin/signpass'),
         ['-v', '/tmp/pass.pkpass'],
         (error, stdout) => {
-          expect(stdout).toMatch(/\*\*\* SUCCEEDED \*\*\*/);
+          expect(stdout).toContain('*** SUCCEEDED ***');
           done();
         },
       );
