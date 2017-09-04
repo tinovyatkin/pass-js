@@ -13,7 +13,7 @@
     "@destinationstransfers/eslint-config": "^1.0.2",
     "eslint": "^4.5.0",
     "eslint-plugin-node": "^5.1.1",
-    "jest": "^20.0.4",
+    "jest": "^21.0.0",
     "remark-cli": "^4.0.0",
     "remark-preset-lint-consistent": "^2.0.1",
     "remark-preset-lint-recommended": "^3.0.1",
