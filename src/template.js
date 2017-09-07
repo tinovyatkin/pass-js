@@ -90,6 +90,14 @@ class Template {
     return this.fields.passTypeIdentifier;
   }
 
+  associatedStoreIdentifiers(v) {
+    if (arguments.length === 1) {
+      this.fields.associatedStoreIdentifiers = v;
+      return this;
+    }
+    return this.fields.associatedStoreIdentifiers;
+  }
+
   teamIdentifier(v) {
     if (arguments.length === 1) {
       this.fields.teamIdentifier = v;

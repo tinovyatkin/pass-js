@@ -5,3 +5,4 @@ lib/server.js
 test.js
 *.tgz
 coverage/*
+*.log
