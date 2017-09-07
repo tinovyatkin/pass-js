@@ -18,6 +18,14 @@ const TRANSIT = {
 };
 exports.TRANSIT = TRANSIT;
 
+const TEXT_DIRECTION = {
+  LEFT: 'PKTextAlignmentLeft',
+  CENTER: 'PKTextAlignmentCenter',
+  RIGHT: 'PKTextAlignmentRight',
+  NATURAL: 'PKTextAlignmentNatural',
+};
+exports.TEXT_DIRECTION = TEXT_DIRECTION;
+
 const barcodeFormat = {
   QR: 'PKBarcodeFormatQR',
   PDF417: 'PKBarcodeFormatPDF417',
@@ -116,6 +124,11 @@ const TOP_LEVEL_FIELDS = {
   teamIdentifier: {
     required: true,
     type: 'string',
+    templatable: true,
+  },
+  associatedStoreIdentifiers: {
+    required: false,
+    type: Array,
     templatable: true,
   },
   // Expiration Keys
