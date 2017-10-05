@@ -1,14 +1,14 @@
 ## 4.0 August 19, 2017
 
--   replaced `openssl` spawning for native JavaScript `node-forge` implementation of manifest signing.
+-   Replaced `openssl` spawning for native JavaScript `node-forge` implementation of manifest signing.
 
 ## 3.8 August 17, 2017
 
--   implemented `Template.pushUpdates(pushToken)` that sends APN update request for a given pass type to a pushToken (get pushToken at PassKit Web Service)
+-   Implemented `Template.pushUpdates(pushToken)` that sends APN update request for a given pass type to a pushToken (get pushToken at PassKit Web Service)
 
 ## 3.7 August 15, 2017
 
--   implemented `Fields.setDateTime(key, label, date, formatOptions = {})` to set date/time style values to a structure fields. Example: `pass.auxiliaryFields.setDateTime('arrival', 'ARRIVAL TIME', arrivalDateObj, { dateStyle: constants.dateTimeFormat.NONE, timeStyle: constants.dateTimeFormat.SHORT })`
+-   Implemented `Fields.setDateTime(key, label, date, formatOptions = {})` to set date/time style values to a structure fields. Example: `pass.auxiliaryFields.setDateTime('arrival', 'ARRIVAL TIME', arrivalDateObj, { dateStyle: constants.dateTimeFormat.NONE, timeStyle: constants.dateTimeFormat.SHORT })`
 
 ## 3.6 August 14, 2017
 
@@ -17,7 +17,7 @@
 
 ## 3.5 August 14, 2017
 
--   Impletment `Pass.stream` that returns `Pass` as a readable stream. Useful for `Koa` responses, etc.
+-   Impletmented `Pass.stream` that returns `Pass` as a readable stream. Useful for `Koa` responses, etc.
 
 ## 3.4 August 13, 2017
 

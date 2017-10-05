@@ -48,13 +48,13 @@ function signManifest(signerPemFile, password, manifest, callback) {
 
     // create PKCS#7 signed data
     const p7 = forge.pkcs7.createSignedData();
-    p7.content = forge.util.createBuffer(manifest, 'utf8');
+    p7.content = manifest;
     p7.addCertificate(certificate);
     p7.addCertificate(APPLE_CA_CERTIFICATE);
     p7.addSigner({
       key,
       certificate,
-      digestAlgorithm: forge.pki.oids.sha256,
+      digestAlgorithm: forge.pki.oids.sha1,
       authenticatedAttributes: [
         {
           type: forge.pki.oids.contentType,
@@ -73,6 +73,7 @@ function signManifest(signerPemFile, password, manifest, callback) {
     });
 
     p7.sign();
+    p7.contentInfo.value.pop();
 
     return callback(
       null,
