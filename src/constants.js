@@ -126,6 +126,11 @@ const TOP_LEVEL_FIELDS = {
     type: 'string',
     templatable: true,
   },
+  associatedStoreIdentifiers: {
+    required: false,
+    type: Array,
+    templatable: true,
+  },
   // Expiration Keys
   expirationDate: {
     type: 'string', // W3C date, as a string

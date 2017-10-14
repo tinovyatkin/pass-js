@@ -98,6 +98,14 @@ class Template {
     return this.fields.teamIdentifier;
   }
 
+  associatedStoreIdentifiers(v) {
+    if (arguments.length === 1) {
+      this.fields.associatedStoreIdentifiers = v;
+      return this;
+    }
+    return this.fields.associatedStoreIdentifiers;
+  }
+
   description(v) {
     if (arguments.length === 1) {
       this.fields.description = v;
