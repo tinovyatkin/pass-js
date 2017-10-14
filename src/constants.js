@@ -18,6 +18,14 @@ const TRANSIT = {
 };
 exports.TRANSIT = TRANSIT;
 
+const textDirection = {
+  LEFT: 'PKTextAlignmentLeft',
+  CENTER: 'PKTextAlignmentCenter',
+  RIGHT: 'PKTextAlignmentRight',
+  NATURAL: 'PKTextAlignmentNatural',
+};
+exports.textDirection = textDirection;
+
 const barcodeFormat = {
   QR: 'PKBarcodeFormatQR',
   PDF417: 'PKBarcodeFormatPDF417',
