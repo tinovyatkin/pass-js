@@ -1,3 +1,8 @@
+## 4.1 October 14, 2017
+
+-   added `textDirection` to contants
+-   added `associatedStoreIdentifiers` into templatable fields (thanks to @antoniomika)
+
 ## 4.0 August 19, 2017
 
 -   Replaced `openssl` spawning for native JavaScript `node-forge` implementation of manifest signing.
