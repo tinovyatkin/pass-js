@@ -78,6 +78,14 @@ class Fields {
    * @memberof Fields
    */
   setValue(key, value) {
+    if (typeof key !== 'string')
+      throw new TypeError(
+        `key for setValue must be a string, received ${typeof key}`,
+      );
+    if (typeof value !== 'string')
+      throw new TypeError(
+        `value for setValue must be a string, received ${typeof value}`,
+      );
     const field = this.get(key);
     if (!field) return this.add({ key, value });
     field.value = value;

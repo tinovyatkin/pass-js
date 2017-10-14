@@ -36,4 +36,9 @@ test('Fields Class', () => {
   // setDateTime
   fields.setDateTime('testDate', 'labelDate', new Date());
   expect(isValidW3CDateString(fields.get('testDate').value)).toBeTruthy();
+
+  // must throw on non-string values
+  expect(() => fields.setValue('testKey', { object: 'value' })).toThrow(
+    TypeError,
+  );
 });
