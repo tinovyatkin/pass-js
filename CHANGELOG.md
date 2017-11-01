@@ -1,3 +1,7 @@
+## 4.2 Nov 1, 2017
+
+-   switched from our fork of `node-apn` to native HTTP2 implementation from Node 8.8 LTS.
+
 ## 4.1 October 14, 2017
 
 -   added `textDirection` to contants
