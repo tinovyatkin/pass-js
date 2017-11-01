@@ -3,6 +3,7 @@
 const forge = require('node-forge');
 const { readFile, readFileSync } = require('fs');
 const { resolve } = require('path');
+const decodePrivateKey = require('./decodePrivateKey');
 
 const APPLE_CA_CERTIFICATE = forge.pki.certificateFromPem(
   readFileSync(resolve(__dirname, '../../keys/wwdr.pem')),
@@ -22,29 +23,11 @@ function signManifest(signerPemFile, password, manifest, callback) {
   readFile(signerPemFile, 'utf8', (err, signerCertData) => {
     if (err) return callback(err);
     // the PEM file from P12 contains both, certificate and private key
-    const pemMessages = forge.pem.decode(signerCertData);
-
     // getting signer certificate
     const certificate = forge.pki.certificateFromPem(signerCertData);
 
     // getting signer private key
-    const signerKeyMessage = pemMessages.find(message =>
-      message.type.includes('KEY'),
-    );
-    const key = forge.pki.decryptRsaPrivateKey(
-      forge.pem.encode(signerKeyMessage),
-      password,
-    );
-
-    if (!key) {
-      if (
-        (signerKeyMessage.procType &&
-          signerKeyMessage.procType.type === 'ENCRYPTED') ||
-        signerKeyMessage.type.includes('ENCRYPTED')
-      ) {
-        return callback(new Error('unable to parse key, incorrect passphrase'));
-      }
-    }
+    const key = decodePrivateKey(signerCertData, password);
 
     // create PKCS#7 signed data
     const p7 = forge.pkcs7.createSignedData();

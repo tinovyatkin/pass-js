@@ -280,15 +280,19 @@ describe('generated', () => {
 
   test('should contain the icon', async () => {
     const buffer = await unzip('/tmp/pass.pkpass', 'icon.png');
-    expect(Crypto.createHash('sha1').update(buffer).digest('hex')).toBe(
-      'e0f0bcd503f6117bce6a1a3ff8a68e36d26ae47f',
-    );
+    expect(
+      Crypto.createHash('sha1')
+        .update(buffer)
+        .digest('hex'),
+    ).toBe('e0f0bcd503f6117bce6a1a3ff8a68e36d26ae47f');
   });
 
   test('should contain the logo', async () => {
     const buffer = await unzip('/tmp/pass.pkpass', 'logo.png');
-    expect(Crypto.createHash('sha1').update(buffer).digest('hex')).toBe(
-      'abc97e3b2bc3b0e412ca4a853ba5fd90fe063551',
-    );
+    expect(
+      Crypto.createHash('sha1')
+        .update(buffer)
+        .digest('hex'),
+    ).toBe('abc97e3b2bc3b0e412ca4a853ba5fd90fe063551');
   });
 });

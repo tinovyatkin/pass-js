@@ -62,8 +62,7 @@ describe('Template', () => {
     expect(templ2.images.thumbnail).toBeDefined();
   });
 
-  /*
-  test('push updates', async () => {
+  test.skip('push updates', async () => {
     const template = new Template('coupon', {
       passTypeIdentifier: 'pass.com.example.passbook',
       teamIdentifier: 'MXL',
@@ -77,9 +76,7 @@ describe('Template', () => {
     );
     console.log(JSON.stringify(res));
     // shutting down APN
-    if (template.apn) template.apn.shutdown();
-    expect(res.sent).toBeInstanceOf(Array);
-    expect(res.sent).toHaveLength(1);
+    if (template.apn) template.apn.destroy();
+    expect(res).toHaveProperty('status', 200);
   });
-  */
 });

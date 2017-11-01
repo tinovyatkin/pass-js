@@ -52,7 +52,6 @@
   "author": "Tino Vyatkin <tino@vtkn.io>",
   "license": "ISC",
   "dependencies": {
-    "@destinationstransfers/apn": "^2.2.2",
     "color-string": "^1.5.2",
     "node-forge": "^0.7.1"
   },
