@@ -10,7 +10,8 @@ const path = require('path');
 const { promisify } = require('util');
 const { join } = require('path');
 const colorString = require('color-string');
-const apn = require('@destinationstransfers/apn');
+const http2 = require('http2'); // eslint-disable-line node/no-extraneous-require
+const decodePrivateKey = require('./lib/decodePrivateKey');
 
 const PassImages = require('./lib/images');
 const Pass = require('./pass');
@@ -18,6 +19,8 @@ const { PASS_STYLES } = require('./constants');
 
 const readFileAsync = promisify(readFile);
 const statAsync = promisify(stat);
+
+const { HTTP2_HEADER_METHOD, HTTP2_HEADER_PATH } = http2.constants;
 
 // Create a new template.
 //
@@ -47,23 +50,58 @@ class Template {
     Object.preventExtensions(this);
   }
 
-  pushUpdates(pushToken) {
-    if (!this.apn) {
+  async pushUpdates(pushToken) {
+    // https://developer.apple.com/library/content/documentation/UserExperience/Conceptual/PassKit_PG/Updating.html
+    if (!this.apn || this.apn.destroyed) {
+      // prepare certificate
       // creating APN Provider
       const identifier = this.passTypeIdentifier().replace(/^pass./, '');
-      const key = path.resolve(this.keysPath, `${identifier}.pem`);
 
-      this.apn = new apn.Provider({
-        production: true,
-        cert: key /* Certificate file path - we have both in the same file */,
-        key /* Key file path */,
-        passphrase: this.password,
+      const cert = await readFileAsync(
+        path.resolve(this.keysPath, `${identifier}.pem`),
+        'utf8',
+      );
+
+      const key = decodePrivateKey(cert, this.password, true);
+
+      this.apn = http2.connect('https://api.push.apple.com:443', {
+        key,
+        cert,
+      });
+      // Events
+      this.apn.on('goaway', () => this.apn.destroy());
+      await new Promise((resolve, reject) => {
+        this.apn.on('connect', resolve);
+        this.apn.on('error', reject);
       });
     }
-    // sending notification
-    const note = new apn.Notification();
-    note.payload = {}; // payload must be empty
-    return this.apn.send(note, pushToken);
+
+    // sending to APN
+    return new Promise((resolve, reject) => {
+      const req = this.apn.request({
+        [HTTP2_HEADER_METHOD]: 'POST',
+        [HTTP2_HEADER_PATH]: `/3/device/${encodeURIComponent(pushToken)}`,
+      });
+
+      // Cancel request after timeout
+      req.setTimeout(5000, () => req.rstWithCancel());
+
+      // Response handling
+      req.on('response', headers => {
+        // consuming data, even if we are not interesting in it
+        req.on('data', () => {});
+        req.on('end', () => resolve(headers));
+      });
+
+      // Error handling
+      req.on('error', reject);
+      req.on('timeout', () =>
+        reject(new Error(`http2: timeout connecting to api.push.apple.com`)),
+      );
+
+      // Post payload (always empty in our case)
+      req.end('{}');
+    });
   }
 
   /**
