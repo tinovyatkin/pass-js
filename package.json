@@ -4,7 +4,7 @@
   "homepage": "https://github.com/destinationstransfers/passkit",
   "version": "4.1.0",
   "engines": {
-    "node": ">=8"
+    "node": "^8"
   },
   "bin": {
     "passkit-keys": "./bin/passkit-keys"
