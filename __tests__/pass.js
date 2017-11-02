@@ -205,7 +205,7 @@ describe('generated', () => {
     const file = File.createWriteStream('/tmp/pass.pkpass');
     await new Promise(resolve => {
       pass.pipe(file);
-      pass.on('end', resolve);
+      pass.on('close', resolve);
       pass.on('error', err => {
         throw err;
       });
