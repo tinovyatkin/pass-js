@@ -77,6 +77,6 @@ describe('Template', () => {
     console.log(JSON.stringify(res));
     // shutting down APN
     if (template.apn) template.apn.destroy();
-    expect(res).toHaveProperty('status', 200);
+    expect(res).toHaveProperty(':status', 200);
   });
 });

@@ -53,7 +53,8 @@
   "license": "ISC",
   "dependencies": {
     "color-string": "^1.5.2",
-    "node-forge": "^0.7.1"
+    "node-forge": "^0.7.1",
+    "yazl": "^2.4.3"
   },
   "remarkConfig": {
     "presets": [

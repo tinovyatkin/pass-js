@@ -3,16 +3,16 @@
 'use strict';
 
 const { EventEmitter } = require('events');
-const Path = require('path');
+const path = require('path');
 const { PassThrough } = require('stream');
 
-const Zip = require('./lib/zip');
+const { ZipFile } = require('yazl');
+const getBufferHash = require('./lib/getBufferHash');
 const PassImages = require('./lib/images');
-const SHAWriteStream = require('./lib/SHAWriteStream');
 const signManifest = require('./lib/signManifest-forge');
 const Fields = require('./lib/fields');
-const pipeIntoStream = require('./lib/pipe-into-stream');
 const { getW3CDateString } = require('./lib/w3cdate');
+const readAndHashFile = require('./lib/readAndHashFile');
 
 const {
   TOP_LEVEL_FIELDS,
@@ -348,81 +348,74 @@ class Pass extends EventEmitter {
    * @param {Writable} output - Write stream
    * @memberof Pass
    */
-  pipe(output) {
-    const zip = new Zip(output);
-    let lastError;
-
-    zip.on('error', error => {
-      lastError = error;
-    });
-
+  async pipe(output) {
     // Validate before attempting to create
     try {
       this.validate();
     } catch (error) {
-      setImmediate(() => {
-        this.emit('error', error);
-      });
+      setImmediate(() => this.emit('error', error));
       return;
     }
+
+    // Creating new Zip file
+    const zip = new ZipFile();
+    zip.outputStream
+      .pipe(output)
+      .on('close', () => this.emit('close'))
+      .on('end', () => this.emit('end'))
+      .on('error', err => this.emit('error', err));
 
     // Construct manifest here
     const manifest = {};
 
-    /**
-     * Add file to zip and it's SHA to manifest
-     * 
-     * @param {string} filename 
-     * @returns {SHAWriteStream}
-     */
-    const addFile = filename =>
-      new SHAWriteStream(manifest, filename, zip.addFile(filename));
-
-    const doneWithImages = () => {
-      if (lastError) {
-        zip.close();
-        this.emit('error', lastError);
-      } else {
-        setImmediate(() => {
-          this.signZip(zip, manifest, error => {
-            if (error) {
-              return this.emit('error', error);
-            }
-            zip.close();
-            zip.on('end', () => {
-              this.emit('end');
-            });
-            zip.on('error', err => {
-              this.emit('error', err);
-            });
-          });
-        });
-      }
-    };
-
+    // Adding required files
     // Create pass.json
     const passJson = Buffer.from(JSON.stringify(this.getPassJSON()), 'utf-8');
-    addFile('pass.json').end(passJson, 'utf8');
+    // saving hash to manifer
+    manifest['pass.json'] = getBufferHash(passJson);
+    zip.addBuffer(passJson, 'pass.json', { compress: false });
 
     // Localization
     Object.entries(this.localizations).forEach(([lang, strings]) => {
-      addFile(`${lang}.lproj/pass.strings`).end(Buffer.from(strings), 'utf-16');
+      const fileName = `${lang}.lproj/pass.strings`;
+      const fileContent = Buffer.from(strings, 'utf-16');
+      manifest[fileName] = getBufferHash(fileContent);
+      zip.addBuffer(fileContent, fileName, { compress: false });
     });
 
-    let expecting = 0;
-    this.images.map.forEach((imageVariants, imageType) => {
+    // Images
+    const images = [];
+    this.images.map.forEach((imageVariants, imageType) =>
       imageVariants.forEach((file, density) => {
         const filename = `${imageType}${density !== '1x'
           ? `@${density}`
           : ''}.png`;
-        pipeIntoStream(addFile(filename), file, error => {
-          --expecting;
-          if (error) lastError = error;
-          if (expecting === 0) doneWithImages();
-        });
-        ++expecting;
-      });
+        images.push(readAndHashFile(file, filename));
+      }),
+    );
+
+    // awaiting all images and updating manifest
+    const imagesRes = await Promise.all(images);
+    imagesRes.forEach(({ name, hash, content }) => {
+      manifest[name] = hash;
+      zip.addBuffer(content, name, { compress: false });
     });
+
+    // adding manifest
+    const manifestJson = JSON.stringify(manifest);
+    zip.addBuffer(Buffer.from(manifestJson, 'utf8'), 'manifest.json');
+
+    // Create signature
+    const identifier = this.template.passTypeIdentifier().replace(/^pass./, '');
+    const signature = await signManifest(
+      path.resolve(this.template.keysPath, `${identifier}.pem`),
+      this.template.password,
+      manifestJson,
+    );
+    zip.addBuffer(signature, 'signature', { compress: false });
+
+    // finished!
+    zip.end();
   }
 
   /**
@@ -451,34 +444,6 @@ class Pass extends EventEmitter {
     const stream = new PassThrough();
     this.pipe(stream);
     return stream;
-  }
-
-  /**
-   * Add manifest.json and signature files.
-   * 
-   * @param {Zip} zip 
-   * @param {Object} manifest 
-   * @param {Function} callback
-   * @memberof Pass
-   */
-  signZip(zip, manifest, callback) {
-    const json = JSON.stringify(manifest);
-    // Add manifest.json
-    zip.addFile('manifest.json').end(json, 'utf-8');
-    // Create signature
-    const identifier = this.template.passTypeIdentifier().replace(/^pass./, '');
-    signManifest(
-      Path.resolve(this.template.keysPath, `${identifier}.pem`),
-      this.template.password,
-      json,
-      (error, signature) => {
-        if (!error) {
-          // Write signature file
-          zip.addFile('signature').end(signature);
-        }
-        callback(error);
-      },
-    );
   }
 }
 
