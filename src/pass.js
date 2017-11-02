@@ -385,14 +385,14 @@ class Pass extends EventEmitter {
 
     // Images
     const images = [];
-    this.images.map.forEach((imageVariants, imageType) => {
+    this.images.map.forEach((imageVariants, imageType) =>
       imageVariants.forEach((file, density) => {
         const filename = `${imageType}${density !== '1x'
           ? `@${density}`
           : ''}.png`;
         images.push(readAndHashFile(file, filename));
-      });
-    });
+      }),
+    );
 
     // awaiting all images and updating manifest
     const imagesRes = await Promise.all(images);

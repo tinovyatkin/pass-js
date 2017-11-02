@@ -10,7 +10,7 @@ const path = require('path');
 const { promisify } = require('util');
 const { join } = require('path');
 const colorString = require('color-string');
-const http2 = require('http2'); // eslint-disable-line node/no-extraneous-require
+const http2 = require('http2'); // eslint-disable-line
 const decodePrivateKey = require('./lib/decodePrivateKey');
 
 const PassImages = require('./lib/images');
