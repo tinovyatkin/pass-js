@@ -62,7 +62,7 @@ describe('Template', () => {
     expect(templ2.images.thumbnail).toBeDefined();
   });
 
-  test.skip('push updates', async () => {
+  test('push updates', async () => {
     const template = new Template('coupon', {
       passTypeIdentifier: 'pass.com.example.passbook',
       teamIdentifier: 'MXL',
@@ -77,6 +77,6 @@ describe('Template', () => {
     console.log(JSON.stringify(res));
     // shutting down APN
     if (template.apn) template.apn.destroy();
-    expect(res).toHaveProperty('status', 200);
+    expect(res).toHaveProperty(':status', 200);
   });
 });
