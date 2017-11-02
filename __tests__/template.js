@@ -62,7 +62,7 @@ describe('Template', () => {
     expect(templ2.images.thumbnail).toBeDefined();
   });
 
-  test('push updates', async () => {
+  test.skip('push updates', async () => {
     const template = new Template('coupon', {
       passTypeIdentifier: 'pass.com.example.passbook',
       teamIdentifier: 'MXL',
