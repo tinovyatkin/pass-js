@@ -1,6 +1,11 @@
+## 4.3 Nov 1, 2017
+
+-   Switched from using _in-house_ Zip implementation to `yazl` and refactored `Pass.pipe` for simplier form using `async` function.
+
 ## 4.2 Nov 1, 2017
 
 -   switched from our fork of `node-apn` to native HTTP2 implementation from Node 8.8 LTS.
+-   don't compress any file, just store inside of Zip, so, it suppose to be faster and more compatible
 
 ## 4.1 October 14, 2017
 
