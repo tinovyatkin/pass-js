@@ -373,14 +373,14 @@ class Pass extends EventEmitter {
     const passJson = Buffer.from(JSON.stringify(this.getPassJSON()), 'utf-8');
     // saving hash to manifer
     manifest['pass.json'] = getBufferHash(passJson);
-    zip.addBuffer(passJson, 'pass.json');
+    zip.addBuffer(passJson, 'pass.json', { compress: false });
 
     // Localization
     Object.entries(this.localizations).forEach(([lang, strings]) => {
       const fileName = `${lang}.lproj/pass.strings`;
       const fileContent = Buffer.from(strings, 'utf-16');
       manifest[fileName] = getBufferHash(fileContent);
-      zip.addBuffer(fileContent, fileName);
+      zip.addBuffer(fileContent, fileName, { compress: false });
     });
 
     // Images
@@ -398,7 +398,7 @@ class Pass extends EventEmitter {
     const imagesRes = await Promise.all(images);
     imagesRes.forEach(({ name, hash, content }) => {
       manifest[name] = hash;
-      zip.addBuffer(content, name);
+      zip.addBuffer(content, name, { compress: false });
     });
 
     // adding manifest
@@ -412,7 +412,7 @@ class Pass extends EventEmitter {
       this.template.password,
       manifestJson,
     );
-    zip.addBuffer(signature, 'signature');
+    zip.addBuffer(signature, 'signature', { compress: false });
 
     // finished!
     zip.end();
