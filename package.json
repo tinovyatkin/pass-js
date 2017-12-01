@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "@destinationstransfers/eslint-config": "^1.6.0",
-    "eslint": "^4.12.0",
+    "eslint": "^4.12.1",
     "eslint-plugin-node": "^5.2.1",
     "jest": "^21.2.1",
     "remark-cli": "^4.0.0",
