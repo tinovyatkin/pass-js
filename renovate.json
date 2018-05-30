@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "extends": [
+    "config:js-app",
+    ":pinSkipCi",
+    "default:pinDigestsDisabled",
+    ":automergeMinor"
+  ],
+  "baseBranches": ["master"],
+  "respectLatest": false,
+  "labels": ["dependencies"],
+  "timezone": "America/Santo_Domingo",
+  "pin": {
+    "requiredStatusChecks": null
+  }
+}
