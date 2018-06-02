@@ -11,13 +11,15 @@
   },
   "devDependencies": {
     "@destinationstransfers/eslint-config": "^2.2.0",
+    "dotenv": "^6.0.0",
     "eslint": "^4.19.1",
     "eslint-plugin-node": "^6.0.1",
     "jest": "^23.1.0",
     "stream-buffers": "^3.0.2"
   },
   "scripts": {
-    "test": "jest",
+    "test":
+      "node -r dotenv/config --expose-gc node_modules/.bin/jest --maxWorkers=2 --detectOpenHandles --verbose --notify --bail",
     "lint:js": "eslint *.js --ignore-path .gitignore",
     "preversion": "npm test",
     "postversion": "git push origin master --tags"
@@ -49,6 +51,7 @@
   },
   "jest": {
     "collectCoverage": true,
+    "bail": true,
     "testEnvironment": "node",
     "verbose": true,
     "collectCoverageFrom": ["src/**/*.js"]
