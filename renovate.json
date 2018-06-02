@@ -1,7 +1,7 @@
 {
   "enabled": true,
   "extends": [
-    "config:js-app",
+    "config:base",
     ":pinSkipCi",
     "default:pinDigestsDisabled",
     ":automergeMinor"
