@@ -10,7 +10,7 @@ const path = require('path');
 const { promisify } = require('util');
 const { join } = require('path');
 const colorString = require('color-string');
-const http2 = require('http2'); // eslint-disable-line
+// const http2 = require('http2'); // eslint-disable-line
 const decodePrivateKey = require('./lib/decodePrivateKey');
 
 const PassImages = require('./lib/images');
@@ -20,7 +20,7 @@ const { PASS_STYLES } = require('./constants');
 const readFileAsync = promisify(readFile);
 const statAsync = promisify(stat);
 
-const { HTTP2_HEADER_METHOD, HTTP2_HEADER_PATH } = http2.constants;
+// const { HTTP2_HEADER_METHOD, HTTP2_HEADER_PATH } = http2.constants;
 
 // Create a new template.
 //
