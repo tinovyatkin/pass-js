@@ -10,10 +10,9 @@
     "passkit-keys": "./bin/passkit-keys"
   },
   "devDependencies": {
-    "@destinationstransfers/eslint-config": "^2.2.0",
-    "eslint": "^4.19.1",
-    "eslint-plugin-node": "^6.0.1",
-    "jest": "^23.1.0",
+    "@destinationstransfers/eslint-config": "^5.2.1",
+    "eslint": "^5.13.0",
+    "jest": "^24.0.0",
     "stream-buffers": "^3.0.2"
   },
   "scripts": {
@@ -22,7 +21,12 @@
     "preversion": "npm test",
     "postversion": "git push origin master --tags"
   },
-  "keywords": ["iOS", "apple", "passbook", "library"],
+  "keywords": [
+    "iOS",
+    "apple",
+    "passbook",
+    "library"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/destinationstransfers/passkit.git"
@@ -33,8 +37,7 @@
   "licenses": [
     {
       "type": "MIT",
-      "url":
-        "https://github.com/destinationstransfers/passkit/blob/master/MIT-LICENSE"
+      "url": "https://github.com/destinationstransfers/passkit/blob/master/MIT-LICENSE"
     }
   ],
   "directories": {
@@ -43,14 +46,16 @@
   },
   "author": "Tino Vyatkin <tino@vtkn.io>",
   "dependencies": {
-    "color-string": "^1.5.2",
-    "node-forge": "^0.7.5",
-    "yazl": "^2.4.3"
+    "color-string": "^1.5.3",
+    "node-forge": "^0.8.0",
+    "yazl": "^2.5.1"
   },
   "jest": {
     "collectCoverage": true,
     "testEnvironment": "node",
     "verbose": true,
-    "collectCoverageFrom": ["src/**/*.js"]
+    "collectCoverageFrom": [
+      "src/**/*.js"
+    ]
   }
 }
