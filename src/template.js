@@ -236,6 +236,16 @@ class Template {
     return this.fields.webServiceURL;
   }
 
+  authenticationToken(v) {
+    if (arguments.length === 1) {
+      if (typeof v !== 'string' || v.length < 16)
+         throw new Error(`authenticationToken must be a string and have more than 16 characters`);
+      this.fields.authenticationToken = v;
+      return this;
+    }
+    return this.fields.authenticationToken;
+  }
+
   /**
    * Sets path to directory containing keys and password for accessing keys.
    * 
