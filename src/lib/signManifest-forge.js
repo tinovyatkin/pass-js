@@ -1,20 +1,20 @@
 'use strict';
 
-const forge = require('node-forge');
-const { readFile, readFileSync } = require('fs');
-const { resolve } = require('path');
 const decodePrivateKey = require('./decodePrivateKey');
-const { promisify } = require('util');
-
-const readFileAsync = promisify(readFile);
+const forge = require('node-forge');
+const {
+  promises: { readFile },
+  readFileSync,
+} = require('fs');
+const { resolve } = require('path');
 
 const APPLE_CA_CERTIFICATE = forge.pki.certificateFromPem(
-  readFileSync(resolve(__dirname, '../../keys/wwdr.pem')),
+  readFileSync(resolve(__dirname, '../../keys/wwdr.pem'), 'utf8'),
 );
 
 /**
  * Signs a manifest and returns the signature.
- * 
+ *
  * @param {string} signerPemFile - signing certificate filename
  * @param {string} password - certificate password
  * @param {string} manifest - manifest to sign
@@ -22,7 +22,7 @@ const APPLE_CA_CERTIFICATE = forge.pki.certificateFromPem(
  */
 async function signManifest(signerPemFile, password, manifest) {
   // reading and parsing certificates
-  const signerCertData = await readFileAsync(signerPemFile, 'utf8');
+  const signerCertData = await readFile(signerPemFile, 'utf8');
   // the PEM file from P12 contains both, certificate and private key
   // getting signer certificate
   const certificate = forge.pki.certificateFromPem(signerCertData);

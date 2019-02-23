@@ -4,12 +4,8 @@
 
 'use strict';
 
-const { stat, readdir } = require('fs');
-const { promisify } = require('util');
 const { basename, extname, resolve } = require('path');
-
-const readdirAsync = promisify(readdir);
-const statAsync = promisify(stat);
+const { stat, readdir } = require('fs').promises;
 
 // Supported images.
 const { IMAGES, DENSITIES } = require('../constants');
@@ -20,29 +16,29 @@ class PassImages {
     this.map = new Map();
 
     // define setters and getters for particular images
-    Object.keys(IMAGES).forEach(imageType => {
+    for (const imageType in IMAGES) {
       Object.defineProperty(this, imageType, {
         enumerable: false,
         get: this.getImage.bind(this, imageType),
         set: this.setImage.bind(this, imageType, '1x'),
       });
       // setting retina properties too
-      DENSITIES.forEach(density => {
+      for (const density of DENSITIES) {
         Object.defineProperty(this, imageType + density, {
           enumerable: false,
           get: this.getImage.bind(this, imageType, density),
           set: this.setImage.bind(this, imageType, density),
         });
-      });
-    });
+      }
+    }
 
     Object.preventExtensions(this);
   }
 
   /**
    * Returns a given imageType path with a density
-   * 
-   * @param {string} imageType 
+   *
+   * @param {string} imageType
    * @param {string} density - can be '2x' or '3x'
    * @returns {string} - image path
    * @memberof PassImages
@@ -58,10 +54,10 @@ class PassImages {
 
   /**
    * Saves a given imageType path
-   * 
-   * @param {string} imageType 
-   * @param {string} density 
-   * @param {string} fileName 
+   *
+   * @param {string} imageType
+   * @param {string} density
+   * @param {string} fileName
    * @memberof PassImages
    */
   setImage(imageType, density = '1x', fileName) {
@@ -81,18 +77,18 @@ class PassImages {
    */
   async loadFromDirectory(dir) {
     const fullPath = resolve(dir);
-    const stats = await statAsync(fullPath);
+    const stats = await stat(fullPath);
     if (!stats.isDirectory())
       throw new Error(`Path ${fullPath} must be a directory!`);
 
-    const files = await readdirAsync(fullPath);
+    const files = await readdir(fullPath);
     for (const filePath of files) {
       // we are interesting only in PNG files
       if (extname(filePath) === '.png') {
         const fileName = basename(filePath, '.png');
         // this will split imagename like background@2x into 'background' and '2x' and fail on anything else
         const [, imageType, , density] =
-          /^([a-z]+)(@([2-3]x))?$/.exec(fileName) || [];
+          /^([a-z]+)(@([23]x))?$/.exec(fileName) || [];
         if (imageType in IMAGES && (!density || DENSITIES.includes(density)))
           this.setImage(imageType, density, resolve(fullPath, filePath));
       }

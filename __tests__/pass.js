@@ -1,14 +1,14 @@
 'use strict';
 
 const Crypto = require('crypto');
-const { execFile } = require('child_process');
 const File = require('fs');
 const path = require('path');
+const { execFile } = require('child_process');
 const { Readable } = require('stream');
 
-const Template = require('../src/template');
 const constants = require('../src/constants');
 const Pass = require('../src/pass');
+const Template = require('../src/template');
 
 // Clone all the fields in object, except the named field, and return a new
 // object.
@@ -173,7 +173,7 @@ describe('Pass', () => {
     const file = File.createWriteStream('/tmp/pass1.pkpass');
     stream.pipe(file);
     await new Promise(resolve => {
-      stream.on('end', resolve);
+      file.on('close', resolve);
       stream.on('error', e => {
         throw e;
       });
@@ -194,7 +194,7 @@ describe('generated', () => {
   const pass = template.createPass(fields);
 
   beforeAll(async () => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 100000;
+    jest.setTimeout(100000);
     await pass.images.loadFromDirectory(path.resolve(__dirname, './resources'));
     pass.headerFields.add('date', 'Date', 'Nov 1');
     pass.primaryFields.add([

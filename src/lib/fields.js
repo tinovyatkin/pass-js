@@ -4,14 +4,14 @@
  * Field accessors class
  */
 
-const { getW3CDateString } = require('./w3cdate');
 const only = require('./only');
+const { getW3CDateString } = require('./w3cdate');
 
 class Fields {
   /**
    * Creates an instance of Fields
-   * 
-   * @param {Pass} pass - parent Pass class
+   *
+   * @param {import('../pass')} pass - parent Pass class
    * @param {string} key - key name that these fields are bound to
    * @memberof Fields
    */
@@ -23,7 +23,7 @@ class Fields {
 
   /**
    * Returns an array of all fields.
-   * 
+   *
    * @returns {{key: string, value: string, label: string}[]}
    * @memberof Fields
    */
@@ -34,7 +34,7 @@ class Fields {
 
   /**
    * Adds a field to the end of the list
-   * 
+   *
    * @param {string | {key: string, label: string, value: string}} key - Field key or object with all fields
    * @param {string} [label] - Field label (optional)
    * @param {string} [value] - Field value
@@ -61,8 +61,8 @@ class Fields {
 
   /**
    * Returns a field
-   * 
-   * @param {string} key 
+   *
+   * @param {string} key
    * @returns {{key: string, label: string, value: string}} If field exists, returns an object with common keys and rest of keys
    * @memberof Fields
    */
@@ -72,9 +72,9 @@ class Fields {
 
   /**
    * Sets value field for a given key
-   * 
-   * @param {string} key 
-   * @param {string} value 
+   *
+   * @param {string} key
+   * @param {string} value
    * @memberof Fields
    */
   setValue(key, value) {
@@ -94,8 +94,8 @@ class Fields {
 
   /**
    * Removes a given field.
-   * 
-   * @param {string} key 
+   *
+   * @param {string} key
    * @returns {Fields}
    * @memberof Fields
    */
@@ -111,10 +111,10 @@ class Fields {
 
   /**
    * Set a field as Date value with appropriated options
-   * 
+   *
    * @param {string} key
    * @param {string} label
-   * @param {Date} date 
+   * @param {Date} date
    * @param {{dateStyle?: string, ignoresTimeZone?: boolean, isRelative?: boolean, timeStyle?:string}} [formatOptions]
    * @returns {Fields}
    * @throws if date is not a Date or invalid Date
@@ -152,7 +152,7 @@ class Fields {
 
   /**
    * Removes all fields.
-   * 
+   *
    * @returns {Fields}
    * @memberof Fields
    */

@@ -4,20 +4,21 @@
   "homepage": "https://github.com/destinationstransfers/passkit",
   "version": "4.3.2",
   "engines": {
-    "node": ">=8.9"
+    "node": ">=10.1"
   },
   "bin": {
     "passkit-keys": "./bin/passkit-keys"
   },
   "devDependencies": {
-    "@destinationstransfers/eslint-config": "^5.2.1",
-    "eslint": "^5.13.0",
-    "jest": "^24.0.0",
-    "stream-buffers": "^3.0.2"
+    "@destinationstransfers/eslint-config": "^6.3.0",
+    "eslint": "^5.14.1",
+    "jest": "^24.1.0",
+    "stream-buffers": "^3.0.2",
+    "weak": "^1.0.1"
   },
   "scripts": {
-    "test": "jest",
-    "lint:js": "eslint *.js --ignore-path .gitignore",
+    "test": "node --expose-gc node_modules/jest/bin/jest --detectOpenHandles --detectLeaks --notify --logHeapUsage",
+    "lint:js": "eslint \"**/*.{js,mjs,es6,babel}\" --ignore-pattern \"*test*\" --ignore-path .gitignore",
     "preversion": "npm test",
     "postversion": "git push origin master --tags"
   },
@@ -54,8 +55,22 @@
     "collectCoverage": true,
     "testEnvironment": "node",
     "verbose": true,
-    "collectCoverageFrom": [
-      "src/**/*.js"
+    "coverageReporters": [
+      "text",
+      "json",
+      "html",
+      "cobertura"
     ]
+  },
+  "eslintConfig": {
+    "extends": [
+      "@destinationstransfers"
+    ],
+    "env": {
+      "node": true
+    },
+    "parserOptions": {
+      "sourceType": "script"
+    }
   }
 }

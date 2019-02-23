@@ -1,18 +1,19 @@
+/* eslint-disable github/array-foreach */
 // Generate a pass file.
 
 'use strict';
 
-const { EventEmitter } = require('events');
 const path = require('path');
+const { EventEmitter } = require('events');
 const { PassThrough } = require('stream');
 
-const { ZipFile } = require('yazl');
+const Fields = require('./lib/fields');
 const getBufferHash = require('./lib/getBufferHash');
 const PassImages = require('./lib/images');
-const signManifest = require('./lib/signManifest-forge');
-const Fields = require('./lib/fields');
-const { getW3CDateString } = require('./lib/w3cdate');
 const readAndHashFile = require('./lib/readAndHashFile');
+const signManifest = require('./lib/signManifest-forge');
+const { getW3CDateString } = require('./lib/w3cdate');
+const { ZipFile } = require('yazl');
 
 const {
   TOP_LEVEL_FIELDS,
@@ -39,7 +40,7 @@ class Pass extends EventEmitter {
     // Structure is basically reference to all the fields under a given style
     // key, e.g. if style is coupon then structure.primaryFields maps to
     // fields.coupon.primaryFields.
-    const style = template.style;
+    const { style } = template;
     this.structure = this.fields[style];
     if (!this.structure) this.structure = this.fields[style] = {};
     this.images = new PassImages();
@@ -59,7 +60,8 @@ class Pass extends EventEmitter {
     Object.entries(TOP_LEVEL_FIELDS).forEach(([key, { type }]) => {
       if (typeof this[key] !== 'function')
         this[key] = v => {
-        if (arguments) { // eslint-disable-line
+          // eslint-disable-next-line prefer-rest-params
+          if (arguments) {
             if (type === Array && !Array.isArray(v))
               throw new Error(`${key} must be an Array!`);
             this.fields[key] = v;
@@ -104,7 +106,7 @@ class Pass extends EventEmitter {
 
   /**
    * Date and time when the pass expires.
-   * 
+   *
    * @param {string | Date} v - value to set
    * @returns {Pass | string}
    * @throws when passed value can't be interpreted as W3C string
@@ -120,8 +122,8 @@ class Pass extends EventEmitter {
 
   /**
    *  Indicates that the pass is void—for example, a one time use coupon that has been redeemed.
-   * 
-   * @param {boolean} v 
+   *
+   * @param {boolean} v
    * @returns {Pass | boolean}
    * @memberof Pass
    */
@@ -137,7 +139,7 @@ class Pass extends EventEmitter {
   /**
    * Date and time when the pass becomes relevant. For example, the start time of a movie.
    * Recommended for event tickets and boarding passes; otherwise optional.
-   * 
+   *
    * @param {string | Date} v - value to set
    * @returns {Pass | string}
    * @throws when passed value can't be interpreted as W3C string
@@ -154,7 +156,7 @@ class Pass extends EventEmitter {
   /**
    * Maximum distance in meters from a relevant latitude and longitude that the pass is relevant.
    * This number is compared to the pass’s default distance and the smaller value is used.
-   * 
+   *
    * @param {number} v - distance in meters
    * @returns {Pass | number}
    * @memberof Pass
@@ -173,7 +175,7 @@ class Pass extends EventEmitter {
 
   /**
    * Returns normalized geopoint object from geoJSON, {lat, lng} or {lattitude,longutude,altitude}
-   * 
+   *
    * @param {number[] | { lat: number, lng: number, alt?: number } | { longitude: number, latitude: number, altitude?: number }} point
    * @returns {{ longitude: number, latitude: number, altitude: number }}
    * @throws on unknown point format
@@ -186,7 +188,9 @@ class Pass extends EventEmitter {
     if (Array.isArray(point)) {
       if (point.length < 2 || !point.every(n => Number.isFinite(n)))
         throw new Error(
-          `Invalid GeoJSON array of numbers, length must be 2 to 3, received ${point.length}`,
+          `Invalid GeoJSON array of numbers, length must be 2 to 3, received ${
+            point.length
+          }`,
         );
       return {
         longitude: point[0],
@@ -219,9 +223,9 @@ class Pass extends EventEmitter {
 
   /**
    * Adds a location where a pass is relevant.
-   * 
+   *
    * @param {number[] | { lat: number, lng: number, alt?: number } | { longitude: number, latitude: number, altitude?: number }} point
-   * @param {string} relevantText 
+   * @param {string} relevantText
    * @returns {Pass}
    * @memberof Pass
    */
@@ -239,7 +243,7 @@ class Pass extends EventEmitter {
 
   /**
    * Gets or sets Pass barcodes field
-   * 
+   *
    * @param {Array.<{format: string, message: string, messageEncoding: string}>} v
    */
   barcodes(v) {
@@ -323,7 +327,7 @@ class Pass extends EventEmitter {
                 throw new Error(`Invalid color value ${value}`);
               return false;
             });
-        } catch (e) {
+        } catch (err) {
           throw new Error(
             `Color value "${value}" for field "${colorFieldName}" is invalid, must be an rgb(...)`,
           );
@@ -344,16 +348,16 @@ class Pass extends EventEmitter {
 
   /**
    * Pipe pass to a write stream.
-   * 
-   * @param {Writable} output - Write stream
+   *
+   * @param {import('stream').Writable} output - Write stream
    * @memberof Pass
    */
   async pipe(output) {
     // Validate before attempting to create
     try {
       this.validate();
-    } catch (error) {
-      setImmediate(() => this.emit('error', error));
+    } catch (err) {
+      setImmediate(() => this.emit('error', err));
       return;
     }
 
@@ -361,9 +365,9 @@ class Pass extends EventEmitter {
     const zip = new ZipFile();
     zip.outputStream
       .pipe(output)
-      .on('close', () => this.emit('close'))
-      .on('end', () => this.emit('end'))
-      .on('error', err => this.emit('error', err));
+      .once('close', () => this.emit('close'))
+      .once('end', () => this.emit('end'))
+      .once('error', err => this.emit('error', err));
 
     // Construct manifest here
     const manifest = {};
@@ -371,7 +375,7 @@ class Pass extends EventEmitter {
     // Adding required files
     // Create pass.json
     const passJson = Buffer.from(JSON.stringify(this.getPassJSON()), 'utf-8');
-    // saving hash to manifer
+    // saving hash to manifest
     manifest['pass.json'] = getBufferHash(passJson);
     zip.addBuffer(passJson, 'pass.json', { compress: false });
 
@@ -387,9 +391,9 @@ class Pass extends EventEmitter {
     const images = [];
     this.images.map.forEach((imageVariants, imageType) =>
       imageVariants.forEach((file, density) => {
-        const filename = `${imageType}${density !== '1x'
-          ? `@${density}`
-          : ''}.png`;
+        const filename = `${imageType}${
+          density !== '1x' ? `@${density}` : ''
+        }.png`;
         images.push(readAndHashFile(file, filename));
       }),
     );
@@ -421,23 +425,23 @@ class Pass extends EventEmitter {
   /**
    * Use this to send pass as HTTP response.
    * Adds appropriate headers and pipes pass to response.
-   * 
-   * @param {http.response} response - HTTP response
+   *
+   * @param {import('http').ServerResponse} response - HTTP response
    * @memberof Pass
    */
   render(response) {
     return new Promise((resolve, reject) => {
       response.setHeader('Content-Type', PASS_MIME_TYPE);
-      this.on('error', reject);
-      this.on('end', resolve);
+      this.once('error', reject);
+      this.once('end', resolve);
       this.pipe(response);
     });
   }
 
   /**
-   * Returns the Pass as a Readable strem
-   * 
-   * @returns {Stream}
+   * Returns the Pass as a Readable stream
+   *
+   * @returns {import('stream').Readable}
    * @memberof Pass
    */
   stream() {
