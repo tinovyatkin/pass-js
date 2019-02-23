@@ -162,6 +162,7 @@ describe('Pass', () => {
   });
 
   test('stream', async () => {
+    console.log(File.readFileSync('./keys/com.example.passbook.pem', 'utf8'));
     const pass = template.createPass(fields);
     await pass.images.loadFromDirectory(path.resolve(__dirname, './resources'));
     pass.headerFields.add('date', 'Date', 'Nov 1');
@@ -173,7 +174,7 @@ describe('Pass', () => {
     const file = File.createWriteStream('/tmp/pass1.pkpass');
     stream.pipe(file);
     await new Promise(resolve => {
-      stream.on('end', resolve);
+      file.on('close', resolve);
       stream.on('error', e => {
         throw e;
       });

@@ -365,9 +365,9 @@ class Pass extends EventEmitter {
     const zip = new ZipFile();
     zip.outputStream
       .pipe(output)
-      .on('close', () => this.emit('close'))
-      .on('end', () => this.emit('end'))
-      .on('error', err => this.emit('error', err));
+      .once('close', () => this.emit('close'))
+      .once('end', () => this.emit('end'))
+      .once('error', err => this.emit('error', err));
 
     // Construct manifest here
     const manifest = {};
