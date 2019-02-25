@@ -1,8 +1,8 @@
 'use strict';
 
-const Template = require('./src/template');
-const Pass = require('./src/pass');
 const constants = require('./src/constants');
+const Pass = require('./src/pass');
+const Template = require('./src/template');
 
 module.exports = {
   Template,

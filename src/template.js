@@ -9,16 +9,11 @@ const decodePrivateKey = require('./lib/decodePrivateKey');
 const http2 = require('http2');
 const path = require('path');
 const { join } = require('path');
-const { promisify } = require('util');
-const { stat, readFile } = require('fs');
-const { URL } = require('url');
+const { stat, readFile } = require('fs').promises;
 
 const Pass = require('./pass');
 const PassImages = require('./lib/images');
 const { PASS_STYLES } = require('./constants');
-
-const readFileAsync = promisify(readFile);
-const statAsync = promisify(stat);
 
 const { HTTP2_HEADER_METHOD, HTTP2_HEADER_PATH } = http2.constants;
 
@@ -35,9 +30,9 @@ class Template {
     this.fields = {};
     // we will set all fields via class setters, as in the future we will implement strict validators
     // values validation: https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/TopLevel.html
-    Object.entries(fields).forEach(([field, value]) => {
+    for (const [field, value] of Object.entries(fields)) {
       if (typeof this[field] === 'function') this[field](value);
-    });
+    }
 
     if (style in fields) {
       Object.assign(this.fields, { [style]: fields[style] });
@@ -58,13 +53,12 @@ class Template {
       // creating APN Provider
       const identifier = this.passTypeIdentifier().replace(/^pass./, '');
 
-      const cert =
-        this.identifierCert ||
-        (await readFileAsync(
-          path.resolve(this.keysPath, `${identifier}.pem`),
-          'utf8',
-        ));
+      const cert = await readFile(
+        path.resolve(this.keysPath, `${identifier}.pem`),
+        'utf8',
+      );
 
+      /** @type {string} */
       const key = decodePrivateKey(cert, this.password, true);
 
       this.apn = http2.connect('https://api.push.apple.com:443', {
@@ -72,10 +66,10 @@ class Template {
         cert,
       });
       // Events
-      this.apn.on('goaway', () => this.apn.destroy());
+      this.apn.once('goaway', () => this.apn.destroy());
       await new Promise((resolve, reject) => {
-        this.apn.on('connect', resolve);
-        this.apn.on('error', reject);
+        this.apn.once('connect', resolve);
+        this.apn.once('error', reject);
       });
     }
 
@@ -239,15 +233,27 @@ class Template {
     return this.fields.webServiceURL;
   }
 
+  authenticationToken(v) {
+    if (arguments.length === 1) {
+      if (typeof v !== 'string' || v.length < 16)
+        throw new Error(
+          `authenticationToken must be a string and have more than 16 characters`,
+        );
+      this.fields.authenticationToken = v;
+      return this;
+    }
+    return this.fields.authenticationToken;
+  }
+
   /**
    * Sets path to directory containing keys and password for accessing keys.
    *
-   * @param {string} path - Path to directory containing key files (default is 'keys')
+   * @param {string} keysPath - Path to directory containing key files (default is 'keys')
    * @param {string} password - Password to use with keys
    * @memberof Template
    */
-  keys(path, password) {
-    if (path) this.keysPath = path;
+  keys(keysPath, password) {
+    if (typeof keysPath === 'string') this.keysPath = keysPath;
     if (password) this.password = password;
   }
 
@@ -279,19 +285,19 @@ class Template {
    * @static
    * @param {string} folderPath
    * @param {string} keyPassword - optional key password
-   * @returns {Template}
-   * @throws - if given folder doesn't contain pass.json or it is's in invalid format
+   * @returns {Promise.<Template>}
+   * @throws - if given folder doesn't contain pass.json or it is in invalid format
    * @memberof Template
    */
   static async load(folderPath, keyPassword) {
     // Check if the path is accessible directory actually
-    const stats = await statAsync(folderPath);
+    const stats = await stat(folderPath);
     if (!stats.isDirectory())
       throw new Error(`Path ${folderPath} must be a directory!`);
 
     // getting main JSON file
     const passJson = JSON.parse(
-      await readFileAsync(join(folderPath, 'pass.json')),
+      await readFile(join(folderPath, 'pass.json'), 'utf8'),
     );
 
     // Trying to detect the type of pass
@@ -316,10 +322,10 @@ class Template {
     const typeIdentifier = passJson.passTypeIdentifier;
     const keyName = `${typeIdentifier.replace(/^pass\./, '')}.pem`;
     try {
-      const keyStat = await statAsync(join(folderPath, keyName));
+      const keyStat = await stat(join(folderPath, keyName));
       if (keyStat.isFile()) template.keys(folderPath, keyPassword);
-    } catch (_) {} // eslint-disable-line
-
+      // eslint-disable-next-line no-empty
+    } catch (_) {}
     // done
     return template;
   }

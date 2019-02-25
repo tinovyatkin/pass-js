@@ -4,13 +4,16 @@
     "config:base",
     ":pinSkipCi",
     "default:pinDigestsDisabled",
+    "config:base",
     ":automergeMinor"
   ],
-  "baseBranches": ["master"],
+  "baseBranch": "master",
   "respectLatest": false,
   "labels": ["dependencies"],
   "timezone": "America/Santo_Domingo",
   "pin": {
-    "requiredStatusChecks": null
-  }
+    "requiredStatusChecks": null,
+    "automerge": true
+  },
+  "bumpVersion": "patch"
 }

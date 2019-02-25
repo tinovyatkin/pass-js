@@ -2,29 +2,32 @@
   "name": "@destinationstransfers/passkit",
   "description": "Apple PassKit for the Node",
   "homepage": "https://github.com/destinationstransfers/passkit",
-  "version": "4.3.1",
+  "version": "5.0.0",
   "engines": {
-    "node": ">=8.9"
+    "node": ">=10.1"
   },
   "bin": {
     "passkit-keys": "./bin/passkit-keys"
   },
   "devDependencies": {
-    "@destinationstransfers/eslint-config": "^2.2.0",
-    "dotenv": "^6.0.0",
-    "eslint": "^4.19.1",
-    "eslint-plugin-node": "^6.0.1",
-    "jest": "^23.1.0",
-    "stream-buffers": "^3.0.2"
+    "@destinationstransfers/eslint-config": "^6.3.0",
+    "eslint": "^5.14.1",
+    "jest": "^24.1.0",
+    "stream-buffers": "^3.0.2",
+    "weak": "^1.0.1"
   },
   "scripts": {
-    "test":
-      "node -r dotenv/config --expose-gc node_modules/.bin/jest --maxWorkers=2 --detectOpenHandles --verbose --notify --bail",
-    "lint:js": "eslint *.js --ignore-path .gitignore",
+    "test": "node --expose-gc node_modules/jest/bin/jest --detectOpenHandles --detectLeaks --notify --logHeapUsage",
+    "lint:js": "eslint \"**/*.{js,mjs,es6,babel}\" --ignore-pattern \"*test*\" --ignore-path .gitignore",
     "preversion": "npm test",
     "postversion": "git push origin master --tags"
   },
-  "keywords": ["iOS", "apple", "passbook", "library"],
+  "keywords": [
+    "iOS",
+    "apple",
+    "passbook",
+    "library"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/destinationstransfers/passkit.git"
@@ -35,8 +38,7 @@
   "licenses": [
     {
       "type": "MIT",
-      "url":
-        "https://github.com/destinationstransfers/passkit/blob/master/MIT-LICENSE"
+      "url": "https://github.com/destinationstransfers/passkit/blob/master/MIT-LICENSE"
     }
   ],
   "directories": {
@@ -45,15 +47,31 @@
   },
   "author": "Tino Vyatkin <tino@vtkn.io>",
   "dependencies": {
-    "color-string": "^1.5.2",
-    "node-forge": "^0.7.5",
-    "yazl": "^2.4.3"
+    "color-string": "^1.5.3",
+    "node-forge": "^0.8.0",
+    "yazl": "^2.5.1"
   },
   "jest": {
     "collectCoverage": true,
     "bail": true,
     "testEnvironment": "node",
     "verbose": true,
-    "collectCoverageFrom": ["src/**/*.js"]
+    "coverageReporters": [
+      "text",
+      "json",
+      "html",
+      "cobertura"
+    ]
+  },
+  "eslintConfig": {
+    "extends": [
+      "@destinationstransfers"
+    ],
+    "env": {
+      "node": true
+    },
+    "parserOptions": {
+      "sourceType": "script"
+    }
   }
 }
