@@ -257,6 +257,12 @@ class Template {
     if (password) this.password = password;
   }
 
+  /**
+   * Sets filename to certificate authority.
+   *
+   * @param {string} caKeysPath - Filename for certificate authority (default is 'keys/wwdr.pem')
+   * @memberof Template
+   */
   caKeys(caKeysPath) {
     if (typeof caKeysPath === 'string') this.caKeysPath = caKeysPath;
   }
