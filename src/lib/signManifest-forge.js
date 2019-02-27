@@ -6,11 +6,6 @@ const {
   promises: { readFile },
   readFileSync,
 } = require('fs');
-const { resolve } = require('path');
-
-const APPLE_CA_CERTIFICATE = forge.pki.certificateFromPem(
-  readFileSync(resolve(__dirname, '../../keys/wwdr.pem'), 'utf8'),
-);
 
 /**
  * Signs a manifest and returns the signature.
@@ -18,9 +13,18 @@ const APPLE_CA_CERTIFICATE = forge.pki.certificateFromPem(
  * @param {string} signerPemFile - signing certificate filename
  * @param {string} password - certificate password
  * @param {string} manifest - manifest to sign
+ * @param {string} certificateAuthorityFile - apple wwdr certificate filename
  * @returns {Promise.<Buffer>} - signature for given manifest
  */
-async function signManifest(signerPemFile, password, manifest) {
+async function signManifest(
+  signerPemFile,
+  password,
+  manifest,
+  certificateAuthorityFile,
+) {
+  const APPLE_CA_CERTIFICATE = forge.pki.certificateFromPem(
+    readFileSync(certificateAuthorityFile, 'utf8'),
+  );
   // reading and parsing certificates
   const signerCertData = await readFile(signerPemFile, 'utf8');
   // the PEM file from P12 contains both, certificate and private key

@@ -12,6 +12,7 @@ test('signManifest', async () => {
     path.resolve(__dirname, '../keys/com.example.passbook.pem'),
     'secret',
     TEST_STRING,
+    'keys/wwdr.pem',
   );
   expect(Buffer.isBuffer(jsSignedBuffer)).toBeTruthy();
 });

@@ -415,6 +415,7 @@ class Pass extends EventEmitter {
       path.resolve(this.template.keysPath, `${identifier}.pem`),
       this.template.password,
       manifestJson,
+      this.template.caKeysPath,
     );
     zip.addBuffer(signature, 'signature', { compress: false });
 

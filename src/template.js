@@ -39,6 +39,7 @@ class Template {
     }
 
     this.keysPath = 'keys';
+    this.caKeysPath = 'keys/wwdr.pem';
     this.password = null;
     this.apn = null;
     this.images = new PassImages();
@@ -254,6 +255,10 @@ class Template {
   keys(keysPath, password) {
     if (typeof keysPath === 'string') this.keysPath = keysPath;
     if (password) this.password = password;
+  }
+
+  caKeys(caKeysPath) {
+    if (typeof caKeysPath === 'string') this.caKeysPath = caKeysPath;
   }
 
   /**
