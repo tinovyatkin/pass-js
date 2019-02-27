@@ -39,7 +39,7 @@ class Template {
     }
 
     this.keysPath = 'keys';
-    this.caKeysPath = 'keys/wwdr.pem';
+    this.caKeysPath = path.resolve(__dirname, '../keys/wwdr.pem');
     this.password = null;
     this.apn = null;
     this.images = new PassImages();
