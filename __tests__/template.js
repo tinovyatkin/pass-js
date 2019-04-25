@@ -1,18 +1,19 @@
 'use strict';
 
-const Template = require('../src/template');
 const path = require('path');
+
+const Template = require('../src/template');
 
 const originalFields = {
   passTypeIdentifier: 'com.example.passbook',
 };
 
 describe('Template', () => {
-  test('should throw an error on unsupported type', () => {
+  it('should throw an error on unsupported type', () => {
     expect(() => new Template('discount')).toThrow();
   });
 
-  test('fields', () => {
+  it('fields', () => {
     const templ = new Template('coupon', originalFields);
     expect(templ.passTypeIdentifier()).toBe('com.example.passbook');
     templ.passTypeIdentifier('com.byaka.buka');
@@ -24,7 +25,7 @@ describe('Template', () => {
     expect(templ.passTypeIdentifier()).toBe('com.byaka.buka');
   });
 
-  test('webServiceURL', () => {
+  it('webServiceURL', () => {
     const templ = new Template('coupon', originalFields);
     expect(() =>
       templ.webServiceURL('https://transfers.do/webservice'),
@@ -33,7 +34,7 @@ describe('Template', () => {
     expect(() => templ.webServiceURL('/webservice')).toThrow();
   });
 
-  test('color values as RGB triplets', () => {
+  it('color values as RGB triplets', () => {
     const templ = new Template('coupon', originalFields);
     expect(() => templ.backgroundColor('rgb(125, 125,0)')).not.toThrow();
     // color-string reduces maximum to 255 but still generates the color
@@ -48,7 +49,7 @@ describe('Template', () => {
     );
   });
 
-  test('loading template from a folder', async () => {
+  it('loading template from a folder', async () => {
     const templ = await Template.load(
       path.resolve(__dirname, './resources/passes/BoardingPass.pass'),
     );
@@ -62,7 +63,7 @@ describe('Template', () => {
     expect(templ2.images.thumbnail).toBeDefined();
   });
 
-  test.skip('push updates', async () => {
+  it.skip('push updates', async () => {
     const template = new Template('coupon', {
       passTypeIdentifier: 'pass.com.example.passbook',
       teamIdentifier: 'MXL',

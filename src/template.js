@@ -4,15 +4,17 @@
 
 'use strict';
 
-const colorString = require('color-string');
-const decodePrivateKey = require('./lib/decodePrivateKey');
+const assert = require('assert');
 const http2 = require('http2');
 const path = require('path');
 const { join } = require('path');
 const { stat, readFile } = require('fs').promises;
 
-const Pass = require('./pass');
+const colorString = require('color-string');
+
+const decodePrivateKey = require('./lib/decodePrivateKey');
 const PassImages = require('./lib/images');
+const Pass = require('./pass');
 const { PASS_STYLES } = require('./constants');
 
 const { HTTP2_HEADER_METHOD, HTTP2_HEADER_PATH } = http2.constants;
@@ -23,7 +25,7 @@ const { HTTP2_HEADER_METHOD, HTTP2_HEADER_PATH } = http2.constants;
 // fields - Pass fields (passTypeIdentifier, teamIdentifier, etc)
 class Template {
   constructor(style, fields = {}) {
-    if (!PASS_STYLES.includes(style))
+    if (!PASS_STYLES.has(style))
       throw new Error(`Unsupported pass style ${style}`);
 
     this.style = style;
@@ -111,7 +113,7 @@ class Template {
    */
   static convertToRgb(value) {
     const rgb = colorString.get.rgb(value);
-    if (rgb === null) throw new Error(`Invalid color value ${value}`);
+    assert.notStrictEqual(rgb, null, `Invalid color value ${value}`)
     // convert to rgb(), stripping alpha channel
     return colorString.to.rgb(rgb.slice(0, 3));
   }
@@ -291,16 +293,13 @@ class Template {
 
     // Trying to detect the type of pass
     let type;
-    if (
-      !PASS_STYLES.some(t => {
-        if (t in passJson) {
-          type = t;
-          return true;
-        }
-        return false;
-      })
-    )
-      throw new Error('Unknown pass style!');
+    for (const t of PASS_STYLES) {
+      if (t in passJson) {
+        type = t;
+        break;
+      }
+    }
+    if (!type) throw new Error('Unknown pass style!');
 
     const template = new Template(type, passJson);
 

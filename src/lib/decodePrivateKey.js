@@ -1,7 +1,22 @@
 'use strict';
 
+/* eslint-disable @typescript-eslint/promise-function-async */
+
+const assert = require('assert');
+
 const forge = require('node-forge');
 
+/**
+ * @typedef {import('node-forge').pki.PrivateKey} PrivateKey
+ */
+
+/**
+ *
+ * @param {string} keydata
+ * @param {string} [password]
+ * @param {boolean} [returnPEM]
+ * @returns {string | PrivateKey}
+ */
 function decodePrivateKey(keydata, password, returnPEM = false) {
   const pemMessages = forge.pem.decode(keydata);
 
@@ -10,9 +25,7 @@ function decodePrivateKey(keydata, password, returnPEM = false) {
     message.type.includes('KEY'),
   );
 
-  if (!signerKeyMessage) {
-    throw new Error('Invalid certificate, no key found');
-  }
+  assert.ok(signerKeyMessage, 'Invalid certificate, no key found');
 
   const key = forge.pki.decryptRsaPrivateKey(
     forge.pem.encode(signerKeyMessage),

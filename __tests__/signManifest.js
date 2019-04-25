@@ -2,8 +2,8 @@
 
 const jsSign = require('../src/lib/signManifest-forge');
 
-const { randomBytes } = require('crypto');
 const path = require('path');
+const { randomBytes } = require('crypto');
 
 const TEST_STRING = randomBytes(1024).toString('base64');
 

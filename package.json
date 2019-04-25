@@ -3,22 +3,35 @@
   "description": "Apple PassKit for the Node",
   "homepage": "https://github.com/destinationstransfers/passkit",
   "version": "5.0.0",
+  "license": "MIT",
   "engines": {
     "node": ">=10.1"
   },
   "bin": {
     "passkit-keys": "./bin/passkit-keys"
   },
+  "files": [
+    "src",
+    "bin",
+    "keys/wwdr.pem"
+  ],
   "devDependencies": {
-    "@destinationstransfers/eslint-config": "^6.3.0",
-    "eslint": "^5.14.1",
-    "jest": "^24.1.0",
+    "@destinationstransfers/eslint-plugin": "^2.3.5",
+    "@types/jest": "^24.0.11",
+    "@types/node": "^11.13.7",
+    "@typescript-eslint/eslint-plugin": "^1.7.0",
+    "@typescript-eslint/parser": "^1.7.0",
+    "dotenv": "^7.0.0",
+    "eslint": "^5.16.0",
+    "jest": "^24.7.1",
+    "jest-junit": "^6.3.0",
     "stream-buffers": "^3.0.2",
-    "weak": "^1.0.1"
+    "typescript": "^3.4.5"
   },
   "scripts": {
-    "test": "node --expose-gc node_modules/jest/bin/jest --detectOpenHandles --detectLeaks --notify --logHeapUsage",
-    "lint:js": "eslint \"**/*.{js,mjs,es6,babel}\" --ignore-pattern \"*test*\" --ignore-path .gitignore",
+    "test": "node --expose-gc node_modules/jest/bin/jest --detectOpenHandles --notify --logHeapUsage",
+    "lint:js": "eslint \"**/*.{js,mjs}\" --ignore-pattern \"*test*\" --ignore-path .gitignore",
+    "typecheck": "tsc --p jsconfig.json",
     "preversion": "npm test",
     "postversion": "git push origin master --tags"
   },
@@ -48,7 +61,7 @@
   "author": "Tino Vyatkin <tino@vtkn.io>",
   "dependencies": {
     "color-string": "^1.5.3",
-    "node-forge": "^0.8.0",
+    "node-forge": "^0.8.2",
     "yazl": "^2.5.1"
   },
   "jest": {
@@ -61,16 +74,5 @@
       "html",
       "cobertura"
     ]
-  },
-  "eslintConfig": {
-    "extends": [
-      "@destinationstransfers"
-    ],
-    "env": {
-      "node": true
-    },
-    "parserOptions": {
-      "sourceType": "script"
-    }
   }
 }

@@ -54,7 +54,7 @@ const fields = {
 };
 
 describe('Pass', () => {
-  test('from template', () => {
+  it('from template', () => {
     const pass = template.createPass();
 
     // should copy template fields
@@ -68,7 +68,7 @@ describe('Pass', () => {
     expect(pass.fields.eventTicket).toBeUndefined();
   });
 
-  test('getGeoPoint', () => {
+  it('getGeoPoint', () => {
     expect(Pass.getGeoPoint([14.235, 23.3444, 23.4444])).toMatchObject({
       longitude: expect.any(Number),
       latitude: expect.any(Number),
@@ -95,7 +95,7 @@ describe('Pass', () => {
   });
 
   //
-  test('barcodes as Array', () => {
+  it('barcodes as Array', () => {
     const pass = template.createPass(cloneExcept(fields, 'serialNumber'));
     expect(() =>
       pass.barcodes([
@@ -109,27 +109,27 @@ describe('Pass', () => {
     expect(() => pass.barcodes('byaka')).toThrow();
   });
 
-  test('without serial number should not be valid', () => {
+  it('without serial number should not be valid', () => {
     const pass = template.createPass(cloneExcept(fields, 'serialNumber'));
     expect(() => pass.validate()).toThrow('Missing field serialNumber');
   });
 
-  test('without organization name should not be valid', () => {
+  it('without organization name should not be valid', () => {
     const pass = template.createPass(cloneExcept(fields, 'organizationName'));
     expect(() => pass.validate()).toThrow('Missing field organizationName');
   });
 
-  test('without description should not be valid', () => {
+  it('without description should not be valid', () => {
     const pass = template.createPass(cloneExcept(fields, 'description'));
     expect(() => pass.validate()).toThrow('Missing field description');
   });
 
-  test('without icon.png should not be valid', () => {
+  it('without icon.png should not be valid', () => {
     const pass = template.createPass(fields);
     expect(() => pass.validate()).toThrow('Missing image icon.png');
   });
 
-  test('without logo.png should not be valid', async () => {
+  it('without logo.png should not be valid', async () => {
     const pass = template.createPass(fields);
     pass.images.icon = 'icon.png';
     const file = File.createWriteStream('/tmp/pass.pkpass');
@@ -145,7 +145,7 @@ describe('Pass', () => {
     expect(validationError).toHaveProperty('message', 'Missing image logo.png');
   });
 
-  test('boarding pass has string-only property in sctructure fields', async () => {
+  it('boarding pass has string-only property in structure fields', async () => {
     const templ = await Template.load(
       path.resolve(__dirname, './resources/passes/BoardingPass.pass/'),
     );
@@ -161,7 +161,7 @@ describe('Pass', () => {
     );
   });
 
-  test('stream', async () => {
+  it('stream', async () => {
     const pass = template.createPass(fields);
     await pass.images.loadFromDirectory(path.resolve(__dirname, './resources'));
     pass.headerFields.add('date', 'Date', 'Nov 1');
@@ -212,7 +212,7 @@ describe('generated', () => {
     });
   });
 
-  test('should be a valid ZIP', done => {
+  it('should be a valid ZIP', done => {
     execFile('unzip', ['-t', '/tmp/pass.pkpass'], (error, stdout) => {
       if (error) throw new Error(stdout);
       expect(stdout).toContain('No errors detected in compressed data');
@@ -220,7 +220,7 @@ describe('generated', () => {
     });
   });
 
-  test('should contain pass.json', async () => {
+  it('should contain pass.json', async () => {
     const res = JSON.parse(await unzip('/tmp/pass.pkpass', 'pass.json'));
 
     expect(res).toMatchObject({
@@ -249,7 +249,7 @@ describe('generated', () => {
     });
   });
 
-  test('should contain a manifest', async () => {
+  it('should contain a manifest', async () => {
     const res = JSON.parse(await unzip('/tmp/pass.pkpass', 'manifest.json'));
     expect(res).toMatchObject({
       'pass.json': expect.any(String), // '87c2bd96d4bcaf55f0d4d7846a5ae1fea85ea628',
@@ -266,7 +266,7 @@ describe('generated', () => {
 
   // this test depends on MacOS specific signpass, so, run only on MacOS
   if (process.platform === 'darwin') {
-    test('should contain a signature', done => {
+    it('should contain a signature', done => {
       execFile(
         path.resolve(__dirname, './resources/bin/signpass'),
         ['-v', '/tmp/pass.pkpass'],
@@ -278,7 +278,7 @@ describe('generated', () => {
     });
   }
 
-  test('should contain the icon', async () => {
+  it('should contain the icon', async () => {
     const buffer = await unzip('/tmp/pass.pkpass', 'icon.png');
     expect(
       Crypto.createHash('sha1')
@@ -287,7 +287,7 @@ describe('generated', () => {
     ).toBe('e0f0bcd503f6117bce6a1a3ff8a68e36d26ae47f');
   });
 
-  test('should contain the logo', async () => {
+  it('should contain the logo', async () => {
     const buffer = await unzip('/tmp/pass.pkpass', 'logo.png');
     expect(
       Crypto.createHash('sha1')

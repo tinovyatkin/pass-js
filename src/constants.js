@@ -86,13 +86,13 @@ module.exports.IMAGES = IMAGES;
 module.exports.DENSITIES = DENSITIES;
 
 // Supported passbook styles.
-const PASS_STYLES = [
+const PASS_STYLES = new Set([
   'boardingPass',
   'coupon',
   'eventTicket',
   'storeCard',
   'generic',
-];
+]);
 module.exports.PASS_STYLES = PASS_STYLES;
 
 // Optional top level fields
