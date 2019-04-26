@@ -1,7 +1,8 @@
 'use strict';
 
 const { createHash } = require('crypto');
-const { createWriteStream, unlinkSync } = require('fs');
+const { createWriteStream, unlinkSync, mkdtempSync } = require('fs');
+const { tmpdir } = require('os');
 const path = require('path');
 const { once } = require('events');
 const { promisify } = require('util');
@@ -9,6 +10,7 @@ const pipeline = promisify(require('stream').pipeline);
 const execFile = promisify(require('child_process').execFile);
 
 const StreamZip = require('node-stream-zip');
+const { WritableStreamBuffer } = require('stream-buffers');
 
 const constants = require('../src/constants');
 const Pass = require('../src/pass');
@@ -141,7 +143,7 @@ describe('Pass', () => {
   it('without logo.png should not be valid', async () => {
     const pass = template.createPass(fields);
     pass.images.icon = 'icon.png';
-    const file = createWriteStream('/tmp/pass.pkpass');
+    const file = new WritableStreamBuffer();
 
     const validationError = await new Promise(resolve => {
       pass.pipe(file);
@@ -177,16 +179,20 @@ describe('Pass', () => {
     pass.primaryFields.add([
       { key: 'location', label: 'Place', value: 'High ground' },
     ]);
-    await pipeline(pass.stream(), createWriteStream('/tmp/pass1.pkpass'));
+    const tmd = mkdtempSync(`${tmpdir()}${path.sep}`);
+    const passFileName = path.join(tmd, 'pass.pkpass');
+    await pipeline(pass.stream(), createWriteStream(passFileName));
     // test that result is valid ZIP at least
-    const { stdout } = await execFile('unzip', ['-t', '/tmp/pass1.pkpass']);
-    unlinkSync('/tmp/pass1.pkpass');
+    const { stdout } = await execFile('unzip', ['-t', passFileName]);
+    unlinkSync(passFileName);
     expect(stdout).toContain('No errors detected in compressed data');
   });
 });
 
 describe('generated', () => {
   const pass = template.createPass(fields);
+  const tmd = mkdtempSync(`${tmpdir()}${path.sep}`);
+  const passFileName = path.join(tmd, 'pass.pkpass');
 
   beforeAll(async () => {
     jest.setTimeout(100000);
@@ -195,16 +201,20 @@ describe('generated', () => {
     pass.primaryFields.add([
       { key: 'location', label: 'Place', value: 'High ground' },
     ]);
-    await pipeline(pass.stream(), createWriteStream('/tmp/pass.pkpass'));
+    await pipeline(pass.stream(), createWriteStream(passFileName));
+  });
+
+  afterAll(async () => {
+    unlinkSync(passFileName);
   });
 
   it('should be a valid ZIP', async () => {
-    const { stdout } = await execFile('unzip', ['-t', '/tmp/pass.pkpass']);
+    const { stdout } = await execFile('unzip', ['-t', passFileName]);
     expect(stdout).toContain('No errors detected in compressed data');
   });
 
   it('should contain pass.json', async () => {
-    const res = JSON.parse(await unzip('/tmp/pass.pkpass', 'pass.json'));
+    const res = JSON.parse(await unzip(passFileName, 'pass.json'));
 
     expect(res).toMatchObject({
       passTypeIdentifier: 'pass.com.example.passbook',
@@ -233,7 +243,7 @@ describe('generated', () => {
   });
 
   it('should contain a manifest', async () => {
-    const res = JSON.parse(await unzip('/tmp/pass.pkpass', 'manifest.json'));
+    const res = JSON.parse(await unzip(passFileName, 'manifest.json'));
     expect(res).toMatchObject({
       'pass.json': expect.any(String), // '87c2bd96d4bcaf55f0d4d7846a5ae1fea85ea628',
       'icon.png': 'e0f0bcd503f6117bce6a1a3ff8a68e36d26ae47f',
@@ -250,16 +260,16 @@ describe('generated', () => {
   // this test depends on MacOS specific signpass, so, run only on MacOS
   if (process.platform === 'darwin') {
     it('should contain a signature', async () => {
-      const { stdout } = await execFile(
+      const { stdout, stderr } = await execFile(
         path.resolve(__dirname, './resources/bin/signpass'),
-        ['-v', '/tmp/pass.pkpass'],
+        ['-v', passFileName],
       );
       expect(stdout).toContain('*** SUCCEEDED ***');
     });
   }
 
   it('should contain the icon', async () => {
-    const buffer = await unzip('/tmp/pass.pkpass', 'icon.png');
+    const buffer = await unzip(passFileName, 'icon.png');
     expect(
       createHash('sha1')
         .update(buffer)
@@ -268,7 +278,7 @@ describe('generated', () => {
   });
 
   it('should contain the logo', async () => {
-    const buffer = await unzip('/tmp/pass.pkpass', 'logo.png');
+    const buffer = await unzip(passFileName, 'logo.png');
     expect(
       createHash('sha1')
         .update(buffer)
