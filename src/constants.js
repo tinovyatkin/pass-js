@@ -81,7 +81,7 @@ const IMAGES = {
   },
 };
 
-const DENSITIES = ['1x', '2x', '3x'];
+const DENSITIES = new Set(['1x', '2x', '3x']);
 module.exports.IMAGES = IMAGES;
 module.exports.DENSITIES = DENSITIES;
 

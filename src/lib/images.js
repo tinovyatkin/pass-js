@@ -46,7 +46,7 @@ class PassImages {
   getImage(imageType, density = '1x') {
     if (!(imageType in IMAGES))
       throw new Error(`Requested unknown image type: ${imageType}`);
-    if (!DENSITIES.includes(density))
+    if (!DENSITIES.has(density))
       throw new Error(`Invalid desity for "${imageType}": ${density}`);
     if (!this.map.has(imageType)) return undefined;
     return this.map.get(imageType).get(density);
@@ -89,7 +89,7 @@ class PassImages {
         // this will split imagename like background@2x into 'background' and '2x' and fail on anything else
         const [, imageType, , density] =
           /^([a-z]+)(@([23]x))?$/.exec(fileName) || [];
-        if (imageType in IMAGES && (!density || DENSITIES.includes(density)))
+        if (imageType in IMAGES && (!density || DENSITIES.has(density)))
           this.setImage(imageType, density, resolve(fullPath, filePath));
       }
     }

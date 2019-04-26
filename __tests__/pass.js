@@ -5,6 +5,9 @@ const File = require('fs');
 const path = require('path');
 const { execFile } = require('child_process');
 const { Readable } = require('stream');
+const { once } = require('events');
+
+const StreamZip = require('node-stream-zip');
 
 const constants = require('../src/constants');
 const Pass = require('../src/pass');
@@ -23,22 +26,22 @@ function cloneExcept(object, field) {
   return clone;
 }
 
-function unzip(zipFile, filename) {
-  return new Promise(resolve => {
-    execFile(
-      'unzip',
-      ['-p', zipFile, filename],
-      { encoding: 'binary' },
-      (error, stdout) => {
-        if (error) {
-          throw new Error(stdout);
-        } else {
-          resolve(Buffer.from(stdout, 'binary'));
-        }
-      },
-    );
+async function unzip(zipFile, filename) {
+  const zip = new StreamZip({
+    file: zipFile,
+    storeEntries: true,
   });
+
+  // Handle errors
+  zip.on('error', err => {
+    throw err;
+  });
+  await once(zip, 'ready');
+  const data = zip.entryDataSync(filename);
+  zip.close();
+  return data;
 }
+
 
 const template = new Template('coupon', {
   passTypeIdentifier: 'pass.com.example.passbook',
@@ -46,7 +49,6 @@ const template = new Template('coupon', {
   labelColor: 'red',
 });
 
-template.keys(`${__dirname}/../keys`, 'secret');
 const fields = {
   serialNumber: '123456',
   organizationName: 'Acme flowers',
@@ -54,6 +56,12 @@ const fields = {
 };
 
 describe('Pass', () => {
+  beforeAll(async () => {
+    await template.loadCertificate(
+      path.resolve(__dirname, './resources/cert/com.example.passbook.pem'),
+      'secret',
+    );
+  });
   it('from template', () => {
     const pass = template.createPass();
 

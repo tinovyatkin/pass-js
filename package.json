@@ -16,6 +16,8 @@
     "keys/wwdr.pem"
   ],
   "devDependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.4.0",
+    "@babel/preset-env": "^7.4.3",
     "@destinationstransfers/eslint-plugin": "^2.3.5",
     "@types/jest": "^24.0.11",
     "@types/node": "^11.13.7",
@@ -25,6 +27,7 @@
     "eslint": "^5.16.0",
     "jest": "^24.7.1",
     "jest-junit": "^6.3.0",
+    "node-stream-zip": "^1.8.0",
     "stream-buffers": "^3.0.2",
     "typescript": "^3.4.5"
   },

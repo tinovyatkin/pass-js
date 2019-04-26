@@ -1,5 +1,7 @@
 'use strict';
 
+const assert = require('assert');
+
 /**
  * Checks if given string is a valid W3C date representation
  *
@@ -23,12 +25,14 @@ module.exports.isValidW3CDateString = isValidW3CDateString;
  * @returns {string}
  */
 function getW3CDateString(value) {
-  if (typeof value !== 'string' && !(value instanceof Date))
-    throw new Error('Argument must be either a string or Date object');
+  assert.ok(
+    typeof value === 'string' || value instanceof Date,
+    'Argument must be either a string or Date object',
+  );
   if (typeof value === 'string' && isValidW3CDateString(value)) return value;
 
   const date = value instanceof Date ? value : new Date(value);
-  if (!isFinite(date)) throw new Error('Invalid date value!');
+  assert.ok(isFinite(date), 'Invalid date value!');
   // creating W3C date (we will always do without seconds)
   const month = (1 + date.getMonth()).toFixed().padStart(2, '0');
   const day = date

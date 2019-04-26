@@ -1,5 +1,7 @@
 'use strict';
 
+const { AssertionError } = require('assert');
+
 const Fields = require('../src/lib/fields');
 const { isValidW3CDateString } = require('../src/lib/w3cdate');
 
@@ -39,6 +41,6 @@ test('Fields Class', () => {
 
   // must throw on non-string values
   expect(() => fields.setValue('testKey', { object: 'value' })).toThrow(
-    TypeError,
+    AssertionError,
   );
 });

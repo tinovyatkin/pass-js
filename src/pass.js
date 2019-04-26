@@ -1,9 +1,7 @@
-/* eslint-disable github/array-foreach */
 // Generate a pass file.
 
 'use strict';
 
-const path = require('path');
 const { EventEmitter } = require('events');
 const { PassThrough } = require('stream');
 
@@ -13,6 +11,7 @@ const PassImages = require('./lib/images');
 const readAndHashFile = require('./lib/readAndHashFile');
 const signManifest = require('./lib/signManifest-forge');
 const { getW3CDateString } = require('./lib/w3cdate');
+
 const { ZipFile } = require('yazl');
 
 const {
@@ -32,6 +31,12 @@ const REQUIRED_IMAGES = Object.entries(IMAGES)
 // template  - The template
 // fields    - Pass fields (description, serialNumber, logoText)
 class Pass extends EventEmitter {
+  /**
+   *
+   * @param {import('./template')} template
+   * @param {*} fields
+   * @param {*} images
+   */
   constructor(template, fields = {}, images) {
     super();
 
@@ -410,10 +415,9 @@ class Pass extends EventEmitter {
     zip.addBuffer(Buffer.from(manifestJson, 'utf8'), 'manifest.json');
 
     // Create signature
-    const identifier = this.template.passTypeIdentifier().replace(/^pass./, '');
     const signature = await signManifest(
-      path.resolve(this.template.keysPath, `${identifier}.pem`),
-      this.template.password,
+      this.template.certificate,
+      this.template.key,
       manifestJson,
     );
     zip.addBuffer(signature, 'signature', { compress: false });
