@@ -5,15 +5,14 @@
 const { EventEmitter } = require('events');
 const { PassThrough } = require('stream');
 
+const { ZipFile } = require('yazl');
+
 const Fields = require('./lib/fields');
 const getBufferHash = require('./lib/getBufferHash');
 const PassImages = require('./lib/images');
 const readAndHashFile = require('./lib/readAndHashFile');
 const signManifest = require('./lib/signManifest-forge');
 const { getW3CDateString } = require('./lib/w3cdate');
-
-const { ZipFile } = require('yazl');
-
 const {
   TOP_LEVEL_FIELDS,
   IMAGES,
@@ -82,14 +81,14 @@ class Pass extends EventEmitter {
     //
     //   pass.headerFields.add("time", "The Time", "10:00AM");
     //   pass.backFields.add("url", "Web site", "http://example.com");
-    STRUCTURE_FIELDS.forEach(key => {
+    for (const key of STRUCTURE_FIELDS) {
       if (!(key in this))
         Object.defineProperty(this, key, {
           writable: false,
           enumerable: true,
           value: new Fields(this, key),
         });
-    });
+    }
 
     Object.preventExtensions(this);
   }

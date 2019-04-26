@@ -197,16 +197,12 @@ module.exports.TOP_LEVEL_FIELDS = TOP_LEVEL_FIELDS;
 
 // Pass structure keys.
 // https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/LowerLevel.html#//apple_ref/doc/uid/TP40012026-CH3-SW3
-const STRUCTURE_FIELDS = [
+const STRUCTURE_FIELDS = new Set([
   'auxiliaryFields',
   'backFields',
   'headerFields',
   'primaryFields',
   'secondaryFields',
   'transitType',
-];
+]);
 module.exports.STRUCTURE_FIELDS = STRUCTURE_FIELDS;
-
-// These images are required for a valid pass.
-const REQUIRED_IMAGES = ['icon', 'logo'];
-module.exports.REQUIRED_IMAGES = REQUIRED_IMAGES;

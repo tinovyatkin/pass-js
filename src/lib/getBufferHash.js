@@ -2,6 +2,11 @@
 
 const { createHash } = require('crypto');
 
+/**
+ *
+ * @param {Buffer} buffer
+ * @returns {string}
+ */
 function getBufferHash(buffer) {
   // creating hash
   const sha = createHash('sha1');
