@@ -1,11 +1,11 @@
-/* eslint-disable github/array-foreach */
 // Generate a pass file.
 
 'use strict';
 
-const path = require('path');
 const { EventEmitter } = require('events');
 const { PassThrough } = require('stream');
+
+const { ZipFile } = require('yazl');
 
 const Fields = require('./lib/fields');
 const getBufferHash = require('./lib/getBufferHash');
@@ -13,8 +13,6 @@ const PassImages = require('./lib/images');
 const readAndHashFile = require('./lib/readAndHashFile');
 const signManifest = require('./lib/signManifest-forge');
 const { getW3CDateString } = require('./lib/w3cdate');
-const { ZipFile } = require('yazl');
-
 const {
   TOP_LEVEL_FIELDS,
   IMAGES,
@@ -32,6 +30,12 @@ const REQUIRED_IMAGES = Object.entries(IMAGES)
 // template  - The template
 // fields    - Pass fields (description, serialNumber, logoText)
 class Pass extends EventEmitter {
+  /**
+   *
+   * @param {import('./template')} template
+   * @param {*} fields
+   * @param {*} images
+   */
   constructor(template, fields = {}, images) {
     super();
 
@@ -77,16 +81,64 @@ class Pass extends EventEmitter {
     //
     //   pass.headerFields.add("time", "The Time", "10:00AM");
     //   pass.backFields.add("url", "Web site", "http://example.com");
-    STRUCTURE_FIELDS.forEach(key => {
+    for (const key of STRUCTURE_FIELDS) {
       if (!(key in this))
         Object.defineProperty(this, key, {
           writable: false,
           enumerable: true,
           value: new Fields(this, key),
         });
-    });
+    }
 
     Object.preventExtensions(this);
+  }
+
+  /**
+   * Returns normalized geopoint object from geoJSON, {lat, lng} or {lattitude,longutude,altitude}
+   *
+   * @param {number[] | { lat: number, lng: number, alt?: number } | { longitude: number, latitude: number, altitude?: number }} point
+   * @returns {{ longitude: number, latitude: number, altitude: number }}
+   * @throws on unknown point format
+   * @memberof Pass
+   */
+  static getGeoPoint(point) {
+    if (!point) throw new Error("Can't get coordinates from undefined");
+
+    // GeoJSON Array [longitude, latitude(, elevation)]
+    if (Array.isArray(point)) {
+      if (point.length < 2 || !point.every(n => Number.isFinite(n)))
+        throw new Error(
+          `Invalid GeoJSON array of numbers, length must be 2 to 3, received ${
+            point.length
+          }`,
+        );
+      return {
+        longitude: point[0],
+        latitude: point[1],
+        altitude: point[2],
+      };
+    }
+
+    // it can be an object with both lat and lng properties
+    if ('lat' in point && 'lng' in point) {
+      return {
+        longitude: point.lng,
+        latitude: point.lat,
+        altitude: point.alt,
+      };
+    }
+
+    if ('longitude' in point && 'latitude' in point) {
+      // returning a copy
+      return {
+        longitude: point.longitude,
+        latitude: point.latitude,
+        altitude: point.altitude || point.elevation,
+      };
+    }
+
+    // If we are here it means we can't understand what a hell is it
+    throw new Error(`Unknown geopoint format: ${JSON.stringify(point)}`);
   }
 
   transitType(v) {
@@ -171,54 +223,6 @@ class Pass extends EventEmitter {
       return this;
     }
     return this.fields.maxDistance;
-  }
-
-  /**
-   * Returns normalized geopoint object from geoJSON, {lat, lng} or {lattitude,longutude,altitude}
-   *
-   * @param {number[] | { lat: number, lng: number, alt?: number } | { longitude: number, latitude: number, altitude?: number }} point
-   * @returns {{ longitude: number, latitude: number, altitude: number }}
-   * @throws on unknown point format
-   * @memberof Pass
-   */
-  static getGeoPoint(point) {
-    if (!point) throw new Error("Can't get coordinates from undefined");
-
-    // GeoJSON Array [longitude, latitude(, elevation)]
-    if (Array.isArray(point)) {
-      if (point.length < 2 || !point.every(n => Number.isFinite(n)))
-        throw new Error(
-          `Invalid GeoJSON array of numbers, length must be 2 to 3, received ${
-            point.length
-          }`,
-        );
-      return {
-        longitude: point[0],
-        latitude: point[1],
-        altitude: point[2],
-      };
-    }
-
-    // it can be an object with both lat and lng properties
-    if ('lat' in point && 'lng' in point) {
-      return {
-        longitude: point.lng,
-        latitude: point.lat,
-        altitude: point.alt,
-      };
-    }
-
-    if ('longitude' in point && 'latitude' in point) {
-      // returning a copy
-      return {
-        longitude: point.longitude,
-        latitude: point.latitude,
-        altitude: point.altitude || point.elevation,
-      };
-    }
-
-    // If we are here it means we can't understand what a hell is it
-    throw new Error(`Unknown geopoint format: ${JSON.stringify(point)}`);
   }
 
   /**
@@ -410,10 +414,9 @@ class Pass extends EventEmitter {
     zip.addBuffer(Buffer.from(manifestJson, 'utf8'), 'manifest.json');
 
     // Create signature
-    const identifier = this.template.passTypeIdentifier().replace(/^pass./, '');
     const signature = await signManifest(
-      path.resolve(this.template.keysPath, `${identifier}.pem`),
-      this.template.password,
+      this.template.certificate,
+      this.template.key,
       manifestJson,
     );
     zip.addBuffer(signature, 'signature', { compress: false });

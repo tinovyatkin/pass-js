@@ -1,5 +1,7 @@
 'use strict';
 
+const assert = require('assert');
+
 /**
  * Field accessors class
  */
@@ -43,7 +45,7 @@ class Fields {
    * @memberof Fields
    */
   add(key, label, value, options) {
-    if (arguments.length > 1) {
+    if (typeof key === 'string') {
       this.remove(key);
       const field = { key, value };
       if (label) field.label = label;
@@ -53,8 +55,8 @@ class Fields {
       for (const k of key) this.add(k);
     } else {
       this.remove(key.key);
-      // save object copy
-      this.all().push(Object.assign({}, key));
+      // save object shallow copy
+      this.all().push({ ...key });
     }
     return this;
   }
@@ -78,14 +80,16 @@ class Fields {
    * @memberof Fields
    */
   setValue(key, value) {
-    if (typeof key !== 'string')
-      throw new TypeError(
-        `key for setValue must be a string, received ${typeof key}`,
-      );
-    if (typeof value !== 'string')
-      throw new TypeError(
-        `value for setValue must be a string, received ${typeof value}`,
-      );
+    assert.strictEqual(
+      typeof key,
+      'string',
+      `key for setValue must be a string, received ${typeof key}`,
+    );
+    assert.strictEqual(
+      typeof value,
+      'string',
+      `value for setValue must be a string, received ${typeof value}`,
+    );
     const field = this.get(key);
     if (!field) return this.add({ key, value });
     field.value = value;
@@ -121,10 +125,11 @@ class Fields {
    * @memberof Fields
    */
   setDateTime(key, label, date, formatOptions = {}) {
-    if (!(date instanceof Date) || !isFinite(date))
-      throw new Error(
-        'First parameter of setDateTime must be an instance of Date',
-      );
+    assert.ok(
+      date instanceof Date && isFinite(date),
+      'First parameter of setDateTime must be an instance of Date',
+    );
+
     //  Either specify both a date style and a time style, or neither.
     if (
       (!('dateStyle' in formatOptions) && 'timeStyle' in formatOptions) ||

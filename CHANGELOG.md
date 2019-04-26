@@ -1,3 +1,14 @@
+## 5.1 Apr 26, 2019
+
+- *Breaking* Requires Node >= 10.1 (we use `fs.promises` etc)
+- *Feature* template.setCertificate(process.env.APPLE_PASS_CERTIFICATE);
+- *Feature* template.setPrivateKey(
+      process.env.APPLE_PASS_PRIVATE_KEY,
+      process.env.APPLE_PASS_KEY_PASSWORD,
+    )
+- *Feature* use `process.env.APPLE_WWDR_CERT_PEM` to override Apple Certificate
+- Lot of refactoring...
+
 ## 4.3 Nov 1, 2017
 
 -   Switched from using _in-house_ Zip implementation to `yazl` and refactored `Pass.pipe` for simplier form using `async` function.
@@ -9,7 +20,7 @@
 
 ## 4.1 October 14, 2017
 
--   added `textDirection` to contants
+-   added `textDirection` to constants
 -   added `associatedStoreIdentifiers` into templatable fields (thanks to @antoniomika)
 
 ## 4.0 August 19, 2017

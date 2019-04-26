@@ -4,30 +4,53 @@
 
 'use strict';
 
-const colorString = require('color-string');
-const decodePrivateKey = require('./lib/decodePrivateKey');
+const assert = require('assert');
 const http2 = require('http2');
-const path = require('path');
 const { join } = require('path');
-const { stat, readFile } = require('fs').promises;
+const { stat, readFile, access } = require('fs').promises;
+const {
+  constants: { R_OK },
+} = require('fs');
 
-const Pass = require('./pass');
+const colorString = require('color-string');
+const forge = require('node-forge');
+
 const PassImages = require('./lib/images');
+const Pass = require('./pass');
 const { PASS_STYLES } = require('./constants');
 
-const { HTTP2_HEADER_METHOD, HTTP2_HEADER_PATH } = http2.constants;
+const {
+  HTTP2_HEADER_METHOD,
+  HTTP2_HEADER_PATH,
+  NGHTTP2_CANCEL,
+} = http2.constants;
 
 // Create a new template.
 //
 // style  - Pass style (coupon, eventTicket, etc)
 // fields - Pass fields (passTypeIdentifier, teamIdentifier, etc)
 class Template {
+  /**
+   *
+   * @param {string} style
+   * @param {{[k: string]: any }} [fields]
+   */
   constructor(style, fields = {}) {
-    if (!PASS_STYLES.includes(style))
-      throw new Error(`Unsupported pass style ${style}`);
-
+    assert.ok(PASS_STYLES.has(style), `Unsupported pass style ${style}`);
     this.style = style;
+
+    // TODO: move these to class properties in Node 12.x
+    /** @type {import('node-forge').pki.PrivateKey} */
+    this.key = undefined;
+    /** @type {import('node-forge').pki.Certificate} */
+    this.certificate = undefined;
     this.fields = {};
+    /** @type {string} */
+    this.password = undefined;
+    /** @type {http2.ClientHttp2Session} */
+    this.apn = undefined;
+    this.images = new PassImages();
+
     // we will set all fields via class setters, as in the future we will implement strict validators
     // values validation: https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/TopLevel.html
     for (const [field, value] of Object.entries(fields)) {
@@ -38,31 +61,132 @@ class Template {
       Object.assign(this.fields, { [style]: fields[style] });
     }
 
-    this.keysPath = 'keys';
-    this.password = null;
-    this.apn = null;
-    this.images = new PassImages();
     Object.preventExtensions(this);
   }
 
+  /**
+   * Validates if given string is a correct color value for Pass fields
+   *
+   * @static
+   * @param {string} value - a CSS color value, like 'red', '#fff', etc
+   * @throws - if value is invalid this function will throw
+   * @returns {string} - value converted to "rgb(222, 33, 22)" string
+   * @memberof Template
+   */
+  static convertToRgb(value) {
+    const rgb = colorString.get.rgb(value);
+    assert.ok(Array.isArray(rgb), `Invalid color value ${value}`);
+    // convert to rgb(), stripping alpha channel
+    return colorString.to.rgb(rgb.slice(0, 3));
+  }
+
+  /**
+   * Loads Template, images and key from a given path
+   *
+   * @static
+   * @param {string} folderPath
+   * @param {string} [keyPassword] - optional key password
+   * @returns {Promise.<Template>}
+   * @throws - if given folder doesn't contain pass.json or it is in invalid format
+   * @memberof Template
+   */
+  static async load(folderPath, keyPassword) {
+    // Check if the path is accessible directory actually
+    const stats = await stat(folderPath);
+    assert.ok(stats.isDirectory(), `Path ${folderPath} must be a directory!`);
+
+    // getting main JSON file
+    const passJson = JSON.parse(
+      await readFile(join(folderPath, 'pass.json'), 'utf8'),
+    );
+
+    // Trying to detect the type of pass
+    let type;
+    for (const t of PASS_STYLES) {
+      if (t in passJson) {
+        type = t;
+        break;
+      }
+    }
+    assert.ok(type, 'Unknown pass style!');
+
+    const template = new Template(type, passJson);
+
+    // load images from the same folder
+    await template.images.loadFromDirectory(folderPath);
+
+    // checking if there is a key - must be named ${passTypeIdentifier}.pem
+    const typeIdentifier = passJson.passTypeIdentifier;
+    const keyName = `${typeIdentifier.replace(/^pass\./, '')}.pem`;
+    const certFileName = join(folderPath, keyName);
+    try {
+      // following will throw if file doesn't exists or can't be read
+      await access(certFileName, R_OK);
+      await template.loadCertificate(certFileName, keyPassword);
+    } catch (err) {
+      if (err.code !== 'ENOENT') throw err;
+    }
+    // done
+    return template;
+  }
+
+  /**
+   *
+   * @param {string} signerKeyMessage
+   * @param {string} [password]
+   */
+  setPrivateKey(signerKeyMessage, password) {
+    this.key = forge.pki.decryptRsaPrivateKey(signerKeyMessage, password);
+    assert.ok(
+      this.key,
+      'Failed to decode provided private key. Invalid password?',
+    );
+  }
+
+  /**
+   *
+   * @param {string} signerCertData - certificate and optional private key as PEM encoded string
+   * @param {string} [password] - optional password to decode private key
+   */
+  setCertificate(signerCertData, password) {
+    // the PEM file from P12 contains both, certificate and private key
+    // getting signer certificate
+    this.certificate = forge.pki.certificateFromPem(signerCertData);
+    assert.ok(this.certificate, 'Failed to decode provided certificate');
+
+    // check if signerCertData also contains private key and use it
+    const pemMessages = forge.pem.decode(signerCertData);
+
+    // getting signer private key
+    const signerKeyMessage = pemMessages.find(message =>
+      message.type.includes('KEY'),
+    );
+    if (signerKeyMessage)
+      this.setPrivateKey(forge.pem.encode(signerKeyMessage), password);
+  }
+
+  /**
+   *
+   * @param {string} signerPemFile - path to PEM file with certificate and private key
+   * @param {string} password - private key decoding password
+   */
+  async loadCertificate(signerPemFile, password) {
+    // reading and parsing certificates
+    const signerCertData = await readFile(signerPemFile, 'utf8');
+    this.setCertificate(signerCertData, password);
+  }
+
+  /**
+   *
+   * @param {string} pushToken
+   */
   async pushUpdates(pushToken) {
     // https://developer.apple.com/library/content/documentation/UserExperience/Conceptual/PassKit_PG/Updating.html
     if (!this.apn || this.apn.destroyed) {
-      // prepare certificate
       // creating APN Provider
-      const identifier = this.passTypeIdentifier().replace(/^pass./, '');
-
-      const cert = await readFile(
-        path.resolve(this.keysPath, `${identifier}.pem`),
-        'utf8',
-      );
-
-      /** @type {string} */
-      const key = decodePrivateKey(cert, this.password, true);
-
       this.apn = http2.connect('https://api.push.apple.com:443', {
-        key,
-        cert,
+        key: forge.pki.privateKeyToPem(this.key),
+        cert: forge.pki.certificateToPem(this.certificate),
       });
       // Events
       this.apn.once('goaway', () => this.apn.destroy());
@@ -80,40 +204,24 @@ class Template {
       });
 
       // Cancel request after timeout
-      req.setTimeout(5000, () => req.rstWithCancel());
+      req.setTimeout(5000, () => req.close(NGHTTP2_CANCEL));
 
       // Response handling
       req.on('response', headers => {
         // consuming data, even if we are not interesting in it
         req.on('data', () => {});
-        req.on('end', () => resolve(headers));
+        req.once('end', () => resolve(headers));
       });
 
       // Error handling
-      req.on('error', reject);
-      req.on('timeout', () =>
+      req.once('error', reject);
+      req.once('timeout', () =>
         reject(new Error(`http2: timeout connecting to api.push.apple.com`)),
       );
 
       // Post payload (always empty in our case)
       req.end('{}');
     });
-  }
-
-  /**
-   * Validates if given string is a correct color value for Pass fields
-   *
-   * @static
-   * @param {string} value - a CSS color value, like 'red', '#fff', etc
-   * @throws - if value is invalid this function will throw
-   * @returns {string} - value converted to "rgb(222, 33, 22)" string
-   * @memberof Template
-   */
-  static convertToRgb(value) {
-    const rgb = colorString.get.rgb(value);
-    if (rgb === null) throw new Error(`Invalid color value ${value}`);
-    // convert to rgb(), stripping alpha channel
-    return colorString.to.rgb(rgb.slice(0, 3));
   }
 
   passTypeIdentifier(v) {
@@ -245,18 +353,6 @@ class Template {
   }
 
   /**
-   * Sets path to directory containing keys and password for accessing keys.
-   *
-   * @param {string} keysPath - Path to directory containing key files (default is 'keys')
-   * @param {string} password - Password to use with keys
-   * @memberof Template
-   */
-  keys(keysPath, password) {
-    if (typeof keysPath === 'string') this.keysPath = keysPath;
-    if (password) this.password = password;
-  }
-
-  /**
    * Create a new pass from a template.
    *
    * @param {Object} fields
@@ -265,58 +361,7 @@ class Template {
    */
   createPass(fields = {}) {
     // Combine template and pass fields
-    return new Pass(this, Object.assign({}, this.fields, fields), this.images);
-  }
-
-  /**
-   * Loads Template, images and key from a given path
-   *
-   * @static
-   * @param {string} folderPath
-   * @param {string} keyPassword - optional key password
-   * @returns {Promise.<Template>}
-   * @throws - if given folder doesn't contain pass.json or it is in invalid format
-   * @memberof Template
-   */
-  static async load(folderPath, keyPassword) {
-    // Check if the path is accessible directory actually
-    const stats = await stat(folderPath);
-    if (!stats.isDirectory())
-      throw new Error(`Path ${folderPath} must be a directory!`);
-
-    // getting main JSON file
-    const passJson = JSON.parse(
-      await readFile(join(folderPath, 'pass.json'), 'utf8'),
-    );
-
-    // Trying to detect the type of pass
-    let type;
-    if (
-      !PASS_STYLES.some(t => {
-        if (t in passJson) {
-          type = t;
-          return true;
-        }
-        return false;
-      })
-    )
-      throw new Error('Unknown pass style!');
-
-    const template = new Template(type, passJson);
-
-    // load images from the same folder
-    await template.images.loadFromDirectory(folderPath);
-
-    // checking if there is a key - must be named ${passTypeIdentifier}.pem
-    const typeIdentifier = passJson.passTypeIdentifier;
-    const keyName = `${typeIdentifier.replace(/^pass\./, '')}.pem`;
-    try {
-      const keyStat = await stat(join(folderPath, keyName));
-      if (keyStat.isFile()) template.keys(folderPath, keyPassword);
-      // eslint-disable-next-line no-empty
-    } catch (_) {}
-    // done
-    return template;
+    return new Pass(this, { ...this.fields, ...fields }, this.images);
   }
 }
 

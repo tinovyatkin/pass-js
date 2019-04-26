@@ -5,3 +5,5 @@ lib/server.js
 test.js
 *.tgz
 coverage/*
+.DS_Store
+.app.yml

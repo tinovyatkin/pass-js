@@ -3,9 +3,10 @@
 /**
  * Returns object with only selected properties
  *
- * @param {Object} obj
+ * @template T
+ * @param {T} obj
  * @param {string[]} args
- * @returns {Object}
+ * @returns {Partial<T>}
  */
 function only(obj, ...args) {
   if (!obj || typeof obj !== 'object' || !Object.keys(obj).length) return {};

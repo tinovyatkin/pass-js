@@ -81,18 +81,18 @@ const IMAGES = {
   },
 };
 
-const DENSITIES = ['1x', '2x', '3x'];
+const DENSITIES = new Set(['1x', '2x', '3x']);
 module.exports.IMAGES = IMAGES;
 module.exports.DENSITIES = DENSITIES;
 
 // Supported passbook styles.
-const PASS_STYLES = [
+const PASS_STYLES = new Set([
   'boardingPass',
   'coupon',
   'eventTicket',
   'storeCard',
   'generic',
-];
+]);
 module.exports.PASS_STYLES = PASS_STYLES;
 
 // Optional top level fields
@@ -197,16 +197,12 @@ module.exports.TOP_LEVEL_FIELDS = TOP_LEVEL_FIELDS;
 
 // Pass structure keys.
 // https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/LowerLevel.html#//apple_ref/doc/uid/TP40012026-CH3-SW3
-const STRUCTURE_FIELDS = [
+const STRUCTURE_FIELDS = new Set([
   'auxiliaryFields',
   'backFields',
   'headerFields',
   'primaryFields',
   'secondaryFields',
   'transitType',
-];
+]);
 module.exports.STRUCTURE_FIELDS = STRUCTURE_FIELDS;
-
-// These images are required for a valid pass.
-const REQUIRED_IMAGES = ['icon', 'logo'];
-module.exports.REQUIRED_IMAGES = REQUIRED_IMAGES;

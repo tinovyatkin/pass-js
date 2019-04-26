@@ -1,0 +1,29 @@
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '11.x'
+  displayName: 'Install Node.js'
+
+- script: npm ci
+  displayName: 'npm install'
+
+# - script: npm run typecheck
+  # displayName: "TypeScript type checking"
+
+- script: npm test -- --ci --reporters=default --reporters=jest-junit
+  displayName: 'Run Jest'
+
+- script: npx codecov -f "./coverage/coverage-final.json" -y "./.codecov.yml" -t $(CODECOV_TOKEN)
+  displayName: 'Upload to Codecov'
+
+- task: PublishTestResults@2
+  condition: succeededOrFailed()
+  inputs:
+    testRunner: JUnit
+    testResultsFiles: '**/junit.xml'
+
+- task: PublishCodeCoverageResults@1
+  inputs:
+    codeCoverageTool: Cobertura
+    summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/cobertura-coverage.xml'
+    reportDirectory: '$(System.DefaultWorkingDirectory)/**/coverage'

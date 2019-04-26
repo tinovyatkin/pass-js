@@ -1,0 +1,59 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "./jsconfig.json",
+    "sourceType": "script"
+  },
+  "plugins": ["@destinationstransfers", "@typescript-eslint"],
+  "extends": [
+    "plugin:@destinationstransfers/recommended",
+    "plugin:@typescript-eslint/recommended",
+    "prettier/@typescript-eslint"
+  ],
+  "env": {
+    "node": true,
+    "browser": false
+  },
+  "rules": {
+    "@destinationstransfers/prefer-class-properties": "off",
+    "@typescript-eslint/no-var-requires": "off",
+    "@typescript-eslint/camelcase": "off",
+    "@typescript-eslint/member-ordering": "error",
+    "@typescript-eslint/no-use-before-define": "error",
+    "@typescript-eslint/type-annotation-spacing": "error",
+    "@typescript-eslint/no-extraneous-class": "error",
+    "@typescript-eslint/no-non-null-assertion": "error",
+    "@typescript-eslint/no-this-alias": [
+      "error",
+      {
+        "allowDestructuring": true // Allow `const { props, state } = this`; false by default
+      }
+    ],
+    // note you must disable the base rule as it can report incorrect errors
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "vars": "all",
+        "args": "after-used",
+        "ignoreRestSiblings": true,
+        "argsIgnorePattern": "^next$",
+        "caughtErrors": "none"
+      }
+    ],
+    // requires project
+    // "@typescript-eslint/promise-function-async": "error",
+    "@typescript-eslint/no-for-in-array": "error"
+  },
+  "overrides": [
+    {
+      "files": ["__tests__/*.js", "*.test.js"],
+      "env": {
+        "jest": true
+      },
+      "rules": {
+        "@typescript-eslint/no-unused-vars": "warn"
+      }
+    }
+  ]
+}
