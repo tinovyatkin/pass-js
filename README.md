@@ -1,13 +1,13 @@
 [![npm (scoped)](https://img.shields.io/npm/v/@destinationstransfers/passkit.svg)](https://www.npmjs.com/package/@destinationstransfers/passkit) [![codecov](https://codecov.io/gh/destinationstransfers/passkit/branch/master/graph/badge.svg)](https://codecov.io/gh/destinationstransfers/passkit)
-[![Build Status](https://travis-ci.org/destinationstransfers/passkit.svg?branch=master)](https://travis-ci.org/destinationstransfers/passkit)
+[![Build Status](https://dev.azure.com/destinationstransfers/passkit/_apis/build/status/destinationstransfers.passkit?branchName=master)](https://dev.azure.com/destinationstransfers/passkit/_build/latest?definitionId=2&branchName=master)
 [![Known Vulnerabilities](https://snyk.io/test/github/destinationstransfers/passkit/badge.svg)](https://snyk.io/test/github/destinationstransfers/passkit) [![DeepScan Grade](https://deepscan.io/api/projects/352/branches/551/badge/grade.svg)](https://deepscan.io/dashboard/#view=project&pid=352&bid=551)
 
 # Motivation
 
-This is almost complete rewrite of [assaf/node-passbook](http://github.com/assaf/node-passbook).
+This is complete rewrite of [assaf/node-passbook](http://github.com/assaf/node-passbook).
 The original module lacks new commits in last two years and outdated. This modules:
 
--   Targetting Node 8 and refactored in ES6 Classes, removing deprecated calls (`new Buffer`, etc)
+-   Targetting Node >= 10 and refactored in ES6 Classes, removing deprecated calls (`new Buffer`, etc)
 -   Replaces `openssl` spawning with native Javascript RSA implementation (via `node-forge`)
 -   Includes `Template.pushUpdates(pushToken)` that sends APN update request for a given pass type to a pushToken (get `pushToken` at your PassKit Web Service implementation)
 -   Adds constants for dictionary fields string values
@@ -35,7 +35,7 @@ can do both using the `passkit-keys` command:
 ./bin/passkit-keys ./pathToKeysFolder
 ```
 
-This is the same directory into which you placet the `.p12` files.
+This is the same directory into which you placed the `.p12` files.
 
 # Start with a template
 
@@ -84,7 +84,7 @@ In addition, you need to tell the template where to find the key files and where
 to load images from:
 
 ```js
-template.keys("/etc/passbook/keys", "secret");
+await template.loadCertificate("/etc/passbook/certificate_and_key.pem", "secret");
 await template.images.loadFromDirectory("./images"); // loadFromDirectory returns Promise
 ```
 
@@ -190,10 +190,10 @@ pass.pipe(file);
 ```
 
 Your pass will emit the `error` event if it fails to generate a valid Passbook
-file, and emit the `end` event when it successfuly completed generating the
+file, and emit the `end` event when it successfully completed generating the
 file.
 
-You can pipe to any writeable stream.  When working with HTTP, the `render`
+You can pipe to any writable stream.  When working with HTTP, the `render`
 method will set the content type, pipe to the HTTP response, and make use of a
 callback (if supplied).
 
