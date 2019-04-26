@@ -6,3 +6,4 @@ test.js
 *.tgz
 coverage/*
 .DS_Store
+.app.yml

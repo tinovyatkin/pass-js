@@ -11,10 +11,12 @@ const TEST_STRING = randomBytes(1024).toString('base64');
 test('signManifest', async () => {
   // creating template to load certificate and key
   const template = new Template('generic');
-  await template.loadCertificate(
-    path.resolve(__dirname, './resources/cert/com.example.passbook.pem'),
-    'secret',
+  template.setCertificate(process.env.APPLE_PASS_CERTIFICATE);
+  template.setPrivateKey(
+    process.env.APPLE_PASS_PRIVATE_KEY,
+    process.env.APPLE_PASS_KEY_PASSWORD,
   );
+
   const jsSignedBuffer = await signManifest(
     template.certificate,
     template.key,

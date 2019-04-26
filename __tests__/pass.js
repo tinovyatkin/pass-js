@@ -1,11 +1,12 @@
 'use strict';
 
-const Crypto = require('crypto');
-const File = require('fs');
+const { createHash } = require('crypto');
+const { createWriteStream, unlinkSync } = require('fs');
 const path = require('path');
-const { execFile } = require('child_process');
-const { Readable } = require('stream');
 const { once } = require('events');
+const { promisify } = require('util');
+const pipeline = promisify(require('stream').pipeline);
+const execFile = promisify(require('child_process').execFile);
 
 const StreamZip = require('node-stream-zip');
 
@@ -42,7 +43,6 @@ async function unzip(zipFile, filename) {
   return data;
 }
 
-
 const template = new Template('coupon', {
   passTypeIdentifier: 'pass.com.example.passbook',
   teamIdentifier: 'MXL',
@@ -57,9 +57,10 @@ const fields = {
 
 describe('Pass', () => {
   beforeAll(async () => {
-    await template.loadCertificate(
-      path.resolve(__dirname, './resources/cert/com.example.passbook.pem'),
-      'secret',
+    template.setCertificate(process.env.APPLE_PASS_CERTIFICATE);
+    template.setPrivateKey(
+      process.env.APPLE_PASS_PRIVATE_KEY,
+      process.env.APPLE_PASS_KEY_PASSWORD,
     );
   });
   it('from template', () => {
@@ -140,7 +141,7 @@ describe('Pass', () => {
   it('without logo.png should not be valid', async () => {
     const pass = template.createPass(fields);
     pass.images.icon = 'icon.png';
-    const file = File.createWriteStream('/tmp/pass.pkpass');
+    const file = createWriteStream('/tmp/pass.pkpass');
 
     const validationError = await new Promise(resolve => {
       pass.pipe(file);
@@ -176,25 +177,11 @@ describe('Pass', () => {
     pass.primaryFields.add([
       { key: 'location', label: 'Place', value: 'High ground' },
     ]);
-    const stream = pass.stream();
-    expect(stream).toBeInstanceOf(Readable);
-    const file = File.createWriteStream('/tmp/pass1.pkpass');
-    stream.pipe(file);
-    await new Promise(resolve => {
-      file.on('close', resolve);
-      stream.on('error', e => {
-        throw e;
-      });
-    });
+    await pipeline(pass.stream(), createWriteStream('/tmp/pass1.pkpass'));
     // test that result is valid ZIP at least
-    const res = await new Promise(resolve => {
-      execFile('unzip', ['-t', '/tmp/pass1.pkpass'], (error, stdout) => {
-        if (error) throw new Error(stdout);
-        resolve(stdout);
-      });
-    });
-    File.unlinkSync('/tmp/pass1.pkpass');
-    expect(res).toContain('No errors detected in compressed data');
+    const { stdout } = await execFile('unzip', ['-t', '/tmp/pass1.pkpass']);
+    unlinkSync('/tmp/pass1.pkpass');
+    expect(stdout).toContain('No errors detected in compressed data');
   });
 });
 
@@ -208,24 +195,12 @@ describe('generated', () => {
     pass.primaryFields.add([
       { key: 'location', label: 'Place', value: 'High ground' },
     ]);
-    if (File.existsSync('/tmp/pass.pkpass'))
-      File.unlinkSync('/tmp/pass.pkpass');
-    const file = File.createWriteStream('/tmp/pass.pkpass');
-    await new Promise(resolve => {
-      pass.pipe(file);
-      pass.on('close', resolve);
-      pass.on('error', err => {
-        throw err;
-      });
-    });
+    await pipeline(pass.stream(), createWriteStream('/tmp/pass.pkpass'));
   });
 
-  it('should be a valid ZIP', done => {
-    execFile('unzip', ['-t', '/tmp/pass.pkpass'], (error, stdout) => {
-      if (error) throw new Error(stdout);
-      expect(stdout).toContain('No errors detected in compressed data');
-      done(error);
-    });
+  it('should be a valid ZIP', async () => {
+    const { stdout } = await execFile('unzip', ['-t', '/tmp/pass.pkpass']);
+    expect(stdout).toContain('No errors detected in compressed data');
   });
 
   it('should contain pass.json', async () => {
@@ -274,22 +249,19 @@ describe('generated', () => {
 
   // this test depends on MacOS specific signpass, so, run only on MacOS
   if (process.platform === 'darwin') {
-    it('should contain a signature', done => {
-      execFile(
+    it('should contain a signature', async () => {
+      const { stdout } = await execFile(
         path.resolve(__dirname, './resources/bin/signpass'),
         ['-v', '/tmp/pass.pkpass'],
-        (error, stdout) => {
-          expect(stdout).toContain('*** SUCCEEDED ***');
-          done();
-        },
       );
+      expect(stdout).toContain('*** SUCCEEDED ***');
     });
   }
 
   it('should contain the icon', async () => {
     const buffer = await unzip('/tmp/pass.pkpass', 'icon.png');
     expect(
-      Crypto.createHash('sha1')
+      createHash('sha1')
         .update(buffer)
         .digest('hex'),
     ).toBe('e0f0bcd503f6117bce6a1a3ff8a68e36d26ae47f');
@@ -298,7 +270,7 @@ describe('generated', () => {
   it('should contain the logo', async () => {
     const buffer = await unzip('/tmp/pass.pkpass', 'logo.png');
     expect(
-      Crypto.createHash('sha1')
+      createHash('sha1')
         .update(buffer)
         .digest('hex'),
     ).toBe('abc97e3b2bc3b0e412ca4a853ba5fd90fe063551');

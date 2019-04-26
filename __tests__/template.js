@@ -63,21 +63,29 @@ describe('Template', () => {
     expect(templ2.images.thumbnail).toBeDefined();
   });
 
-  it.skip('push updates', async () => {
+  it('push updates', async () => {
     const template = new Template('coupon', {
       passTypeIdentifier: 'pass.com.example.passbook',
       teamIdentifier: 'MXL',
       labelColor: 'red',
     });
 
-    template.keys(`${__dirname}/../keys`, 'secret');
+    template.setCertificate(process.env.APPLE_PASS_CERTIFICATE);
+    template.setPrivateKey(
+      process.env.APPLE_PASS_PRIVATE_KEY,
+      process.env.APPLE_PASS_KEY_PASSWORD,
+    );
 
     const res = await template.pushUpdates(
       '0e40d22a36e101a59ab296d9e6021df3ee1dcf95e29e8ab432213b12ba522dbb',
     );
-    console.log(JSON.stringify(res));
     // shutting down APN
     if (template.apn) template.apn.destroy();
-    expect(res).toHaveProperty(':status', 200);
+    expect(res).toEqual(
+      expect.objectContaining({
+        ':status': 200,
+        'apns-id': expect.any(String),
+      }),
+    );
   });
 });
