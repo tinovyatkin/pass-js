@@ -30,16 +30,6 @@ const {
 // style  - Pass style (coupon, eventTicket, etc)
 // fields - Pass fields (passTypeIdentifier, teamIdentifier, etc)
 class Template {
-  /** @type {import('node-forge').pki.PrivateKey} */
-  key;
-  /** @type {import('node-forge').pki.Certificate} */
-  certificate;
-  fields = {};
-  /** @type {string} */
-  password;
-  /** @type {http2.ClientHttp2Session} */
-  apn;
-  images = new PassImages();
   /**
    *
    * @param {string} style
@@ -47,8 +37,20 @@ class Template {
    */
   constructor(style, fields = {}) {
     assert.ok(PASS_STYLES.has(style), `Unsupported pass style ${style}`);
-
     this.style = style;
+
+    // TODO: move these to class properties in Node 12.x
+    /** @type {import('node-forge').pki.PrivateKey} */
+    this.key = undefined;
+    /** @type {import('node-forge').pki.Certificate} */
+    this.certificate = undefined;
+    this.fields = {};
+    /** @type {string} */
+    this.password = undefined;
+    /** @type {http2.ClientHttp2Session} */
+    this.apn = undefined;
+    this.images = new PassImages();
+
     // we will set all fields via class setters, as in the future we will implement strict validators
     // values validation: https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/TopLevel.html
     for (const [field, value] of Object.entries(fields)) {
