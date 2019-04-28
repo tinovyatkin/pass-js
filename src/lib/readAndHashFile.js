@@ -11,7 +11,7 @@ const getBufferHash = require('./getBufferHash');
  * @param {string} [name] - alias or basename of file for archive
  * @returns {Promise.<{name: string, content: Buffer, hash: string}>}
  */
-async function readAndHashFile(filename, name = filename) {
+async function readAndHashFile(filename, name) {
   const content = await readFile(filename);
   const hash = getBufferHash(content);
   return { name, content, hash };
