@@ -169,7 +169,7 @@ describe('Pass', () => {
     expect(pass.transitType()).toBe(constants.TRANSIT.AIR);
     pass.transitType(constants.TRANSIT.BUS);
     expect(pass.transitType()).toBe(constants.TRANSIT.BUS);
-    expect(pass.getPassJSON().boardingPass).toHaveProperty(
+    expect(pass.toJSON().boardingPass).toHaveProperty(
       'transitType',
       constants.TRANSIT.BUS,
     );

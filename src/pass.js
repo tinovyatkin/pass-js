@@ -398,7 +398,7 @@ class Pass extends EventEmitter {
   }
 
   // Returns the pass.json object (not a string).
-  getPassJSON() {
+  toJSON() {
     return { ...this.fields, formatVersion: 1 };
   }
 
@@ -430,7 +430,7 @@ class Pass extends EventEmitter {
 
     // Adding required files
     // Create pass.json
-    const passJson = Buffer.from(JSON.stringify(this.getPassJSON()), 'utf-8');
+    const passJson = Buffer.from(JSON.stringify(this), 'utf-8');
     // saving hash to manifest
     manifest['pass.json'] = getBufferHash(passJson);
     zip.addBuffer(passJson, 'pass.json', { compress: false });
