@@ -4,6 +4,7 @@
 
 'use strict';
 
+const assert = require('assert');
 const { basename, extname, resolve } = require('path');
 const { stat, readdir } = require('fs').promises;
 
@@ -13,6 +14,7 @@ const { IMAGES, DENSITIES } = require('../constants');
 class PassImages {
   constructor() {
     // Creating this way to make it invisible
+    /** @type {Map.<string, Map.<string, string>>} */
     this.map = new Map();
 
     // define setters and getters for particular images
@@ -44,10 +46,14 @@ class PassImages {
    * @memberof PassImages
    */
   getImage(imageType, density = '1x') {
-    if (!(imageType in IMAGES))
-      throw new Error(`Requested unknown image type: ${imageType}`);
-    if (!DENSITIES.has(density))
-      throw new Error(`Invalid desity for "${imageType}": ${density}`);
+    assert.ok(
+      imageType in IMAGES,
+      `Requested unknown image type: ${imageType}`,
+    );
+    assert.ok(
+      DENSITIES.has(density),
+      `Invalid density for "${imageType}": ${density}`,
+    );
     if (!this.map.has(imageType)) return undefined;
     return this.map.get(imageType).get(density);
   }
@@ -61,8 +67,10 @@ class PassImages {
    * @memberof PassImages
    */
   setImage(imageType, density = '1x', fileName) {
-    if (!(imageType in IMAGES))
-      throw new Error(`Attempted to set unknown image type: ${imageType}`);
+    assert.ok(
+      imageType in IMAGES,
+      `Attempted to set unknown image type: ${imageType}`,
+    );
     const imgData = this.map.get(imageType) || new Map();
     imgData.set(density, fileName);
     this.map.set(imageType, imgData);
@@ -78,8 +86,7 @@ class PassImages {
   async loadFromDirectory(dir) {
     const fullPath = resolve(dir);
     const stats = await stat(fullPath);
-    if (!stats.isDirectory())
-      throw new Error(`Path ${fullPath} must be a directory!`);
+    assert.ok(stats.isDirectory(), `Path ${fullPath} must be a directory!`);
 
     const files = await readdir(fullPath);
     for (const filePath of files) {

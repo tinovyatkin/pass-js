@@ -131,27 +131,21 @@ class Fields {
     );
 
     //  Either specify both a date style and a time style, or neither.
-    if (
-      (!('dateStyle' in formatOptions) && 'timeStyle' in formatOptions) ||
-      ('dateStyle' in formatOptions && !('timeStyle' in formatOptions))
-    )
-      throw new Error(
-        'Either specify both a date style and a time style, or neither',
-      );
-    // adding
-    this.add(
-      Object.assign(
-        {
-          key,
-          label,
-          value: getW3CDateString(date),
-        },
-        only(
-          formatOptions,
-          'dateStyle timeStyle ignoresTimeZone isRelative changeMessage',
-        ),
-      ),
+    assert.strictEqual(
+      'dateStyle' in formatOptions,
+      'timeStyle' in formatOptions,
+      'Either specify both a date style and a time style, or neither',
     );
+    // adding
+    this.add({
+      key,
+      label,
+      value: getW3CDateString(date),
+      ...only(
+        formatOptions,
+        'dateStyle timeStyle ignoresTimeZone isRelative changeMessage',
+      ),
+    });
     return this;
   }
 

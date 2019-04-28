@@ -1,6 +1,7 @@
 'use strict';
 
 const path = require('path');
+
 const readAndHashFile = require('../src/lib/readAndHashFile');
 
 test('readAndHashFile', async () => {

@@ -4,6 +4,7 @@
 
 const { EventEmitter } = require('events');
 const { PassThrough } = require('stream');
+const assert = require('assert');
 
 const { ZipFile } = require('yazl');
 
@@ -19,11 +20,14 @@ const {
   STRUCTURE_FIELDS,
   TRANSIT,
   PASS_MIME_TYPE,
+  BARCODES_FORMAT,
 } = require('./constants');
 
-const REQUIRED_IMAGES = Object.entries(IMAGES)
-  .filter(([, { required }]) => required)
-  .map(([imageType]) => imageType);
+const REQUIRED_IMAGES = new Set(
+  Object.entries(IMAGES)
+    .filter(([, { required }]) => required)
+    .map(([imageType]) => imageType),
+);
 
 // Create a new pass.
 //
@@ -33,14 +37,14 @@ class Pass extends EventEmitter {
   /**
    *
    * @param {import('./template')} template
-   * @param {*} fields
-   * @param {*} images
+   * @param {*} [fields]
+   * @param {*} [images]
    */
   constructor(template, fields = {}, images) {
     super();
 
     this.template = template;
-    this.fields = Object.assign({}, fields);
+    this.fields = { ...fields };
     // Structure is basically reference to all the fields under a given style
     // key, e.g. if style is coupon then structure.primaryFields maps to
     // fields.coupon.primaryFields.
@@ -61,19 +65,44 @@ class Pass extends EventEmitter {
     //
     //   pass.description("Unbelievable discount");
     //   console.log(pass.description());
-    Object.entries(TOP_LEVEL_FIELDS).forEach(([key, { type }]) => {
-      if (typeof this[key] !== 'function')
-        this[key] = v => {
-          // eslint-disable-next-line prefer-rest-params
-          if (arguments) {
-            if (type === Array && !Array.isArray(v))
-              throw new Error(`${key} must be an Array!`);
-            this.fields[key] = v;
-            return this;
-          }
-          return this.fields[key];
-        };
-    });
+
+    Object.defineProperties(
+      this,
+      Object.entries(TOP_LEVEL_FIELDS)
+        .filter(([key]) => !(key in this))
+        .reduce(
+          (props, [key, { type }]) => {
+            props[key] = {
+              writable: false,
+              configurable: false,
+              enumerable: true,
+              value:
+                /**
+                 * @template T: string | any[] | boolean | Object
+                 * @param {T} v
+                 * @returns {T | Pass}
+                 */
+                v => {
+                  if (v) {
+                    assert.ok(
+                      type !== Array || Array.isArray(v),
+                      `${key} must be an Array!`,
+                    );
+                    assert.ok(
+                      type !== 'string' || typeof v === 'string',
+                      `${key} must be a string`,
+                    );
+                    this.fields[key] = v;
+                    return this;
+                  }
+                  return this.fields[key];
+                },
+            };
+            return props;
+          },
+          /** @type {PropertyDescriptorMap} */ ({}),
+        ),
+    );
 
     // Accessor methods for structure fields (primaryFields, backFields, etc).
     //
@@ -81,14 +110,23 @@ class Pass extends EventEmitter {
     //
     //   pass.headerFields.add("time", "The Time", "10:00AM");
     //   pass.backFields.add("url", "Web site", "http://example.com");
-    for (const key of STRUCTURE_FIELDS) {
-      if (!(key in this))
-        Object.defineProperty(this, key, {
-          writable: false,
-          enumerable: true,
-          value: new Fields(this, key),
-        });
-    }
+    Object.defineProperties(
+      this,
+      Array.from(STRUCTURE_FIELDS)
+        .filter(key => !(key in this))
+        .reduce(
+          (props, key) => {
+            props[key] = {
+              writable: false,
+              configurable: false,
+              enumerable: true,
+              value: new Fields(this, key),
+            };
+            return props;
+          },
+          /** @type {PropertyDescriptorMap} */ ({}),
+        ),
+    );
 
     Object.preventExtensions(this);
   }
@@ -141,12 +179,20 @@ class Pass extends EventEmitter {
     throw new Error(`Unknown geopoint format: ${JSON.stringify(point)}`);
   }
 
+  /**
+   *
+   * @param {string} [v]
+   * @returns {string}
+   */
   transitType(v) {
     if (arguments.length === 1) {
       // setting transit type
       // only allowed at boardingPass
-      if (this.template.style !== 'boardingPass')
-        throw new Error('transitType field is only allowed at boarding passes');
+      assert.strictEqual(
+        this.template.style,
+        'boardingPass',
+        'transitType field is only allowed at boarding passes',
+      );
       if (!Object.values(TRANSIT).includes(v))
         throw new Error(`Unknown value ${v} for transit type`);
       this.structure.transitType = v;
@@ -248,37 +294,43 @@ class Pass extends EventEmitter {
   /**
    * Gets or sets Pass barcodes field
    *
-   * @param {Array.<{format: string, message: string, messageEncoding: string}>} v
+   * @param {Array.<{format: 'PKBarcodeFormatQR' | 'PKBarcodeFormatPDF417' | 'PKBarcodeFormatAztec' | 'PKBarcodeFormatCode128', message: string, messageEncoding: string}>} v
    */
   barcodes(v) {
-    if (arguments.length === 1) {
-      if (!Array.isArray(v)) throw new Error('barcodes must be an Array!');
-      // Barcodes dictionary: https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/LowerLevel.html#//apple_ref/doc/uid/TP40012026-CH3-SW3
-      v.forEach(barcode => {
-        if (
-          ![
-            'PKBarcodeFormatQR',
-            'PKBarcodeFormatPDF417',
-            'PKBarcodeFormatAztec',
-            'PKBarcodeFormatCode128',
-          ].includes(barcode.format)
-        )
-          throw new Error(`Barcode format value ${barcode.format} is invalid!`);
-        if (typeof barcode.message !== 'string')
-          throw new Error('Barcode message string is required');
-        if (typeof barcode.messageEncoding !== 'string')
-          throw new Error('Barcode messageEncoding is required');
-      });
-      // copy array
-      this.fields.barcodes = [...v];
-      // set backward compatibility field
-      Object.assign(this.fields, { barcode: v[0] });
-      return this;
+    if (!v) return this.fields.barcodes;
+
+    assert.ok(Array.isArray(v), 'barcodes must be an Array!');
+    // Barcodes dictionary: https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/LowerLevel.html#//apple_ref/doc/uid/TP40012026-CH3-SW3
+    for (const barcode of v) {
+      assert.ok(
+        BARCODES_FORMAT.has(barcode.format),
+        `Barcode format value ${barcode.format} is invalid!`,
+      );
+      assert.strictEqual(
+        typeof barcode.message,
+        'string',
+        'Barcode message string is required',
+      );
+      assert.strictEqual(
+        typeof barcode.messageEncoding,
+        'string',
+        'Barcode messageEncoding is required',
+      );
     }
-    return this.fields.barcodes;
+
+    // copy array
+    this.fields.barcodes = [...v];
+    // set backward compatibility field
+    Object.assign(this.fields, { barcode: v[0] });
+    return this;
   }
 
   // Localization
+  /**
+   *
+   * @param {string} lang
+   * @param {{[k: string]: string}} values
+   */
   addLocalization(lang, values) {
     // map, escaping the " symbol
     this.localizations[lang] =
@@ -293,24 +345,22 @@ class Pass extends EventEmitter {
 
   // Validate pass, throws error if missing a mandatory top-level field or image.
   validate() {
-    Object.entries(TOP_LEVEL_FIELDS).some(([field, { required }]) => {
-      if (required && !(field in this.fields))
-        throw new Error(`Missing field ${field}`);
-      return false;
-    });
+    for (const [field, { required }] of Object.entries(TOP_LEVEL_FIELDS))
+      assert.ok(!required || field in this.fields, `Missing field ${field}`);
 
     // authenticationToken && webServiceURL must be either both or none
     if ('webServiceURL' in this.fields) {
-      if (!('authenticationToken' in this.fields))
-        throw new Error(
-          'While webServiceURL is present, authenticationToken also required!',
-        );
-      if (this.fields.authenticationToken.length < 16)
-        throw new Error(
-          'authenticationToken must be at least 16 characters long!',
-        );
-    } else if ('authenticationToken' in this.fields)
-      throw new Error(
+      assert.ok(
+        'authenticationToken' in this.fields,
+        'While webServiceURL is present, authenticationToken also required!',
+      );
+      assert.ok(
+        this.fields.authenticationToken.length >= 16,
+        'authenticationToken must be at least 16 characters long!',
+      );
+    } else
+      assert.ok(
+        !('authenticationToken' in this.fields),
         'authenticationToken is presented in Pass data while webServiceURL is missing!',
       );
 
@@ -326,10 +376,11 @@ class Pass extends EventEmitter {
             .exec(value)
             .slice(1)
             .map(v => parseInt(v, 10))
-            .some(v => {
-              if (isNaN(v) || v < 0 || v > 255)
-                throw new Error(`Invalid color value ${value}`);
-              return false;
+            .forEach(v => {
+              assert.ok(
+                Number.isInteger(v) && v >= 0 && v < 256,
+                `Invalid color value ${value}`,
+              );
             });
         } catch (err) {
           throw new Error(
@@ -338,16 +389,17 @@ class Pass extends EventEmitter {
         }
       });
 
-    REQUIRED_IMAGES.some(image => {
-      if (!this.images.map.has(image))
-        throw new Error(`Missing image ${image}.png`);
-      return false;
-    });
+    for (const image of REQUIRED_IMAGES) {
+      assert.ok(
+        this.images.map.has(image),
+        `Missing required image ${image}.png`,
+      );
+    }
   }
 
   // Returns the pass.json object (not a string).
-  getPassJSON() {
-    return Object.assign({}, this.fields, { formatVersion: 1 });
+  toJSON() {
+    return { ...this.fields, formatVersion: 1 };
   }
 
   /**
@@ -374,40 +426,40 @@ class Pass extends EventEmitter {
       .once('error', err => this.emit('error', err));
 
     // Construct manifest here
-    const manifest = {};
+    const manifest = /** @type {{ [k: string]: string }} */ ({});
 
     // Adding required files
     // Create pass.json
-    const passJson = Buffer.from(JSON.stringify(this.getPassJSON()), 'utf-8');
+    const passJson = Buffer.from(JSON.stringify(this), 'utf-8');
     // saving hash to manifest
     manifest['pass.json'] = getBufferHash(passJson);
     zip.addBuffer(passJson, 'pass.json', { compress: false });
 
     // Localization
-    Object.entries(this.localizations).forEach(([lang, strings]) => {
+    for (const [lang, strings] of Object.entries(this.localizations)) {
       const fileName = `${lang}.lproj/pass.strings`;
       const fileContent = Buffer.from(strings, 'utf-16');
       manifest[fileName] = getBufferHash(fileContent);
       zip.addBuffer(fileContent, fileName, { compress: false });
-    });
+    }
 
     // Images
-    const images = [];
-    this.images.map.forEach((imageVariants, imageType) =>
-      imageVariants.forEach((file, density) => {
+    const images = /** @type {Promise.<{ name: string, hash: string, content: Buffer }>[]} */ ([]);
+    for (const [imageType, imageVariants] of this.images.map) {
+      for (const [density, file] of imageVariants) {
         const filename = `${imageType}${
           density !== '1x' ? `@${density}` : ''
         }.png`;
         images.push(readAndHashFile(file, filename));
-      }),
-    );
+      }
+    }
 
     // awaiting all images and updating manifest
     const imagesRes = await Promise.all(images);
-    imagesRes.forEach(({ name, hash, content }) => {
+    for (const { name, hash, content } of imagesRes) {
       manifest[name] = hash;
       zip.addBuffer(content, name, { compress: false });
-    });
+    }
 
     // adding manifest
     const manifestJson = JSON.stringify(manifest);

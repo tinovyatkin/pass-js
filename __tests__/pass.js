@@ -137,7 +137,7 @@ describe('Pass', () => {
 
   it('without icon.png should not be valid', () => {
     const pass = template.createPass(fields);
-    expect(() => pass.validate()).toThrow('Missing image icon.png');
+    expect(() => pass.validate()).toThrow('Missing required image icon.png');
   });
 
   it('without logo.png should not be valid', async () => {
@@ -153,7 +153,10 @@ describe('Pass', () => {
       pass.on('error', resolve);
     });
 
-    expect(validationError).toHaveProperty('message', 'Missing image logo.png');
+    expect(validationError).toHaveProperty(
+      'message',
+      'Missing required image logo.png',
+    );
   });
 
   it('boarding pass has string-only property in structure fields', async () => {
@@ -166,7 +169,7 @@ describe('Pass', () => {
     expect(pass.transitType()).toBe(constants.TRANSIT.AIR);
     pass.transitType(constants.TRANSIT.BUS);
     expect(pass.transitType()).toBe(constants.TRANSIT.BUS);
-    expect(pass.getPassJSON().boardingPass).toHaveProperty(
+    expect(pass.toJSON().boardingPass).toHaveProperty(
       'transitType',
       constants.TRANSIT.BUS,
     );
