@@ -206,3 +206,12 @@ const STRUCTURE_FIELDS = new Set([
   'transitType',
 ]);
 module.exports.STRUCTURE_FIELDS = STRUCTURE_FIELDS;
+
+/** @type {Set.<'PKBarcodeFormatQR' | 'PKBarcodeFormatPDF417' | 'PKBarcodeFormatAztec' | 'PKBarcodeFormatCode128'>} */
+const BARCODES_FORMAT = new Set([
+  'PKBarcodeFormatQR',
+  'PKBarcodeFormatPDF417',
+  'PKBarcodeFormatAztec',
+  'PKBarcodeFormatCode128',
+]);
+module.exports.BARCODES_FORMAT = BARCODES_FORMAT;

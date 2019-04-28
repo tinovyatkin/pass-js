@@ -20,6 +20,7 @@ const {
   STRUCTURE_FIELDS,
   TRANSIT,
   PASS_MIME_TYPE,
+  BARCODES_FORMAT,
 } = require('./constants');
 
 const REQUIRED_IMAGES = new Set(
@@ -293,22 +294,16 @@ class Pass extends EventEmitter {
   /**
    * Gets or sets Pass barcodes field
    *
-   * @param {Array.<{format: string, message: string, messageEncoding: string}>} v
+   * @param {Array.<{format: 'PKBarcodeFormatQR' | 'PKBarcodeFormatPDF417' | 'PKBarcodeFormatAztec' | 'PKBarcodeFormatCode128', message: string, messageEncoding: string}>} v
    */
   barcodes(v) {
     if (!v) return this.fields.barcodes;
 
-    if (!Array.isArray(v)) throw new Error('barcodes must be an Array!');
+    assert.ok(Array.isArray(v), 'barcodes must be an Array!');
     // Barcodes dictionary: https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/LowerLevel.html#//apple_ref/doc/uid/TP40012026-CH3-SW3
-    const barcodesSet = new Set([
-      'PKBarcodeFormatQR',
-      'PKBarcodeFormatPDF417',
-      'PKBarcodeFormatAztec',
-      'PKBarcodeFormatCode128',
-    ]);
     for (const barcode of v) {
       assert.ok(
-        barcodesSet.has(barcode.format),
+        BARCODES_FORMAT.has(barcode.format),
         `Barcode format value ${barcode.format} is invalid!`,
       );
       assert.strictEqual(
@@ -431,7 +426,7 @@ class Pass extends EventEmitter {
       .once('error', err => this.emit('error', err));
 
     // Construct manifest here
-    const manifest = {};
+    const manifest = /** @type {{ [k: string]: string }} */ ({});
 
     // Adding required files
     // Create pass.json
@@ -441,30 +436,30 @@ class Pass extends EventEmitter {
     zip.addBuffer(passJson, 'pass.json', { compress: false });
 
     // Localization
-    Object.entries(this.localizations).forEach(([lang, strings]) => {
+    for (const [lang, strings] of Object.entries(this.localizations)) {
       const fileName = `${lang}.lproj/pass.strings`;
       const fileContent = Buffer.from(strings, 'utf-16');
       manifest[fileName] = getBufferHash(fileContent);
       zip.addBuffer(fileContent, fileName, { compress: false });
-    });
+    }
 
     // Images
     const images = /** @type {Promise.<{ name: string, hash: string, content: Buffer }>[]} */ ([]);
-    this.images.map.forEach((imageVariants, imageType) =>
-      imageVariants.forEach((file, density) => {
+    for (const [imageType, imageVariants] of this.images.map) {
+      for (const [density, file] of imageVariants) {
         const filename = `${imageType}${
           density !== '1x' ? `@${density}` : ''
         }.png`;
         images.push(readAndHashFile(file, filename));
-      }),
-    );
+      }
+    }
 
     // awaiting all images and updating manifest
     const imagesRes = await Promise.all(images);
-    imagesRes.forEach(({ name, hash, content }) => {
+    for (const { name, hash, content } of imagesRes) {
       manifest[name] = hash;
       zip.addBuffer(content, name, { compress: false });
-    });
+    }
 
     // adding manifest
     const manifestJson = JSON.stringify(manifest);
