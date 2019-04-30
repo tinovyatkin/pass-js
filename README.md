@@ -7,28 +7,28 @@
 This is complete rewrite of [assaf/node-passbook](http://github.com/assaf/node-passbook).
 The original module lacks new commits in last two years and outdated. This modules:
 
--   Targetting Node >= 10 and refactored in ES6 Classes, removing deprecated calls (`new Buffer`, etc)
--   Replaces `openssl` spawning with native Javascript RSA implementation (via `node-forge`)
--   Includes `Template.pushUpdates(pushToken)` that sends APN update request for a given pass type to a pushToken (get `pushToken` at your PassKit Web Service implementation)
--   Adds constants for dictionary fields string values
--   Migrated tests to Jest
--   Increased test coverage
--   Adds strict dictionary fields values validation (where possible) to prevent errors earlier
--   Adding support for geolocation fields and Becon fields
--   Adding easy template and localization load from JSON file
--   We use it in production at [Transfers.do](https://transfers.do/)
+- Targetting Node >= 10 and refactored in ES6 Classes, removing deprecated calls (`new Buffer`, etc)
+- Replaces `openssl` spawning with native Javascript RSA implementation (via `node-forge`)
+- Includes `Template.pushUpdates(pushToken)` that sends APN update request for a given pass type to a pushToken (get `pushToken` at your PassKit Web Service implementation)
+- Adds constants for dictionary fields string values
+- Migrated tests to Jest
+- Increased test coverage
+- Adds strict dictionary fields values validation (where possible) to prevent errors earlier
+- Adding support for geolocation fields and Becon fields
+- Adding easy template and localization load from JSON file
+- We use it in production at [Transfers.do](https://transfers.do/)
 
 # Get your certificates
 
 To start with, you'll need a certificate issued by [the iOS Provisioning
-Portal](https://developer.apple.com/ios/manage/passtypeids/index.action).  You
+Portal](https://developer.apple.com/ios/manage/passtypeids/index.action). You
 need one certificate per Pass Type ID.
 
 After adding this certificate to your Keychain, you need to export it as a
 `.p12` file and copy it into the keys directory.
 
 You will also need the [Apple Worldwide Developer Relations Certification
-Authority](https://www.apple.com/certificateauthority/) certificate and to convert the `.p12` files into `.pem` files.  You
+Authority](https://www.apple.com/certificateauthority/) certificate and to convert the `.p12` files into `.pem` files. You
 can do both using the `passkit-keys` command:
 
 ```sh
@@ -39,7 +39,7 @@ This is the same directory into which you placed the `.p12` files.
 
 # Start with a template
 
-Start with a template.  A template has all the common data fields that will be
+Start with a template. A template has all the common data fields that will be
 shared between your passes, and also defines the keys to use for signing it.
 
 ```js
@@ -47,13 +47,16 @@ const { Template } = require("@destinationstransfers/passkit");
 
 const template = new Template("coupon", {
   passTypeIdentifier: "pass.com.example.passbook",
-  teamIdentifier:     "MXL",
-  backgroundColor:   "rgb(255,255,255)"
+  teamIdentifier: "MXL",
+  backgroundColor: "rgb(255,255,255)"
 });
 
 // or
 
-const template = await Template.load('./path/to/templateFolder', 'secretKeyPasswod');
+const template = await Template.load(
+  "./path/to/templateFolder",
+  "secretKeyPasswod"
+);
 // .load will load all "templateable" fields from pass.json,
 // as well as all images and com.example.passbook.pem file as key
 ```
@@ -68,13 +71,12 @@ template.fields.passTypeIdentifier = "pass.com.example.passbook";
 
 console.log(template.passTypeIdentifier());
 
-template.teamIdentifier("MXL").
-  passTypeIdentifier("pass.com.example.passbook")
+template.teamIdentifier("MXL").passTypeIdentifier("pass.com.example.passbook");
 ```
 
 The following template fields are required:
-`passTypeIdentifier`  - The Apple Pass Type ID, begins with "pass."
-`teamIdentifier`      - May contain an I
+`passTypeIdentifier` - The Apple Pass Type ID, begins with "pass."
+`teamIdentifier` - May contain an I
 
 Optional fields that you can set on the template (or pass): `backgroundColor`,
 `foregroundColor`, `labelColor`, `logoText`, `organizationName`,
@@ -84,7 +86,10 @@ In addition, you need to tell the template where to find the key files and where
 to load images from:
 
 ```js
-await template.loadCertificate("/etc/passbook/certificate_and_key.pem", "secret");
+await template.loadCertificate(
+  "/etc/passbook/certificate_and_key.pem",
+  "secret"
+);
 await template.images.loadFromDirectory("./images"); // loadFromDirectory returns Promise
 ```
 
@@ -97,8 +102,8 @@ To create a new pass from a template:
 
 ```js
 const pass = template.createPass({
-  serialNumber:  "123456",
-  description:   "20% off"
+  serialNumber: "123456",
+  description: "20% off"
 });
 ```
 
@@ -108,20 +113,18 @@ accessor methods, e.g:
 ```js
 pass.fields.serialNumber = "12345";
 console.log(pass.serialNumber());
-pass.serialNumber("12345").
-  description("20% off");
+pass.serialNumber("12345").description("20% off");
 ```
 
 In the JSON specification, structure fields (primary fields, secondary fields,
-etc) are represented as arrays, but items must have distinct key properties.  Le
+etc) are represented as arrays, but items must have distinct key properties. Le
 sigh.
 
 To make it easier, you can use methods like `add`, `get` and `remove` that
-will do the logical thing.  For example, to add a primary field:
+will do the logical thing. For example, to add a primary field:
 
 ```js
-pass.primaryFields.add("date", "Date", "Nov 1");
-pass.primaryFields.add({ key: "time", label: "Time", value: "10:00AM");
+pass.primaryFields.add({ key: "time", label: "Time", value: "10:00AM" });
 ```
 
 You can also call `add` with an array of triplets or array of objects.
@@ -145,7 +148,7 @@ Adding images to a pass is the same as adding images to a template:
 ```js
 pass.images.icon = iconFilename;
 pass.icon(iconFilename);
-await pass.images.loadFromDirectory('./images');
+await pass.images.loadFromDirectory("./images");
 ```
 
 You can add the image itself or a `Buffer`. You can also provide a function that will
@@ -156,25 +159,25 @@ Additionally localizations can be added if needed (images localizations are not 
 
 ```js
 pass.addLocalization("en", {
-  "GATE": "GATE",
-  "DEPART": "DEPART",
-  "ARRIVE": "ARRIVE",
-  "SEAT": "SEAT",
-  "PASSENGER": "PASSENGER",
-  "FLIGHT": "FLIGHT"
+  GATE: "GATE",
+  DEPART: "DEPART",
+  ARRIVE: "ARRIVE",
+  SEAT: "SEAT",
+  PASSENGER: "PASSENGER",
+  FLIGHT: "FLIGHT"
 });
 
 pass.addLocalization("ru", {
-  "GATE": "ВЫХОД",
-  "DEPART": "ВЫЛЕТ",
-  "ARRIVE": "ПРИЛЁТ",
-  "SEAT": "МЕСТО",
-  "PASSENGER": "ПАССАЖИР",
-  "FLIGHT": "РЕЙС"
+  GATE: "ВЫХОД",
+  DEPART: "ВЫЛЕТ",
+  ARRIVE: "ПРИЛЁТ",
+  SEAT: "МЕСТО",
+  PASSENGER: "ПАССАЖИР",
+  FLIGHT: "РЕЙС"
 });
 ```
 
-Localization applies for all fields' `label` and `value`. There is a note about that in [documentation](https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/PassKit_PG/Creating.html). 
+Localization applies for all fields' `label` and `value`. There is a note about that in [documentation](https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/PassKit_PG/Creating.html).
 
 # Generate the file
 
@@ -185,7 +188,7 @@ const file = fs.createWriteStream("mypass.pkpass");
 pass.on("error", error => {
   console.error(error);
   process.exit(1);
-})
+});
 pass.pipe(file);
 ```
 
@@ -193,15 +196,14 @@ Your pass will emit the `error` event if it fails to generate a valid Passbook
 file, and emit the `end` event when it successfully completed generating the
 file.
 
-You can pipe to any writable stream.  When working with HTTP, the `render`
+You can pipe to any writable stream. When working with HTTP, the `render`
 method will set the content type, pipe to the HTTP response, and make use of a
 callback (if supplied).
 
 ```js
 server.get("/mypass", (request, response) => {
   pass.render(response, error => {
-    if (error)
-      console.error(error);
+    if (error) console.error(error);
   });
 });
 ```

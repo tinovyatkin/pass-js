@@ -4,52 +4,47 @@
 
 'use strict';
 
-const assert = require('assert');
-const http2 = require('http2');
-const { join } = require('path');
-const { stat, readFile, access } = require('fs').promises;
-const {
-  constants: { R_OK },
-} = require('fs');
+import * as assert from 'assert';
+import * as http2 from 'http2';
+import { join } from 'path';
+import * as fs from 'fs';
 
-const colorString = require('color-string');
-const forge = require('node-forge');
+import colorString from 'color-string';
+import forge from 'node-forge';
 
-const PassImages = require('./lib/images');
-const Pass = require('./pass');
-const { PASS_STYLES } = require('./constants');
+import { PassImages } from './lib/images';
+import { Pass } from './pass';
+import { PASS_STYLES } from './constants';
 
 const {
   HTTP2_HEADER_METHOD,
   HTTP2_HEADER_PATH,
   NGHTTP2_CANCEL,
 } = http2.constants;
+const { stat, readFile, access } = fs.promises;
+const {
+  constants: { R_OK },
+} = fs;
 
 // Create a new template.
 //
 // style  - Pass style (coupon, eventTicket, etc)
 // fields - Pass fields (passTypeIdentifier, teamIdentifier, etc)
-class Template {
+export class Template {
+  style: PassStyle;
+  key: forge.pki.PrivateKey;
+  certificate: forge.pki.Certificate;
+  images: PassImages = new PassImages();
+  private apn: http2.ClientHttp2Session;
+  private fields: {};
   /**
    *
-   * @param {string} style
+   * @param {PassStyle} style
    * @param {{[k: string]: any }} [fields]
    */
-  constructor(style, fields = {}) {
+  constructor(style: PassStyle, fields: Partial<PassFields> = {}) {
     assert.ok(PASS_STYLES.has(style), `Unsupported pass style ${style}`);
     this.style = style;
-
-    // TODO: move these to class properties in Node 12.x
-    /** @type {import('node-forge').pki.PrivateKey} */
-    this.key = undefined;
-    /** @type {import('node-forge').pki.Certificate} */
-    this.certificate = undefined;
-    this.fields = {};
-    /** @type {string} */
-    this.password = undefined;
-    /** @type {http2.ClientHttp2Session} */
-    this.apn = undefined;
-    this.images = new PassImages();
 
     // we will set all fields via class setters, as in the future we will implement strict validators
     // values validation: https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/TopLevel.html
@@ -73,9 +68,9 @@ class Template {
    * @returns {string} - value converted to "rgb(222, 33, 22)" string
    * @memberof Template
    */
-  static convertToRgb(value) {
+  static convertToRgb(value: string): string {
     const rgb = colorString.get.rgb(value);
-    assert.ok(Array.isArray(rgb), `Invalid color value ${value}`);
+    if (rgb === null) throw new TypeError(`Invalid color value ${value}`);
     // convert to rgb(), stripping alpha channel
     return colorString.to.rgb(rgb.slice(0, 3));
   }
@@ -90,7 +85,10 @@ class Template {
    * @throws - if given folder doesn't contain pass.json or it is in invalid format
    * @memberof Template
    */
-  static async load(folderPath, keyPassword) {
+  static async load(
+    folderPath: string,
+    keyPassword: string,
+  ): Promise<Template> {
     // Check if the path is accessible directory actually
     const stats = await stat(folderPath);
     assert.ok(stats.isDirectory(), `Path ${folderPath} must be a directory!`);
@@ -135,7 +133,7 @@ class Template {
    * @param {string} signerKeyMessage
    * @param {string} [password]
    */
-  setPrivateKey(signerKeyMessage, password) {
+  setPrivateKey(signerKeyMessage: string, password: string) {
     this.key = forge.pki.decryptRsaPrivateKey(signerKeyMessage, password);
     assert.ok(
       this.key,
@@ -148,7 +146,7 @@ class Template {
    * @param {string} signerCertData - certificate and optional private key as PEM encoded string
    * @param {string} [password] - optional password to decode private key
    */
-  setCertificate(signerCertData, password) {
+  setCertificate(signerCertData: string, password: string) {
     // the PEM file from P12 contains both, certificate and private key
     // getting signer certificate
     this.certificate = forge.pki.certificateFromPem(signerCertData);
@@ -170,7 +168,7 @@ class Template {
    * @param {string} signerPemFile - path to PEM file with certificate and private key
    * @param {string} password - private key decoding password
    */
-  async loadCertificate(signerPemFile, password) {
+  async loadCertificate(signerPemFile: string, password: string) {
     // reading and parsing certificates
     const signerCertData = await readFile(signerPemFile, 'utf8');
     this.setCertificate(signerCertData, password);
@@ -180,7 +178,7 @@ class Template {
    *
    * @param {string} pushToken
    */
-  async pushUpdates(pushToken) {
+  async pushUpdates(pushToken: string) {
     // https://developer.apple.com/library/content/documentation/UserExperience/Conceptual/PassKit_PG/Updating.html
     if (!this.apn || this.apn.destroyed) {
       // creating APN Provider
@@ -311,7 +309,7 @@ class Template {
    * @returns {Template | boolean}
    * @memberof Template
    */
-  suppressStripShine(v) {
+  suppressStripShine(v: boolean | null): Template | boolean {
     if (arguments.length === 1) {
       if (typeof v !== 'boolean')
         throw new Error('suppressStripShine value must be a boolean!');
@@ -328,7 +326,7 @@ class Template {
    * @returns {Template | string}
    * @memberof Template
    */
-  webServiceURL(v) {
+  webServiceURL(v: URL | string): Template | string {
     if (arguments.length === 1) {
       // validating URL, it will throw on bad value
       const url = v instanceof URL ? v : new URL(v);
@@ -359,10 +357,8 @@ class Template {
    * @returns {Pass}
    * @memberof Template
    */
-  createPass(fields = {}) {
+  createPass(fields: object = {}): Pass {
     // Combine template and pass fields
     return new Pass(this, { ...this.fields, ...fields }, this.images);
   }
 }
-
-module.exports = Template;

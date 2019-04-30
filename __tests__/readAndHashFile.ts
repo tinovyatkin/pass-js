@@ -1,8 +1,8 @@
 'use strict';
 
-const path = require('path');
+import * as path from 'path';
 
-const readAndHashFile = require('../src/lib/readAndHashFile');
+import { readAndHashFile } from '../src/lib/readAndHashFile';
 
 test('readAndHashFile', async () => {
   const res = await readAndHashFile(

@@ -2,26 +2,31 @@
 
 'use strict';
 
-const { EventEmitter } = require('events');
-const { PassThrough } = require('stream');
-const assert = require('assert');
+import { EventEmitter } from 'events';
+import { PassThrough } from 'stream';
+import * as assert from 'assert';
 
-const { ZipFile } = require('yazl');
+import { ZipFile } from 'yazl';
 
-const Fields = require('./lib/fields');
-const getBufferHash = require('./lib/getBufferHash');
-const PassImages = require('./lib/images');
-const readAndHashFile = require('./lib/readAndHashFile');
-const signManifest = require('./lib/signManifest-forge');
-const { getW3CDateString } = require('./lib/w3cdate');
-const {
+import { FieldsMap } from './lib/fieldsMap';
+import { getBufferHash } from './lib/getBufferHash';
+import { PassImages } from './lib/images';
+import { readAndHashFile } from './lib/readAndHashFile';
+import { signManifest } from './lib/signManifest-forge';
+import { getW3CDateString } from './lib/w3cdate';
+import {
   TOP_LEVEL_FIELDS,
   IMAGES,
   STRUCTURE_FIELDS,
   TRANSIT,
   PASS_MIME_TYPE,
   BARCODES_FORMAT,
-} = require('./constants');
+} from './constants';
+
+/**
+ * @typedef {'PKBarcodeFormatQR' | 'PKBarcodeFormatPDF417' | 'PKBarcodeFormatAztec' | 'PKBarcodeFormatCode128'} BarcodeFormat
+ * @typedef {{format: BarcodeFormat, message: string, messageEncoding: string}} BarcodeDescriptor
+ */
 
 const REQUIRED_IMAGES = new Set(
   Object.entries(IMAGES)
@@ -33,17 +38,38 @@ const REQUIRED_IMAGES = new Set(
 //
 // template  - The template
 // fields    - Pass fields (description, serialNumber, logoText)
-class Pass extends EventEmitter {
+export class Pass extends EventEmitter {
+  private template: import('./template');
+  fields: {};
+  structure: any;
+  images: PassImages = new PassImages();
+  localizations: {};
   /**
    *
    * @param {import('./template')} template
    * @param {*} [fields]
    * @param {*} [images]
    */
-  constructor(template, fields = {}, images) {
+  constructor(template: import('./template'), fields: any = {}, images: any) {
     super();
 
     this.template = template;
+    /** @type {{
+      barcode?: BarcodeDescriptor,
+      barcodes?: BarcodeDescriptor[],
+      authenticationToken?: string,
+      expirationDate?: string,
+      relevantDate?: string,
+      voided?: boolean,
+      maxDistance?: number,
+      locations?: {
+        longitude: number,
+        latitude: number,
+        altitude?: number,
+        relevantText: string,
+      }[],
+      webServiceURL?: string
+    }} */
     this.fields = { ...fields };
     // Structure is basically reference to all the fields under a given style
     // key, e.g. if style is coupon then structure.primaryFields maps to
@@ -55,6 +81,7 @@ class Pass extends EventEmitter {
     if (images) Object.assign(this.images, images);
 
     // For localizations support
+    /** @type {{[k: string]: string}} */
     this.localizations = {};
 
     // Accessor methods for top-level fields (description, serialNumber, logoText,
@@ -77,12 +104,12 @@ class Pass extends EventEmitter {
               configurable: false,
               enumerable: true,
               value:
-                /**
+                (                /**
                  * @template T: string | any[] | boolean | Object
                  * @param {T} v
                  * @returns {T | Pass}
                  */
-                v => {
+                <T>v: T): T | Pass => {
                   if (v) {
                     assert.ok(
                       type !== Array || Array.isArray(v),
@@ -108,8 +135,7 @@ class Pass extends EventEmitter {
     //
     // For example:
     //
-    //   pass.headerFields.add("time", "The Time", "10:00AM");
-    //   pass.backFields.add("url", "Web site", "http://example.com");
+    //   pass.headerFields.add({ key: "time", label: "The Time", value: "10:00AM" });
     Object.defineProperties(
       this,
       Array.from(STRUCTURE_FIELDS)
@@ -139,7 +165,7 @@ class Pass extends EventEmitter {
    * @throws on unknown point format
    * @memberof Pass
    */
-  static getGeoPoint(point) {
+  static getGeoPoint(point: number[] | { lat: number; lng: number; alt?: number; } | { longitude: number; latitude: number; altitude?: number; }): { longitude: number; latitude: number; altitude: number; } {
     if (!point) throw new Error("Can't get coordinates from undefined");
 
     // GeoJSON Array [longitude, latitude(, elevation)]
@@ -182,24 +208,23 @@ class Pass extends EventEmitter {
   /**
    *
    * @param {string} [v]
-   * @returns {string}
+   * @returns {string | Pass}
    */
-  transitType(v) {
-    if (arguments.length === 1) {
-      // setting transit type
-      // only allowed at boardingPass
-      assert.strictEqual(
-        this.template.style,
-        'boardingPass',
-        'transitType field is only allowed at boarding passes',
-      );
-      if (!Object.values(TRANSIT).includes(v))
-        throw new Error(`Unknown value ${v} for transit type`);
-      this.structure.transitType = v;
-      return this;
-    }
-    // getting value
-    return this.structure.transitType;
+  transitType(v: string): string | Pass {
+    if (!v) return this.structure.transitType;
+    // setting transit type
+    // only allowed at boardingPass
+    assert.strictEqual(
+      this.template.style,
+      'boardingPass',
+      'transitType field is only allowed at boarding passes',
+    );
+    assert.ok(
+      Object.values(TRANSIT).includes(v),
+      `Unknown value ${v} for transit type`,
+    );
+    this.structure.transitType = v;
+    return this;
   }
 
   /**
@@ -210,7 +235,7 @@ class Pass extends EventEmitter {
    * @throws when passed value can't be interpreted as W3C string
    * @memberof Pass
    */
-  expirationDate(v) {
+  expirationDate(v: string | Date): Pass | string {
     if (arguments.length === 1) {
       this.fields.expirationDate = getW3CDateString(v);
       return this;
@@ -225,7 +250,7 @@ class Pass extends EventEmitter {
    * @returns {Pass | boolean}
    * @memberof Pass
    */
-  voided(v) {
+  voided(v: boolean): Pass | boolean {
     if (arguments.length === 1) {
       if (v) this.fields.voided = true;
       else delete this.fields.voided;
@@ -243,7 +268,7 @@ class Pass extends EventEmitter {
    * @throws when passed value can't be interpreted as W3C string
    * @memberof Pass
    */
-  relevantDate(v) {
+  relevantDate(v: string | Date): Pass | string {
     if (arguments.length === 1) {
       this.fields.relevantDate = getW3CDateString(v);
       return this;
@@ -259,16 +284,14 @@ class Pass extends EventEmitter {
    * @returns {Pass | number}
    * @memberof Pass
    */
-  maxDistance(v) {
-    if (arguments.length === 1) {
-      if (!Number.isInteger(v) || v <= 0)
-        throw new Error(
-          'Number must be a positive integer distance in meters!',
-        );
-      this.fields.maxDistance = v;
-      return this;
-    }
-    return this.fields.maxDistance;
+  maxDistance(v: number): Pass | number {
+    if (!v) return this.fields.maxDistance;
+    assert.ok(
+      Number.isInteger(v) && v > 0,
+      'Number must be a positive integer distance in meters!',
+    );
+    this.fields.maxDistance = v;
+    return this;
   }
 
   /**
@@ -279,7 +302,7 @@ class Pass extends EventEmitter {
    * @returns {Pass}
    * @memberof Pass
    */
-  addLocation(point, relevantText) {
+  addLocation(point: number[] | { lat: number; lng: number; alt?: number; } | { longitude: number; latitude: number; altitude?: number; }, relevantText: string): Pass {
     if (!Array.isArray(this.fields.locations)) this.fields.locations = [];
     const { longitude, latitude, altitude } = Pass.getGeoPoint(point);
     this.fields.locations.push({
@@ -294,9 +317,9 @@ class Pass extends EventEmitter {
   /**
    * Gets or sets Pass barcodes field
    *
-   * @param {Array.<{format: 'PKBarcodeFormatQR' | 'PKBarcodeFormatPDF417' | 'PKBarcodeFormatAztec' | 'PKBarcodeFormatCode128', message: string, messageEncoding: string}>} v
+   * @param {BarcodeDescriptor[]} [v]
    */
-  barcodes(v) {
+  barcodes(v: BarcodeDescriptor[]) {
     if (!v) return this.fields.barcodes;
 
     assert.ok(Array.isArray(v), 'barcodes must be an Array!');
@@ -321,7 +344,7 @@ class Pass extends EventEmitter {
     // copy array
     this.fields.barcodes = [...v];
     // set backward compatibility field
-    Object.assign(this.fields, { barcode: v[0] });
+    [this.fields.barcode] = v;
     return this;
   }
 
@@ -331,7 +354,7 @@ class Pass extends EventEmitter {
    * @param {string} lang
    * @param {{[k: string]: string}} values
    */
-  addLocalization(lang, values) {
+  addLocalization(lang: string, values: { [k: string]: string; }) {
     // map, escaping the " symbol
     this.localizations[lang] =
       (lang in this.localizations ? `${this.localizations[lang]}\n` : '') +
@@ -408,7 +431,7 @@ class Pass extends EventEmitter {
    * @param {import('stream').Writable} output - Write stream
    * @memberof Pass
    */
-  async pipe(output) {
+  async pipe(output: import('stream').Writable) {
     // Validate before attempting to create
     try {
       this.validate();
@@ -426,7 +449,7 @@ class Pass extends EventEmitter {
       .once('error', err => this.emit('error', err));
 
     // Construct manifest here
-    const manifest = /** @type {{ [k: string]: string }} */ ({});
+    const manifest: { [k: string]: string; } = /** @type {{ [k: string]: string }} */ ({});
 
     // Adding required files
     // Create pass.json
@@ -444,7 +467,7 @@ class Pass extends EventEmitter {
     }
 
     // Images
-    const images = /** @type {Promise.<{ name: string, hash: string, content: Buffer }>[]} */ ([]);
+    const images: Promise<{ name: string; hash: string; content: Buffer; }>[] = /** @type {Promise.<{ name: string, hash: string, content: Buffer }>[]} */ ([]);
     for (const [imageType, imageVariants] of this.images.map) {
       for (const [density, file] of imageVariants) {
         const filename = `${imageType}${
@@ -466,7 +489,7 @@ class Pass extends EventEmitter {
     zip.addBuffer(Buffer.from(manifestJson, 'utf8'), 'manifest.json');
 
     // Create signature
-    const signature = await signManifest(
+    const signature = signManifest(
       this.template.certificate,
       this.template.key,
       manifestJson,
@@ -484,7 +507,7 @@ class Pass extends EventEmitter {
    * @param {import('http').ServerResponse} response - HTTP response
    * @memberof Pass
    */
-  render(response) {
+  async render(response: import('http').ServerResponse) {
     return new Promise((resolve, reject) => {
       response.setHeader('Content-Type', PASS_MIME_TYPE);
       this.once('error', reject);
@@ -499,11 +522,10 @@ class Pass extends EventEmitter {
    * @returns {import('stream').Readable}
    * @memberof Pass
    */
-  stream() {
+  stream(): import('stream').Readable {
     const stream = new PassThrough();
     this.pipe(stream);
     return stream;
   }
 }
 
-module.exports = Pass;

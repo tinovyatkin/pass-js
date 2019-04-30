@@ -1,6 +1,6 @@
 'use strict';
 
-const assert = require('assert');
+import * as assert from 'assert';
 
 /**
  * Checks if given string is a valid W3C date representation
@@ -8,14 +8,13 @@ const assert = require('assert');
  * @param {string} dateStr
  * @returns {boolean}
  */
-function isValidW3CDateString(dateStr) {
+export function isValidW3CDateString(dateStr: string): boolean {
   if (typeof dateStr !== 'string') return false;
   // W3C date format with optional seconds
   return /^20[1-9]{2}-[01]\d-[0-3]\dT[0-5]\d:[0-5]\d(:[0-5]\d)?(Z|([+-][01]\d:[03]0)$)/.test(
     dateStr,
   );
 }
-module.exports.isValidW3CDateString = isValidW3CDateString;
 
 /**
  * Converts given string or Date instance into valid W3C date string
@@ -24,7 +23,7 @@ module.exports.isValidW3CDateString = isValidW3CDateString;
  * @throws if given string can't be converted into w3C date
  * @returns {string}
  */
-function getW3CDateString(value) {
+export function getW3CDateString(value: string | Date): string {
   assert.ok(
     typeof value === 'string' || value instanceof Date,
     'Argument must be either a string or Date object',
@@ -32,7 +31,6 @@ function getW3CDateString(value) {
   if (typeof value === 'string' && isValidW3CDateString(value)) return value;
 
   const date = value instanceof Date ? value : new Date(value);
-  assert.ok(isFinite(date), 'Invalid date value!');
   // creating W3C date (we will always do without seconds)
   const month = (1 + date.getMonth()).toFixed().padStart(2, '0');
   const day = date
@@ -57,4 +55,3 @@ function getW3CDateString(value) {
   const offsetSign = offset < 0 ? '-' : '+';
   return `${date.getFullYear()}-${month}-${day}T${hours}:${minutes}${offsetSign}${offsetHours}:${offsetMinutes}`;
 }
-module.exports.getW3CDateString = getW3CDateString;

@@ -6,53 +6,48 @@
 
 'use strict';
 
-const PASS_MIME_TYPE = 'application/vnd.apple.pkpass';
-module.exports.PASS_MIME_TYPE = PASS_MIME_TYPE;
+export const PASS_MIME_TYPE = 'application/vnd.apple.pkpass';
 
-const TRANSIT = {
+export const TRANSIT = {
   AIR: 'PKTransitTypeAir',
   BOAT: 'PKTransitTypeBoat',
   BUS: 'PKTransitTypeBus',
   TRAIN: 'PKTransitTypeTrain',
   GENERIC: 'PKTransitTypeGeneric',
 };
-module.exports.TRANSIT = TRANSIT;
 
-const textDirection = {
+export const textDirection = {
   LEFT: 'PKTextAlignmentLeft',
   CENTER: 'PKTextAlignmentCenter',
   RIGHT: 'PKTextAlignmentRight',
   NATURAL: 'PKTextAlignmentNatural',
 };
-module.exports.textDirection = textDirection;
 
-const barcodeFormat = {
+export const barcodeFormat = {
   QR: 'PKBarcodeFormatQR',
   PDF417: 'PKBarcodeFormatPDF417',
   Aztec: 'PKBarcodeFormatAztec',
   Code128: 'PKBarcodeFormatCode128',
 };
-module.exports.barcodeFormat = barcodeFormat;
 
-const dateTimeFormat = {
+export const dateTimeFormat = {
   NONE: 'PKDateStyleNone',
   SHORT: 'PKDateStyleShort',
   MEDIUM: 'PKDateStyleMedium',
   LONG: 'PKDateStyleLong',
   FULL: 'PKDateStyleFull',
 };
-module.exports.dateTimeFormat = dateTimeFormat;
 
-const dataDetector = {
+export const dataDetector = {
   PHONE: 'PKDataDetectorTypePhoneNumber',
   LINK: 'PKDataDetectorTypeLink',
   ADDRESS: 'PKDataDetectorTypeAddress',
   CALENDAR: 'PKDataDetectorTypeCalendarEvent',
 };
-module.exports.dataDetector = dataDetector;
 
 // Supported images.
-const IMAGES = {
+/** @type {{[k: string]: { width: number, height: number, required?: boolean }}} */
+export const IMAGES = {
   icon: {
     width: 29,
     height: 29,
@@ -81,24 +76,21 @@ const IMAGES = {
   },
 };
 
-const DENSITIES = new Set(['1x', '2x', '3x']);
-module.exports.IMAGES = IMAGES;
-module.exports.DENSITIES = DENSITIES;
+export const DENSITIES = new Set(['1x', '2x', '3x']);
 
 // Supported passbook styles.
-const PASS_STYLES = new Set([
+export const PASS_STYLES = new Set([
   'boardingPass',
   'coupon',
   'eventTicket',
   'storeCard',
   'generic',
 ]);
-module.exports.PASS_STYLES = PASS_STYLES;
 
 // Optional top level fields
 // Top-level pass fields.
 // https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/TopLevel.html#//apple_ref/doc/uid/TP40012026-CH2-SW1
-const TOP_LEVEL_FIELDS = {
+export const TOP_LEVEL_FIELDS = {
   // Standard Keys
   description: {
     required: true,
@@ -193,11 +185,10 @@ const TOP_LEVEL_FIELDS = {
     type: Object,
   },
 };
-module.exports.TOP_LEVEL_FIELDS = TOP_LEVEL_FIELDS;
 
 // Pass structure keys.
 // https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/LowerLevel.html#//apple_ref/doc/uid/TP40012026-CH3-SW3
-const STRUCTURE_FIELDS = new Set([
+export const STRUCTURE_FIELDS = new Set([
   'auxiliaryFields',
   'backFields',
   'headerFields',
@@ -205,13 +196,11 @@ const STRUCTURE_FIELDS = new Set([
   'secondaryFields',
   'transitType',
 ]);
-module.exports.STRUCTURE_FIELDS = STRUCTURE_FIELDS;
 
 /** @type {Set.<'PKBarcodeFormatQR' | 'PKBarcodeFormatPDF417' | 'PKBarcodeFormatAztec' | 'PKBarcodeFormatCode128'>} */
-const BARCODES_FORMAT = new Set([
+export const BARCODES_FORMAT = new Set([
   'PKBarcodeFormatQR',
   'PKBarcodeFormatPDF417',
   'PKBarcodeFormatAztec',
   'PKBarcodeFormatCode128',
 ]);
-module.exports.BARCODES_FORMAT = BARCODES_FORMAT;

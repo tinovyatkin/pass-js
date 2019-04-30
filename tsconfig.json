@@ -1,0 +1,32 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=759670
+  // for the documentation about the jsconfig.json format
+  "compilerOptions": {
+    // Keep allowJs here to allow use this config with tsc command line
+    "target": "esnext",
+    "lib": ["esnext", "dom"],
+    /* Additional Checks */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "strictNullChecks": true,
+    // "noImplicitAny": true,
+    "allowSyntheticDefaultImports": true,
+    // "strictPropertyInitialization": true,
+    "suppressImplicitAnyIndexErrors": true,
+    /* Module Resolution Options */
+    "moduleResolution": "node",
+    "esModuleInterop": false,
+    "module": "commonjs",
+    "pretty": true,
+    "declaration": true,
+    "importHelpers": true,
+    "incremental": true,
+    "listEmittedFiles": true,
+    "outDir": "./dist"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"],
+  "compileOnSave": true
+}
