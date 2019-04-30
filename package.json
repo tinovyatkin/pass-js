@@ -11,6 +11,7 @@
     "passkit-keys": "./bin/passkit-keys"
   },
   "files": [
+    "index.js",
     "src",
     "bin/passkit-keys"
   ],
