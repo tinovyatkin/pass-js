@@ -3,17 +3,35 @@
   "deepscan.ignoreConfirmWarning": true,
   "eslint.autoFixOnSave": true,
   "eslint.enable": true,
-  "eslint.validate": ["javascript", "javascriptreact", "typescript"],
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    {
+      "language": "typescript",
+      "autoFix": true
+    },
+    {
+      "language": "typescriptreact",
+      "autoFix": true
+    }
+  ],
   "typescript.tsdk": "node_modules/typescript/lib",
   "eslint.alwaysShowStatus": true,
-  "prettier.disableLanguages": [
-    "typescript"
-  ],
-  "typescript.format.insertSpaceAfterConstructor": true,
-  "typescript.format.insertSpaceAfterTypeAssertion": true,
+  "prettier.disableLanguages": ["typescript"],
   "typescript.implementationsCodeLens.enabled": true,
-  "typescript.preferences.quoteStyle": "single",
   "typescript.preferences.importModuleSpecifier": "relative",
   "typescript.referencesCodeLens.enabled": true,
-  "typescript.format.enable": false
+  "editor.formatOnSave": true,
+  "[javascript]": {
+    "editor.formatOnSave": false
+  },
+  "[javascriptreact]": {
+    "editor.formatOnSave": false
+  },
+  "[typescript]": {
+    "editor.formatOnSave": false
+  },
+  "[typescriptreact]": {
+    "editor.formatOnSave": false
+  }
 }

@@ -1,6 +1,7 @@
 {
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
+    "ecmaVersion": 2018,
     "project": "./tsconfig.json",
     "sourceType": "module"
   },
@@ -32,6 +33,10 @@
     "@typescript-eslint/type-annotation-spacing": "error",
     "@typescript-eslint/no-extraneous-class": "error",
     "@typescript-eslint/no-non-null-assertion": "error",
+    "@typescript-eslint/explicit-function-return-type": [
+      "error",
+      { "allowExpressions": true, "allowTypedFunctionExpressions": true }
+    ],
     "@typescript-eslint/no-this-alias": [
       "error",
       {
