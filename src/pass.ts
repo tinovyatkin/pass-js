@@ -2,7 +2,6 @@
 
 'use strict';
 
-import { EventEmitter } from 'events';
 import { PassThrough } from 'stream';
 import * as assert from 'assert';
 
@@ -16,65 +15,49 @@ import { signManifest } from './lib/signManifest-forge';
 import { getW3CDateString } from './lib/w3cdate';
 import {
   TOP_LEVEL_FIELDS,
-  IMAGES,
   STRUCTURE_FIELDS,
   TRANSIT,
   PASS_MIME_TYPE,
   BARCODES_FORMAT,
 } from './constants';
+import {
+  ApplePass,
+  PassStructureFields,
+  BarcodeDescriptor,
+} from './interfaces';
 
 /**
  * @typedef {'PKBarcodeFormatQR' | 'PKBarcodeFormatPDF417' | 'PKBarcodeFormatAztec' | 'PKBarcodeFormatCode128'} BarcodeFormat
  * @typedef {{format: BarcodeFormat, message: string, messageEncoding: string}} BarcodeDescriptor
  */
 
-const REQUIRED_IMAGES = new Set(
-  Object.entries(IMAGES)
-    .filter(([, { required }]) => required)
-    .map(([imageType]) => imageType),
-);
-
 // Create a new pass.
 //
 // template  - The template
 // fields    - Pass fields (description, serialNumber, logoText)
-export class Pass extends EventEmitter {
-  private template: import('./template');
-  fields: {};
-  structure: any;
+export class Pass {
+  fields: Partial<ApplePass> = {};
+  structure: Partial<PassStructureFields>;
   images: PassImages = new PassImages();
   localizations: {};
+  private template: import('./template').Template;
   /**
    *
    * @param {import('./template')} template
    * @param {*} [fields]
    * @param {*} [images]
    */
-  constructor(template: import('./template'), fields: any = {}, images: any) {
-    super();
-
+  constructor(
+    template: import('./template').Template,
+    fields: Partial<ApplePass> = {},
+    images: PassImages,
+  ) {
     this.template = template;
-    /** @type {{
-      barcode?: BarcodeDescriptor,
-      barcodes?: BarcodeDescriptor[],
-      authenticationToken?: string,
-      expirationDate?: string,
-      relevantDate?: string,
-      voided?: boolean,
-      maxDistance?: number,
-      locations?: {
-        longitude: number,
-        latitude: number,
-        altitude?: number,
-        relevantText: string,
-      }[],
-      webServiceURL?: string
-    }} */
     this.fields = { ...fields };
     // Structure is basically reference to all the fields under a given style
     // key, e.g. if style is coupon then structure.primaryFields maps to
     // fields.coupon.primaryFields.
-    const { style } = template;
+    const { style } = this.template;
     this.structure = this.fields[style];
     if (!this.structure) this.structure = this.fields[style] = {};
     this.images = new PassImages();
@@ -104,12 +87,12 @@ export class Pass extends EventEmitter {
               configurable: false,
               enumerable: true,
               value:
-                (                /**
+                /**
                  * @template T: string | any[] | boolean | Object
                  * @param {T} v
                  * @returns {T | Pass}
                  */
-                <T>v: T): T | Pass => {
+                <T>(v: T): T | Pass => {
                   if (v) {
                     assert.ok(
                       type !== Array || Array.isArray(v),
@@ -146,7 +129,7 @@ export class Pass extends EventEmitter {
               writable: false,
               configurable: false,
               enumerable: true,
-              value: new Fields(this, key),
+              value: new FieldsMap(),
             };
             return props;
           },
@@ -161,11 +144,18 @@ export class Pass extends EventEmitter {
    * Returns normalized geopoint object from geoJSON, {lat, lng} or {lattitude,longutude,altitude}
    *
    * @param {number[] | { lat: number, lng: number, alt?: number } | { longitude: number, latitude: number, altitude?: number }} point
-   * @returns {{ longitude: number, latitude: number, altitude: number }}
+   * @returns {{ longitude: number, latitude: number, altitude?: number }}
    * @throws on unknown point format
    * @memberof Pass
    */
-  static getGeoPoint(point: number[] | { lat: number; lng: number; alt?: number; } | { longitude: number; latitude: number; altitude?: number; }): { longitude: number; latitude: number; altitude: number; } {
+  static getGeoPoint(
+    point:
+      | number[]
+      | { lat: number; lng: number; alt?: number }
+      | { longitude: number; latitude: number } & (
+          | { altitude?: number }
+          | { elevation?: number }),
+  ): { longitude: number; latitude: number; altitude?: number } {
     if (!point) throw new Error("Can't get coordinates from undefined");
 
     // GeoJSON Array [longitude, latitude(, elevation)]
@@ -197,7 +187,12 @@ export class Pass extends EventEmitter {
       return {
         longitude: point.longitude,
         latitude: point.latitude,
-        altitude: point.altitude || point.elevation,
+        altitude:
+          'altitude' in point
+            ? point.altitude
+            : 'elevation' in point
+            ? point.elevation
+            : undefined,
       };
     }
 
@@ -210,7 +205,7 @@ export class Pass extends EventEmitter {
    * @param {string} [v]
    * @returns {string | Pass}
    */
-  transitType(v: string): string | Pass {
+  transitType(v: string): string | this | undefined {
     if (!v) return this.structure.transitType;
     // setting transit type
     // only allowed at boardingPass
@@ -235,7 +230,7 @@ export class Pass extends EventEmitter {
    * @throws when passed value can't be interpreted as W3C string
    * @memberof Pass
    */
-  expirationDate(v: string | Date): Pass | string {
+  expirationDate(v: string | Date): this | undefined | string {
     if (arguments.length === 1) {
       this.fields.expirationDate = getW3CDateString(v);
       return this;
@@ -250,7 +245,7 @@ export class Pass extends EventEmitter {
    * @returns {Pass | boolean}
    * @memberof Pass
    */
-  voided(v: boolean): Pass | boolean {
+  voided(v: boolean): this | boolean {
     if (arguments.length === 1) {
       if (v) this.fields.voided = true;
       else delete this.fields.voided;
@@ -268,7 +263,7 @@ export class Pass extends EventEmitter {
    * @throws when passed value can't be interpreted as W3C string
    * @memberof Pass
    */
-  relevantDate(v: string | Date): Pass | string {
+  relevantDate(v: string | Date): this | undefined | string {
     if (arguments.length === 1) {
       this.fields.relevantDate = getW3CDateString(v);
       return this;
@@ -284,7 +279,7 @@ export class Pass extends EventEmitter {
    * @returns {Pass | number}
    * @memberof Pass
    */
-  maxDistance(v: number): Pass | number {
+  maxDistance(v: number): this | undefined | number {
     if (!v) return this.fields.maxDistance;
     assert.ok(
       Number.isInteger(v) && v > 0,
@@ -302,7 +297,13 @@ export class Pass extends EventEmitter {
    * @returns {Pass}
    * @memberof Pass
    */
-  addLocation(point: number[] | { lat: number; lng: number; alt?: number; } | { longitude: number; latitude: number; altitude?: number; }, relevantText: string): Pass {
+  addLocation(
+    point:
+      | number[]
+      | { lat: number; lng: number; alt?: number }
+      | { longitude: number; latitude: number; altitude?: number },
+    relevantText: string,
+  ): Pass {
     if (!Array.isArray(this.fields.locations)) this.fields.locations = [];
     const { longitude, latitude, altitude } = Pass.getGeoPoint(point);
     this.fields.locations.push({
@@ -319,7 +320,7 @@ export class Pass extends EventEmitter {
    *
    * @param {BarcodeDescriptor[]} [v]
    */
-  barcodes(v: BarcodeDescriptor[]) {
+  barcodes(v: BarcodeDescriptor[]): this | undefined | BarcodeDescriptor[] {
     if (!v) return this.fields.barcodes;
 
     assert.ok(Array.isArray(v), 'barcodes must be an Array!');
@@ -354,7 +355,7 @@ export class Pass extends EventEmitter {
    * @param {string} lang
    * @param {{[k: string]: string}} values
    */
-  addLocalization(lang: string, values: { [k: string]: string; }) {
+  addLocalization(lang: string, values: { [k: string]: string }): void {
     // map, escaping the " symbol
     this.localizations[lang] =
       (lang in this.localizations ? `${this.localizations[lang]}\n` : '') +
@@ -367,16 +368,16 @@ export class Pass extends EventEmitter {
   }
 
   // Validate pass, throws error if missing a mandatory top-level field or image.
-  validate() {
+  validate(): void {
     for (const [field, { required }] of Object.entries(TOP_LEVEL_FIELDS))
       assert.ok(!required || field in this.fields, `Missing field ${field}`);
 
     // authenticationToken && webServiceURL must be either both or none
     if ('webServiceURL' in this.fields) {
-      assert.ok(
-        'authenticationToken' in this.fields,
-        'While webServiceURL is present, authenticationToken also required!',
-      );
+      if (typeof this.fields.authenticationToken !== 'string')
+        throw new Error(
+          'While webServiceURL is present, authenticationToken also required!',
+        );
       assert.ok(
         this.fields.authenticationToken.length >= 16,
         'authenticationToken must be at least 16 characters long!',
@@ -412,16 +413,11 @@ export class Pass extends EventEmitter {
         }
       });
 
-    for (const image of REQUIRED_IMAGES) {
-      assert.ok(
-        this.images.map.has(image),
-        `Missing required image ${image}.png`,
-      );
-    }
+    this.images.validate();
   }
 
   // Returns the pass.json object (not a string).
-  toJSON() {
+  toJSON(): Partial<ApplePass> {
     return { ...this.fields, formatVersion: 1 };
   }
 
@@ -431,7 +427,7 @@ export class Pass extends EventEmitter {
    * @param {import('stream').Writable} output - Write stream
    * @memberof Pass
    */
-  async pipe(output: import('stream').Writable) {
+  async pipe(output: import('stream').Writable): Promise<void> {
     // Validate before attempting to create
     try {
       this.validate();
@@ -449,7 +445,9 @@ export class Pass extends EventEmitter {
       .once('error', err => this.emit('error', err));
 
     // Construct manifest here
-    const manifest: { [k: string]: string; } = /** @type {{ [k: string]: string }} */ ({});
+    const manifest: {
+      [k: string]: string;
+    } = /** @type {{ [k: string]: string }} */ ({});
 
     // Adding required files
     // Create pass.json
@@ -467,7 +465,11 @@ export class Pass extends EventEmitter {
     }
 
     // Images
-    const images: Promise<{ name: string; hash: string; content: Buffer; }>[] = /** @type {Promise.<{ name: string, hash: string, content: Buffer }>[]} */ ([]);
+    const images: Promise<{
+      name: string;
+      hash: string;
+      content: Buffer;
+    }>[] = /** @type {Promise.<{ name: string, hash: string, content: Buffer }>[]} */ ([]);
     for (const [imageType, imageVariants] of this.images.map) {
       for (const [density, file] of imageVariants) {
         const filename = `${imageType}${
@@ -528,4 +530,3 @@ export class Pass extends EventEmitter {
     return stream;
   }
 }
-
