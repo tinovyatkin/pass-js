@@ -339,76 +339,86 @@ export interface PassVisualAppearanceKeys {
   suppressStripShine?: boolean;
 }
 
-export interface PassFields {
+export interface PassWebServiceKeys {
+  /**
+   * The URL of a web service that conforms to the API described in PassKit Web Service Reference.
+   * The web service must use the HTTPS protocol; the leading https:// is included in the value of this key.
+   * On devices configured for development, there is UI in Settings to allow HTTP web services.
+   * @see {@link https://developer.apple.com/library/archive/documentation/PassKit/Reference/PassKit_WebService/WebService.html#//apple_ref/doc/uid/TP40011988}
+   */
   webServiceURL?: string;
+  /**
+   * The authentication token to use with the web service.
+   * The token must be 16 characters or longer.
+   */
   authenticationToken?: string;
-  logoText?: string;
-  foregroundColor: 'rgb(22, 55, 110)';
-  backgroundColor: 'rgb(50, 91, 185)';
-  boardingPass: {
-    transitType: 'PKTransitTypeAir';
-    headerFields: [
-      {
-        label: 'GATE';
-        key: 'gate';
-        value: '23';
-        changeMessage: 'Gate changed to %@.';
-      }
-    ];
-    primaryFields: [
-      {
-        key: 'depart';
-        label: 'SAN FRANCISCO';
-        value: 'SFO';
-      },
-      {
-        key: 'arrive';
-        label: 'NEW YORK';
-        value: 'JFK';
-      }
-    ];
-    secondaryFields: [
-      {
-        key: 'passenger';
-        label: 'PASSENGER';
-        value: 'John Appleseed';
-      }
-    ];
-    auxiliaryFields: [
-      {
-        label: 'DEPART';
-        key: 'boardingTime';
-        value: '2:25 PM';
-        changeMessage: 'Boarding time changed to %@.';
-      },
-      {
-        label: 'FLIGHT';
-        key: 'flightNewName';
-        value: '815';
-        changeMessage: 'Flight number changed to %@';
-      },
-      {
-        key: 'class';
-        label: 'DESIG.';
-        value: 'Coach';
-      },
-      {
-        key: 'date';
-        label: 'DATE';
-        value: '7/22';
-      }
-    ];
-    backFields: [
-      {
-        key: 'passport';
-        label: 'PASSPORT';
-        value: 'Canadian/Canadien';
-      },
-      {
-        key: 'residence';
-        label: 'RESIDENCE';
-        value: '999 Infinite Loop, Apartment 42, Cupertino CA';
-      }
-    ];
-  };
 }
+
+export interface NFCDictionary {
+  /**
+   * The payload to be transmitted to the Apple Pay terminal.
+   * Must be 64 bytes or less.
+   * Messages longer than 64 bytes are truncated by the system.
+   */
+  message: string;
+  /**
+   * The public encryption key used by the Value Added Services protocol.
+   * Use a Base64 encoded X.509 SubjectPublicKeyInfo structure containing a ECDH public key for group P256.
+   */
+  encryptionPublicKey?: string;
+}
+
+/**
+ * NFC-enabled pass keys support sending reward card information as part of an Apple Pay transaction.
+ */
+export interface PassNFCKeys {
+  nfc: NFCDictionary[];
+}
+
+export type TransitType =
+  | 'PKTransitTypeAir'
+  | 'PKTransitTypeBoat'
+  | 'PKTransitTypeBus'
+  | 'PKTransitTypeTrain'
+  | 'PKTransitTypeGeneric';
+
+export interface BoardingPass {
+  boardingPass: {
+    /**
+     * Type of transit.
+     */
+    transitType: TransitType;
+  } & PassCommonStructure;
+}
+
+export interface CouponPass {
+  coupon: PassCommonStructure;
+}
+
+export interface EventTicketPass {
+  eventTicket: PassCommonStructure;
+}
+
+export interface GenericPass {
+  generic: PassCommonStructure;
+}
+
+export type StoreCardPass = {
+  storeCard: PassCommonStructure;
+} & PassNFCKeys;
+
+export type PassStructureFields =
+  | BoardingPass
+  | CouponPass
+  | EventTicketPass
+  | GenericPass
+  | StoreCardPass;
+
+export type ApplePass = PassStandardKeys &
+  PassAssociatedAppKeys &
+  PassCompanionAppKeys &
+  PassExpirationKeys &
+  PassRelevanceKeys &
+  PassVisualAppearanceKeys &
+  PassWebServiceKeys &
+  PassStructureFields;
