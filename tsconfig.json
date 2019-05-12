@@ -17,16 +17,14 @@
     "suppressImplicitAnyIndexErrors": true,
     /* Module Resolution Options */
     "moduleResolution": "node",
-    "esModuleInterop": false,
     "module": "commonjs",
     "pretty": true,
     "declaration": true,
     "importHelpers": true,
-    "incremental": true,
     "listEmittedFiles": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "sourceMap": true
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules"],
-  "compileOnSave": true
+  "exclude": ["node_modules"]
 }
