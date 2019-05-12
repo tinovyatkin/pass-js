@@ -70,6 +70,16 @@ export class PassImages {
   }
 
   /**
+   * Checks that all required images is set or throws elsewhere
+   */
+  validate(): void {
+    // icon is required
+    assert.ok(this.icon, 'icon image is required');
+    // logo is required
+    assert.ok(this.logo, 'logo image is required');
+  }
+
+  /**
    * Load all images from the specified directory. Only supported images are
    * loaded, nothing bad happens if directory contains other files.
    *
