@@ -7,24 +7,24 @@
 import * as assert from 'assert';
 import * as http2 from 'http2';
 import { join } from 'path';
-import * as fs from 'fs';
+import { promises as fs } from 'fs';
 
-import colorString from 'color-string';
-import forge from 'node-forge';
+import * as colorString from 'color-string';
+import * as forge from 'node-forge';
+import stripJsonComments from 'strip-json-comments';
 
 import { PassImages } from './lib/images';
 import { Pass } from './pass';
 import { PASS_STYLES } from './constants';
+import { PassStyle, ApplePass } from './interfaces';
 
 const {
   HTTP2_HEADER_METHOD,
   HTTP2_HEADER_PATH,
   NGHTTP2_CANCEL,
+  HTTP2_METHOD_POST,
 } = http2.constants;
-const { stat, readFile, access } = fs.promises;
-const {
-  constants: { R_OK },
-} = fs;
+const { stat, readFile } = fs;
 
 // Create a new template.
 //
@@ -34,15 +34,15 @@ export class Template {
   style: PassStyle;
   key: forge.pki.PrivateKey;
   certificate: forge.pki.Certificate;
-  images: PassImages = new PassImages();
+  images = new PassImages();
   private apn: http2.ClientHttp2Session;
-  private fields: {};
+  private fields: Partial<ApplePass> = {};
   /**
    *
    * @param {PassStyle} style
    * @param {{[k: string]: any }} [fields]
    */
-  constructor(style: PassStyle, fields: Partial<PassFields> = {}) {
+  constructor(style: PassStyle, fields: Partial<ApplePass> = {}) {
     assert.ok(PASS_STYLES.has(style), `Unsupported pass style ${style}`);
     this.style = style;
 
@@ -87,16 +87,17 @@ export class Template {
    */
   static async load(
     folderPath: string,
-    keyPassword: string,
+    keyPassword?: string,
   ): Promise<Template> {
     // Check if the path is accessible directory actually
     const stats = await stat(folderPath);
     assert.ok(stats.isDirectory(), `Path ${folderPath} must be a directory!`);
 
     // getting main JSON file
-    const passJson = JSON.parse(
-      await readFile(join(folderPath, 'pass.json'), 'utf8'),
-    );
+    const jsonContent = await readFile(join(folderPath, 'pass.json'), 'utf8');
+    const passJson = JSON.parse(stripJsonComments(jsonContent)) as Partial<
+      ApplePass
+    >;
 
     // Trying to detect the type of pass
     let type;
@@ -114,15 +115,16 @@ export class Template {
     await template.images.loadFromDirectory(folderPath);
 
     // checking if there is a key - must be named ${passTypeIdentifier}.pem
-    const typeIdentifier = passJson.passTypeIdentifier;
-    const keyName = `${typeIdentifier.replace(/^pass\./, '')}.pem`;
-    const certFileName = join(folderPath, keyName);
-    try {
-      // following will throw if file doesn't exists or can't be read
-      await access(certFileName, R_OK);
-      await template.loadCertificate(certFileName, keyPassword);
-    } catch (err) {
-      if (err.code !== 'ENOENT') throw err;
+    const { passTypeIdentifier } = passJson;
+    if (typeof passTypeIdentifier === 'string') {
+      const keyName = `${passTypeIdentifier.replace(/^pass\./, '')}.pem`;
+      const certFileName = join(folderPath, keyName);
+      try {
+        // following will throw if file doesn't exists or can't be read
+        await template.loadCertificate(certFileName, keyPassword);
+      } catch (err) {
+        if (err.code !== 'ENOENT') throw err;
+      }
     }
     // done
     return template;
@@ -133,7 +135,7 @@ export class Template {
    * @param {string} signerKeyMessage
    * @param {string} [password]
    */
-  setPrivateKey(signerKeyMessage: string, password: string) {
+  setPrivateKey(signerKeyMessage: string, password?: string): void {
     this.key = forge.pki.decryptRsaPrivateKey(signerKeyMessage, password);
     assert.ok(
       this.key,
@@ -146,7 +148,7 @@ export class Template {
    * @param {string} signerCertData - certificate and optional private key as PEM encoded string
    * @param {string} [password] - optional password to decode private key
    */
-  setCertificate(signerCertData: string, password: string) {
+  setCertificate(signerCertData: string, password?: string): void {
     // the PEM file from P12 contains both, certificate and private key
     // getting signer certificate
     this.certificate = forge.pki.certificateFromPem(signerCertData);
@@ -168,7 +170,10 @@ export class Template {
    * @param {string} signerPemFile - path to PEM file with certificate and private key
    * @param {string} password - private key decoding password
    */
-  async loadCertificate(signerPemFile: string, password: string) {
+  async loadCertificate(
+    signerPemFile: string,
+    password?: string,
+  ): Promise<void> {
     // reading and parsing certificates
     const signerCertData = await readFile(signerPemFile, 'utf8');
     this.setCertificate(signerCertData, password);
@@ -178,7 +183,7 @@ export class Template {
    *
    * @param {string} pushToken
    */
-  async pushUpdates(pushToken: string) {
+  async pushUpdates(pushToken: string): Promise<http2.IncomingHttpHeaders> {
     // https://developer.apple.com/library/content/documentation/UserExperience/Conceptual/PassKit_PG/Updating.html
     if (!this.apn || this.apn.destroyed) {
       // creating APN Provider
@@ -197,7 +202,7 @@ export class Template {
     // sending to APN
     return new Promise((resolve, reject) => {
       const req = this.apn.request({
-        [HTTP2_HEADER_METHOD]: 'POST',
+        [HTTP2_HEADER_METHOD]: HTTP2_METHOD_POST,
         [HTTP2_HEADER_PATH]: `/3/device/${encodeURIComponent(pushToken)}`,
       });
 
@@ -222,7 +227,7 @@ export class Template {
     });
   }
 
-  passTypeIdentifier(v) {
+  passTypeIdentifier(v?: string): string | undefined | this {
     if (arguments.length === 1) {
       this.fields.passTypeIdentifier = v;
       return this;
@@ -230,7 +235,7 @@ export class Template {
     return this.fields.passTypeIdentifier;
   }
 
-  teamIdentifier(v) {
+  teamIdentifier(v?: string): string | undefined | this {
     if (arguments.length === 1) {
       this.fields.teamIdentifier = v;
       return this;
@@ -238,7 +243,7 @@ export class Template {
     return this.fields.teamIdentifier;
   }
 
-  associatedStoreIdentifiers(v) {
+  associatedStoreIdentifiers(v?: number[]): number[] | undefined | this {
     if (arguments.length === 1) {
       this.fields.associatedStoreIdentifiers = v;
       return this;
@@ -246,7 +251,7 @@ export class Template {
     return this.fields.associatedStoreIdentifiers;
   }
 
-  description(v) {
+  description(v?: string): string | undefined | this {
     if (arguments.length === 1) {
       this.fields.description = v;
       return this;
@@ -254,48 +259,48 @@ export class Template {
     return this.fields.description;
   }
 
-  backgroundColor(v) {
-    if (arguments.length === 1) {
+  backgroundColor(v?: string): string | undefined | this {
+    if (typeof v === 'string') {
       this.fields.backgroundColor = Template.convertToRgb(v);
       return this;
     }
     return this.fields.backgroundColor;
   }
 
-  foregroundColor(v) {
-    if (arguments.length === 1) {
+  foregroundColor(v?: string): string | undefined | this {
+    if (typeof v === 'string') {
       this.fields.foregroundColor = Template.convertToRgb(v);
       return this;
     }
     return this.fields.foregroundColor;
   }
 
-  labelColor(v) {
-    if (arguments.length === 1) {
+  labelColor(v?: string): string | undefined | this {
+    if (typeof v === 'string') {
       this.fields.labelColor = Template.convertToRgb(v);
       return this;
     }
     return this.fields.labelColor;
   }
 
-  logoText(v) {
-    if (arguments.length === 1) {
+  logoText(v?: string): string | undefined | this {
+    if (typeof v === 'string') {
       this.fields.logoText = v;
       return this;
     }
     return this.fields.logoText;
   }
 
-  organizationName(v) {
-    if (arguments.length === 1) {
+  organizationName(v?: string): string | undefined | this {
+    if (typeof v === 'string') {
       this.fields.organizationName = v;
       return this;
     }
     return this.fields.organizationName;
   }
 
-  groupingIdentifier(v) {
-    if (arguments.length === 1) {
+  groupingIdentifier(v?: string): string | undefined | this {
+    if (typeof v === 'string') {
       this.fields.groupingIdentifier = v;
       return this;
     }
@@ -309,14 +314,14 @@ export class Template {
    * @returns {Template | boolean}
    * @memberof Template
    */
-  suppressStripShine(v: boolean | null): Template | boolean {
+  suppressStripShine(v?: boolean | null): this | boolean {
     if (arguments.length === 1) {
       if (typeof v !== 'boolean')
         throw new Error('suppressStripShine value must be a boolean!');
       this.fields.suppressStripShine = v;
       return this;
     }
-    return this.fields.suppressStripShine;
+    return !!this.fields.suppressStripShine;
   }
 
   /**
@@ -326,8 +331,8 @@ export class Template {
    * @returns {Template | string}
    * @memberof Template
    */
-  webServiceURL(v: URL | string): Template | string {
-    if (arguments.length === 1) {
+  webServiceURL(v?: URL | string): this | undefined | string {
+    if (typeof v !== 'undefined') {
       // validating URL, it will throw on bad value
       const url = v instanceof URL ? v : new URL(v);
       if (url.protocol !== 'https:')
@@ -338,9 +343,9 @@ export class Template {
     return this.fields.webServiceURL;
   }
 
-  authenticationToken(v) {
-    if (arguments.length === 1) {
-      if (typeof v !== 'string' || v.length < 16)
+  authenticationToken(v?: string): string | undefined | this {
+    if (typeof v === 'string') {
+      if (v.length < 16)
         throw new Error(
           `authenticationToken must be a string and have more than 16 characters`,
         );

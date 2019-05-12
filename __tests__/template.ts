@@ -1,8 +1,6 @@
-'use strict';
+import * as path from 'path';
 
-const path = require('path');
-
-const Template = require('../src/template');
+import { Template } from '../src/template';
 
 const originalFields = {
   passTypeIdentifier: 'com.example.passbook',
@@ -10,6 +8,7 @@ const originalFields = {
 
 describe('Template', () => {
   it('should throw an error on unsupported type', () => {
+    // @ts-ignore
     expect(() => new Template('discount')).toThrow();
   });
 
@@ -70,9 +69,9 @@ describe('Template', () => {
       labelColor: 'red',
     });
 
-    template.setCertificate(process.env.APPLE_PASS_CERTIFICATE);
+    template.setCertificate(process.env.APPLE_PASS_CERTIFICATE as string);
     template.setPrivateKey(
-      process.env.APPLE_PASS_PRIVATE_KEY,
+      process.env.APPLE_PASS_PRIVATE_KEY as string,
       process.env.APPLE_PASS_KEY_PASSWORD,
     );
 
@@ -80,7 +79,7 @@ describe('Template', () => {
       '0e40d22a36e101a59ab296d9e6021df3ee1dcf95e29e8ab432213b12ba522dbb',
     );
     // shutting down APN
-    if (template.apn) template.apn.destroy();
+    // if (template.apn) template.apn.destroy();
     expect(res).toEqual(
       expect.objectContaining({
         ':status': 200,
