@@ -10,7 +10,6 @@ import {
   PassStyle,
   TransitType,
   PassStructureFields,
-  NFCDictionary,
 } from '../interfaces';
 import { PASS_STYLES, TRANSIT, STRUCTURE_FIELDS } from '../constants';
 
