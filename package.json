@@ -29,8 +29,6 @@
     "eslint": "^5.16.0",
     "jest": "^24.8.0",
     "jest-junit": "^6.4.0",
-    "node-stream-zip": "^1.8.0",
-    "stream-buffers": "^3.0.2",
     "ts-jest": "^24.0.2",
     "typescript": "^3.4.5"
   },
@@ -67,9 +65,10 @@
   "author": "Tino Vyatkin <tino@vtkn.io>",
   "dependencies": {
     "color-string": "^1.5.3",
+    "do-not-zip": "^1.0.0",
+    "fast-glob": "^2.2.6",
     "imagesize": "^1.0.0",
     "node-forge": "^0.8.2",
-    "strip-json-comments": "^3.0.1",
-    "yazl": "^2.5.1"
+    "strip-json-comments": "^3.0.1"
   }
 }

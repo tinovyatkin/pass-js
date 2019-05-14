@@ -1,7 +1,5 @@
 'use strict';
 
-import * as assert from 'assert';
-
 import { Field, FieldDescriptor, DataStyleFormat } from '../interfaces';
 
 import { getW3CDateString } from './w3cdate';
@@ -12,7 +10,7 @@ export class FieldsMap extends Map<string, FieldDescriptor> {
    */
   toJSON(): Field[] | undefined {
     if (!this.size) return undefined;
-    return [...this.entries()].map(
+    return [...this].map(
       ([key, data]): Field => {
         // Remap Date objects to string
         if (data.value instanceof Date)
@@ -31,6 +29,16 @@ export class FieldsMap extends Map<string, FieldDescriptor> {
    */
   add(field: Field): FieldsMap {
     const { key, ...data } = field;
+    if (typeof key !== 'string')
+      throw new TypeError(
+        `To add a field you must provide string key value, received ${typeof key}`,
+      );
+    if (!('value' in data))
+      throw new TypeError(
+        `To add a field you must provide a value field, received: ${JSON.stringify(
+          data,
+        )}`,
+      );
     this.set(key, data);
     return this;
   }
@@ -43,16 +51,14 @@ export class FieldsMap extends Map<string, FieldDescriptor> {
    * @memberof FieldsMap
    */
   setValue(key: string, value: string): FieldsMap {
-    assert.strictEqual(
-      typeof key,
-      'string',
-      `key for setValue must be a string, received ${typeof key}`,
-    );
-    assert.strictEqual(
-      typeof value,
-      'string',
-      `value for setValue must be a string, received ${typeof value}`,
-    );
+    if (typeof key !== 'string')
+      throw new TypeError(
+        `key for setValue must be a string, received ${typeof key}`,
+      );
+    if (typeof value !== 'string')
+      throw new TypeError(
+        `value for setValue must be a string, received ${typeof value}`,
+      );
     const field = this.get(key) || { value };
     field.value = value;
     this.set(key, field);
@@ -86,26 +92,19 @@ export class FieldsMap extends Map<string, FieldDescriptor> {
       timeStyle?: DataStyleFormat;
     } = {},
   ): FieldsMap {
-    assert.strictEqual(
-      typeof key,
-      'string',
-      `Key must be a string, received ${typeof key}`,
-    );
-    assert.strictEqual(
-      typeof label,
-      'string',
-      `Label must be a string, received ${typeof label}`,
-    );
-    assert.ok(
-      date instanceof Date,
-      'Third parameter of setDateTime must be an instance of Date',
-    );
+    if (typeof key !== 'string')
+      throw new TypeError(`Key must be a string, received ${typeof key}`);
+    if (typeof label !== 'string')
+      throw new TypeError(`Label must be a string, received ${typeof label}`);
+    if (!(date instanceof Date))
+      throw new TypeError(
+        'Third parameter of setDateTime must be an instance of Date',
+      );
     //  Either specify both a date style and a time style, or neither.
-    assert.strictEqual(
-      !!dateStyle,
-      !!timeStyle,
-      'Either specify both a date style and a time style, or neither',
-    );
+    if (!!dateStyle !== !!timeStyle)
+      throw new ReferenceError(
+        'Either specify both a date style and a time style, or neither',
+      );
     // adding
     this.set(key, {
       label,

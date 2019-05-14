@@ -6,14 +6,16 @@
 
 'use strict';
 
+import { PassStyle, TransitType } from './interfaces';
+
 export const PASS_MIME_TYPE = 'application/vnd.apple.pkpass';
 
 export const TRANSIT = {
-  AIR: 'PKTransitTypeAir',
-  BOAT: 'PKTransitTypeBoat',
-  BUS: 'PKTransitTypeBus',
-  TRAIN: 'PKTransitTypeTrain',
-  GENERIC: 'PKTransitTypeGeneric',
+  AIR: 'PKTransitTypeAir' as TransitType,
+  BOAT: 'PKTransitTypeBoat' as TransitType,
+  BUS: 'PKTransitTypeBus' as TransitType,
+  TRAIN: 'PKTransitTypeTrain' as TransitType,
+  GENERIC: 'PKTransitTypeGeneric' as TransitType,
 };
 
 export const textDirection = {
@@ -85,7 +87,7 @@ export const PASS_STYLES = new Set([
   'eventTicket',
   'storeCard',
   'generic',
-]);
+]) as Set<PassStyle>;
 
 // Optional top level fields
 // Top-level pass fields.
@@ -188,14 +190,13 @@ export const TOP_LEVEL_FIELDS = {
 
 // Pass structure keys.
 // https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/LowerLevel.html#//apple_ref/doc/uid/TP40012026-CH3-SW3
-export const STRUCTURE_FIELDS = new Set([
+export const STRUCTURE_FIELDS = [
   'auxiliaryFields',
   'backFields',
   'headerFields',
   'primaryFields',
   'secondaryFields',
-  'transitType',
-]);
+] as readonly string[];
 
 /** @type {Set.<'PKBarcodeFormatQR' | 'PKBarcodeFormatPDF417' | 'PKBarcodeFormatAztec' | 'PKBarcodeFormatCode128'>} */
 export const BARCODES_FORMAT = new Set([

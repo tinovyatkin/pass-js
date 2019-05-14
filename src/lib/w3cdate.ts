@@ -1,7 +1,5 @@
 'use strict';
 
-import * as assert from 'assert';
-
 /**
  * Checks if given string is a valid W3C date representation
  *
@@ -24,10 +22,8 @@ export function isValidW3CDateString(dateStr: string): boolean {
  * @returns {string}
  */
 export function getW3CDateString(value: string | Date): string {
-  assert.ok(
-    typeof value === 'string' || value instanceof Date,
-    'Argument must be either a string or Date object',
-  );
+  if (typeof value !== 'string' && !(value instanceof Date))
+    throw new TypeError('Argument must be either a string or Date object');
   if (typeof value === 'string' && isValidW3CDateString(value)) return value;
 
   const date = value instanceof Date ? value : new Date(value);

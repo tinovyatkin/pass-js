@@ -8,11 +8,14 @@ test('FieldsMap Class', () => {
   // should not add empty arrays if not needed
   expect(JSON.stringify({ a: 1, fields })).toBe('{"a":1}');
   // add
-  fields.add({key: 'testKey', label: 'testLabel', value: 'testValue'});
+  fields.add({ key: 'testKey', label: 'testLabel', value: 'testValue' });
   expect(fields.get('testKey')).toMatchObject({
     label: 'testLabel',
     value: 'testValue',
   });
+  expect(JSON.stringify({ zz: 'zz', theField: fields })).toBe(
+    `{"zz":"zz","theField":[{"key":"testKey","label":"testLabel","value":"testValue"}]}`,
+  );
   // setValue
   fields.setValue('testKey', 'newValue');
   expect(fields.get('testKey')).toMatchObject({
@@ -20,7 +23,7 @@ test('FieldsMap Class', () => {
     value: 'newValue',
   });
   // Add should replace the same key
-  fields.add({ key: 'testKey', label: 'testLabel2', value: 'testValue2'});
+  fields.add({ key: 'testKey', label: 'testLabel2', value: 'testValue2' });
   expect(fields.get('testKey')).toMatchObject({
     label: 'testLabel2',
     value: 'testValue2',
@@ -32,5 +35,9 @@ test('FieldsMap Class', () => {
   // setDateTime
   const date = new Date();
   fields.setDateTime('testDate', 'labelDate', date);
-  expect(JSON.stringify(fields)).toBe(`[{\"key\":\"testDate\",\"label\":\"labelDate\",\"value\":\"${getW3CDateString(date)}\"}]`)
+  expect(JSON.stringify(fields)).toBe(
+    `[{"key":"testDate","label":"labelDate","value":"${getW3CDateString(
+      date,
+    )}"}]`,
+  );
 });

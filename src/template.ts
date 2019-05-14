@@ -4,19 +4,18 @@
 
 'use strict';
 
-import * as assert from 'assert';
 import * as http2 from 'http2';
 import { join } from 'path';
 import { promises as fs } from 'fs';
 
-import * as colorString from 'color-string';
 import * as forge from 'node-forge';
-import stripJsonComments from 'strip-json-comments';
 
-import { PassImages } from './lib/images';
 import { Pass } from './pass';
 import { PASS_STYLES } from './constants';
 import { PassStyle, ApplePass } from './interfaces';
+import { PassBase } from './lib/base-pass';
+
+import stripJsonComments = require('strip-json-comments');
 
 const {
   HTTP2_HEADER_METHOD,
@@ -30,49 +29,21 @@ const { stat, readFile } = fs;
 //
 // style  - Pass style (coupon, eventTicket, etc)
 // fields - Pass fields (passTypeIdentifier, teamIdentifier, etc)
-export class Template {
-  style: PassStyle;
+export class Template extends PassBase {
   key: forge.pki.PrivateKey;
   certificate: forge.pki.Certificate;
-  images = new PassImages();
   private apn: http2.ClientHttp2Session;
-  private fields: Partial<ApplePass> = {};
   /**
    *
    * @param {PassStyle} style
    * @param {{[k: string]: any }} [fields]
    */
   constructor(style: PassStyle, fields: Partial<ApplePass> = {}) {
-    assert.ok(PASS_STYLES.has(style), `Unsupported pass style ${style}`);
+    super(fields);
+
+    if (!PASS_STYLES.has(style))
+      throw new TypeError(`Unsupported pass style ${style}`);
     this.style = style;
-
-    // we will set all fields via class setters, as in the future we will implement strict validators
-    // values validation: https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/TopLevel.html
-    for (const [field, value] of Object.entries(fields)) {
-      if (typeof this[field] === 'function') this[field](value);
-    }
-
-    if (style in fields) {
-      Object.assign(this.fields, { [style]: fields[style] });
-    }
-
-    Object.preventExtensions(this);
-  }
-
-  /**
-   * Validates if given string is a correct color value for Pass fields
-   *
-   * @static
-   * @param {string} value - a CSS color value, like 'red', '#fff', etc
-   * @throws - if value is invalid this function will throw
-   * @returns {string} - value converted to "rgb(222, 33, 22)" string
-   * @memberof Template
-   */
-  static convertToRgb(value: string): string {
-    const rgb = colorString.get.rgb(value);
-    if (rgb === null) throw new TypeError(`Invalid color value ${value}`);
-    // convert to rgb(), stripping alpha channel
-    return colorString.to.rgb(rgb.slice(0, 3));
   }
 
   /**
@@ -91,7 +62,8 @@ export class Template {
   ): Promise<Template> {
     // Check if the path is accessible directory actually
     const stats = await stat(folderPath);
-    assert.ok(stats.isDirectory(), `Path ${folderPath} must be a directory!`);
+    if (!stats.isDirectory())
+      throw new ReferenceError(`Path ${folderPath} must be a directory!`);
 
     // getting main JSON file
     const jsonContent = await readFile(join(folderPath, 'pass.json'), 'utf8');
@@ -107,7 +79,7 @@ export class Template {
         break;
       }
     }
-    assert.ok(type, 'Unknown pass style!');
+    if (!type) throw new TypeError('Unknown pass style!');
 
     const template = new Template(type, passJson);
 
@@ -137,10 +109,10 @@ export class Template {
    */
   setPrivateKey(signerKeyMessage: string, password?: string): void {
     this.key = forge.pki.decryptRsaPrivateKey(signerKeyMessage, password);
-    assert.ok(
-      this.key,
-      'Failed to decode provided private key. Invalid password?',
-    );
+    if (!this.key)
+      throw new Error(
+        'Failed to decode provided private key. Invalid password?',
+      );
   }
 
   /**
@@ -152,7 +124,8 @@ export class Template {
     // the PEM file from P12 contains both, certificate and private key
     // getting signer certificate
     this.certificate = forge.pki.certificateFromPem(signerCertData);
-    assert.ok(this.certificate, 'Failed to decode provided certificate');
+    if (!this.certificate)
+      throw new Error('Failed to decode provided certificate');
 
     // check if signerCertData also contains private key and use it
     const pemMessages = forge.pem.decode(signerCertData);
@@ -197,6 +170,8 @@ export class Template {
         this.apn.once('connect', resolve);
         this.apn.once('error', reject);
       });
+      // Calling unref() on a socket will allow the program to exit if this is the only active socket in the event system
+      this.apn.unref();
     }
 
     // sending to APN
@@ -227,134 +202,6 @@ export class Template {
     });
   }
 
-  passTypeIdentifier(v?: string): string | undefined | this {
-    if (arguments.length === 1) {
-      this.fields.passTypeIdentifier = v;
-      return this;
-    }
-    return this.fields.passTypeIdentifier;
-  }
-
-  teamIdentifier(v?: string): string | undefined | this {
-    if (arguments.length === 1) {
-      this.fields.teamIdentifier = v;
-      return this;
-    }
-    return this.fields.teamIdentifier;
-  }
-
-  associatedStoreIdentifiers(v?: number[]): number[] | undefined | this {
-    if (arguments.length === 1) {
-      this.fields.associatedStoreIdentifiers = v;
-      return this;
-    }
-    return this.fields.associatedStoreIdentifiers;
-  }
-
-  description(v?: string): string | undefined | this {
-    if (arguments.length === 1) {
-      this.fields.description = v;
-      return this;
-    }
-    return this.fields.description;
-  }
-
-  backgroundColor(v?: string): string | undefined | this {
-    if (typeof v === 'string') {
-      this.fields.backgroundColor = Template.convertToRgb(v);
-      return this;
-    }
-    return this.fields.backgroundColor;
-  }
-
-  foregroundColor(v?: string): string | undefined | this {
-    if (typeof v === 'string') {
-      this.fields.foregroundColor = Template.convertToRgb(v);
-      return this;
-    }
-    return this.fields.foregroundColor;
-  }
-
-  labelColor(v?: string): string | undefined | this {
-    if (typeof v === 'string') {
-      this.fields.labelColor = Template.convertToRgb(v);
-      return this;
-    }
-    return this.fields.labelColor;
-  }
-
-  logoText(v?: string): string | undefined | this {
-    if (typeof v === 'string') {
-      this.fields.logoText = v;
-      return this;
-    }
-    return this.fields.logoText;
-  }
-
-  organizationName(v?: string): string | undefined | this {
-    if (typeof v === 'string') {
-      this.fields.organizationName = v;
-      return this;
-    }
-    return this.fields.organizationName;
-  }
-
-  groupingIdentifier(v?: string): string | undefined | this {
-    if (typeof v === 'string') {
-      this.fields.groupingIdentifier = v;
-      return this;
-    }
-    return this.fields.groupingIdentifier;
-  }
-
-  /**
-   * sets or gets suppressStripShine
-   *
-   * @param {boolean?} v
-   * @returns {Template | boolean}
-   * @memberof Template
-   */
-  suppressStripShine(v?: boolean | null): this | boolean {
-    if (arguments.length === 1) {
-      if (typeof v !== 'boolean')
-        throw new Error('suppressStripShine value must be a boolean!');
-      this.fields.suppressStripShine = v;
-      return this;
-    }
-    return !!this.fields.suppressStripShine;
-  }
-
-  /**
-   * gets or sets webServiceURL
-   *
-   * @param {URL | string} v
-   * @returns {Template | string}
-   * @memberof Template
-   */
-  webServiceURL(v?: URL | string): this | undefined | string {
-    if (typeof v !== 'undefined') {
-      // validating URL, it will throw on bad value
-      const url = v instanceof URL ? v : new URL(v);
-      if (url.protocol !== 'https:')
-        throw new Error(`webServiceURL must be on HTTPS!`);
-      this.fields.webServiceURL = url.toString();
-      return this;
-    }
-    return this.fields.webServiceURL;
-  }
-
-  authenticationToken(v?: string): string | undefined | this {
-    if (typeof v === 'string') {
-      if (v.length < 16)
-        throw new Error(
-          `authenticationToken must be a string and have more than 16 characters`,
-        );
-      this.fields.authenticationToken = v;
-      return this;
-    }
-    return this.fields.authenticationToken;
-  }
-
   /**
    * Create a new pass from a template.
    *
@@ -362,7 +209,7 @@ export class Template {
    * @returns {Pass}
    * @memberof Template
    */
-  createPass(fields: object = {}): Pass {
+  createPass(fields: Partial<ApplePass> = {}): Pass {
     // Combine template and pass fields
     return new Pass(this, { ...this.fields, ...fields }, this.images);
   }

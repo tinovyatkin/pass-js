@@ -3,6 +3,8 @@
  * @see {@link https://developer.apple.com/library/archive/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/FieldDictionary.html}
  */
 
+import { PassColor } from './lib/pass-color';
+
 type DataDetectors =
   | 'PKDataDetectorTypePhoneNumber'
   | 'PKDataDetectorTypeLink'
@@ -174,7 +176,7 @@ export interface PassExpirationKeys {
    * The value must be a complete date with hours and minutes,
    * and may optionally include seconds.
    */
-  expirationDate?: string;
+  expirationDate?: string | Date;
   /**
    * Indicates that the pass is void—for example, a one time use coupon that has been redeemed.
    * The default value is false.
@@ -254,7 +256,7 @@ export interface PassRelevanceKeys {
    * The value must be a complete date with hours and minutes,
    * and may optionally include seconds.
    */
-  relevantDate?: string;
+  relevantDate?: string | Date;
 }
 
 /**
@@ -306,12 +308,12 @@ export interface PassVisualAppearanceKeys {
    * Background color of the pass, specified as an CSS-style RGB triple.
    * @example rgb(23, 187, 82)
    */
-  backgroundColor?: string;
+  backgroundColor?: PassColor | string;
   /**
    * Foreground color of the pass, specified as a CSS-style RGB triple.
    * @example rgb(100, 10, 110)
    */
-  foregroundColor?: string;
+  foregroundColor?: PassColor | string;
   /**
    * Optional for event tickets and boarding passes; otherwise not allowed.
    * Identifier used to group related passes.
@@ -326,7 +328,7 @@ export interface PassVisualAppearanceKeys {
    * Color of the label text, specified as a CSS-style RGB triple.
    * @example rgb(255, 255, 255)
    */
-  labelColor?: string;
+  labelColor?: PassColor | string;
   /**
    * Text displayed next to the logo on the pass.
    */
@@ -346,7 +348,7 @@ export interface PassWebServiceKeys {
    * On devices configured for development, there is UI in Settings to allow HTTP web services.
    * @see {@link https://developer.apple.com/library/archive/documentation/PassKit/Reference/PassKit_WebService/WebService.html#//apple_ref/doc/uid/TP40011988}
    */
-  webServiceURL?: string;
+  webServiceURL?: URL | string;
   /**
    * The authentication token to use with the web service.
    * The token must be 16 characters or longer.
@@ -365,15 +367,12 @@ export interface NFCDictionary {
    * The public encryption key used by the Value Added Services protocol.
    * Use a Base64 encoded X.509 SubjectPublicKeyInfo structure containing a ECDH public key for group P256.
    */
-  encryptionPublicKey?: string;
+  encryptionPublicKey?: string | import('node-forge').pki.PublicKey;
 }
 
 /**
  * NFC-enabled pass keys support sending reward card information as part of an Apple Pay transaction.
  */
-export interface PassNFCKeys {
-  nfc: NFCDictionary[];
-}
 
 export type TransitType =
   | 'PKTransitTypeAir'
@@ -403,9 +402,10 @@ export interface GenericPass {
   generic: PassCommonStructure;
 }
 
-export type StoreCardPass = {
+export interface StoreCardPass {
   storeCard: PassCommonStructure;
-} & PassNFCKeys;
+  nfc?: NFCDictionary[] | import('./lib/nfc-fields').NFCField;
+}
 
 export type PassStructureFields =
   | BoardingPass
