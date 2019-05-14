@@ -12,4 +12,11 @@ module.exports = {
     '<rootDir>/coverage/',
     '<rootDir>/.vscode/',
   ],
+  globals: {
+    'ts-jest': {
+      diagnostics: {
+        ignoreCodes: [2571, 2345, 6031, 18003],
+      },
+    },
+  },
 };
