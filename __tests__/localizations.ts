@@ -42,4 +42,18 @@ describe('Localizations files helpers', () => {
     // ensure it normalizes locale
     expect(loc.has('zh-CN')).toBeTruthy();
   });
+
+  it('should clone other instance if provided for constructor', () => {
+    const loc1 = new Localization.Localizations();
+    loc1
+      .add('ru', { key1: 'test key 1', key2: 'test key 2' })
+      .add('fr', { key1: 'test fr key1', key2: 'test fr key2' });
+    const loc2 = new Localization.Localizations(loc1);
+    expect(loc2.size).toBe(2);
+    expect(loc2.get('fr').get('key2')).toBe('test fr key2');
+    // modify a key in original loc1
+    loc1.get('ru').set('key1', 'тест');
+    expect(loc2.get('ru').get('key1')).toBe('test key 1');
+    expect(loc1.toArray()).toMatchSnapshot();
+  });
 });
