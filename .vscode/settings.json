@@ -1,37 +1,26 @@
 {
+  "files.associations": {
+    "pass.json": "jsonc"
+  },
   "deepscan.enable": false,
   "deepscan.ignoreConfirmWarning": true,
   "eslint.autoFixOnSave": true,
   "eslint.enable": true,
   "eslint.validate": [
-    "javascript",
-    "javascriptreact",
     {
       "language": "typescript",
-      "autoFix": true
-    },
-    {
-      "language": "typescriptreact",
       "autoFix": true
     }
   ],
   "typescript.tsdk": "node_modules/typescript/lib",
-  "eslint.alwaysShowStatus": true,
   "prettier.disableLanguages": ["typescript"],
   "typescript.implementationsCodeLens.enabled": true,
   "typescript.preferences.importModuleSpecifier": "relative",
+  "typescript.check.npmIsInstalled": true,
+  "typescript.suggest.autoImports": false,
   "typescript.referencesCodeLens.enabled": true,
-  "editor.formatOnSave": true,
-  "[javascript]": {
-    "editor.formatOnSave": false
-  },
-  "[javascriptreact]": {
-    "editor.formatOnSave": false
-  },
   "[typescript]": {
     "editor.formatOnSave": false
   },
-  "[typescriptreact]": {
-    "editor.formatOnSave": false
-  }
+  "jest.runAllTestsFirst": false
 }
