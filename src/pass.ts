@@ -30,9 +30,9 @@ export class Pass extends PassBase {
   constructor(
     template: import('./template').Template,
     fields: Partial<ApplePass> = {},
-    images: PassImages,
+    images?: PassImages,
   ) {
-    super(fields);
+    super(fields, images);
 
     this.template = template;
     if (images) Object.assign(this.images, images);

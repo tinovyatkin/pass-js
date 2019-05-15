@@ -38,7 +38,10 @@ const IMAGES_TYPES = new Set(Object.keys(IMAGES));
 export class PassImages {
   private map: Map<string, string | Buffer> = new Map();
 
-  constructor() {
+  constructor(images?: PassImages) {
+    if (images instanceof PassImages) {
+      this.map = new Map([...images.map]);
+    }
     Object.preventExtensions(this);
   }
 
