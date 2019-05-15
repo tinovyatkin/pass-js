@@ -1,22 +1,10 @@
 [![npm (scoped)](https://img.shields.io/npm/v/@destinationstransfers/passkit.svg)](https://www.npmjs.com/package/@destinationstransfers/passkit) [![codecov](https://codecov.io/gh/destinationstransfers/passkit/branch/master/graph/badge.svg)](https://codecov.io/gh/destinationstransfers/passkit)
 [![Build Status](https://dev.azure.com/destinationstransfers/passkit/_apis/build/status/destinationstransfers.passkit?branchName=master)](https://dev.azure.com/destinationstransfers/passkit/_build/latest?definitionId=2&branchName=master)
-[![Known Vulnerabilities](https://snyk.io/test/github/destinationstransfers/passkit/badge.svg)](https://snyk.io/test/github/destinationstransfers/passkit) [![DeepScan Grade](https://deepscan.io/api/projects/352/branches/551/badge/grade.svg)](https://deepscan.io/dashboard/#view=project&pid=352&bid=551) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=destinationstransfers_passkit&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=destinationstransfers_passkit) [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=destinationstransfers_passkit&metric=ncloc)](https://sonarcloud.io/dashboard?id=destinationstransfers_passkit) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=destinationstransfers_passkit&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=destinationstransfers_passkit)
+[![Known Vulnerabilities](https://snyk.io/test/github/destinationstransfers/passkit/badge.svg)](https://snyk.io/test/github/destinationstransfers/passkit) [![DeepScan Grade](https://deepscan.io/api/projects/352/branches/551/badge/grade.svg)](https://deepscan.io/dashboard/#view=project&pid=352&bid=551) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=destinationstransfers_passkit&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=destinationstransfers_passkit) [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=destinationstransfers_passkit&metric=ncloc)](https://sonarcloud.io/dashboard?id=destinationstransfers_passkit) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=destinationstransfers_passkit&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=destinationstransfers_passkit) [![tested with jest](https://img.shields.io/badge/tested_with-jest-99424f.svg)](https://github.com/facebook/jest)
 
-# Motivation
+# @destinationstransfers/passkit
 
-This is complete rewrite of [assaf/node-passbook](http://github.com/assaf/node-passbook).
-The original module lacks new commits in last two years and outdated. This modules:
-
-- Targetting Node >= 10 and refactored in ES6 Classes, removing deprecated calls (`new Buffer`, etc)
-- Replaces `openssl` spawning with native Javascript RSA implementation (via `node-forge`)
-- Includes `Template.pushUpdates(pushToken)` that sends APN update request for a given pass type to a pushToken (get `pushToken` at your PassKit Web Service implementation)
-- Adds constants for dictionary fields string values
-- Migrated tests to Jest
-- Increased test coverage
-- Adds strict dictionary fields values validation (where possible) to prevent errors earlier
-- Adding support for geolocation fields and Becon fields
-- Adding easy template and localization load from JSON file
-- We use it in production at [Transfers.do](https://transfers.do/)
+A Node (>= 10.x) module for generating Apple Wallet passes with localizations, NFC and web service push updates support.
 
 # Get your certificates
 
@@ -48,7 +36,7 @@ const { Template } = require("@destinationstransfers/passkit");
 const template = new Template("coupon", {
   passTypeIdentifier: "pass.com.example.passbook",
   teamIdentifier: "MXL",
-  backgroundColor: "rgb(255,255,255)"
+  backgroundColor: "red"
 });
 
 // or
@@ -57,8 +45,9 @@ const template = await Template.load(
   "./path/to/templateFolder",
   "secretKeyPasswod"
 );
-// .load will load all "templateable" fields from pass.json,
+// .load will load all fields from pass.json,
 // as well as all images and com.example.passbook.pem file as key
+// and localized images too
 ```
 
 The first argument is the pass style (`coupon`, `eventTicket`, etc), and the
@@ -67,18 +56,19 @@ second optional argument has any fields you want to set on the template.
 You can access template fields directly, or from chained accessor methods, e.g:
 
 ```js
-template.fields.passTypeIdentifier = "pass.com.example.passbook";
+template.passTypeIdentifier = "pass.com.example.passbook";
 
-console.log(template.passTypeIdentifier());
+console.log(template.passTypeIdentifier);
 
-template.teamIdentifier("MXL").passTypeIdentifier("pass.com.example.passbook");
+template.teamIdentifier = "MXL";
+template.passTypeIdentifier = "pass.com.example.passbook";
 ```
 
 The following template fields are required:
 `passTypeIdentifier` - The Apple Pass Type ID, begins with "pass."
 `teamIdentifier` - May contain an I
 
-Optional fields that you can set on the template (or pass): `backgroundColor`,
+You can set any available fields either on a template or pass instance, such as: `backgroundColor`,
 `foregroundColor`, `labelColor`, `logoText`, `organizationName`,
 `suppressStripShine` and `webServiceURL`.
 
@@ -90,6 +80,11 @@ await template.loadCertificate(
   "/etc/passbook/certificate_and_key.pem",
   "secret"
 );
+// or set them as strings
+template.setCertificate(pemEncodedPassCertificate);
+template.setPrivateKey(pemEncodedPrivateKey, optionalKeyPassword);
+
+// if you didn't use Template.load then you can load images from any other folder:
 await template.images.loadFromDirectory("./images"); // loadFromDirectory returns Promise
 ```
 
@@ -107,55 +102,53 @@ const pass = template.createPass({
 });
 ```
 
-Just like template, you can access pass fields directly, or from chained
-accessor methods, e.g:
+Just like template, you can access pass fields directly, e.g:
 
 ```js
-pass.fields.serialNumber = "12345";
-console.log(pass.serialNumber());
-pass.serialNumber("12345").description("20% off");
+pass.serialNumber = "12345";
+console.log(pass.serialNumber);
+pass.description = "20% off";
 ```
 
 In the JSON specification, structure fields (primary fields, secondary fields,
 etc) are represented as arrays, but items must have distinct key properties. Le
 sigh.
 
-To make it easier, you can use methods like `add`, `get` and `remove` that
+To make it easier, you can use methods of standard Map object or `add` that
 will do the logical thing. For example, to add a primary field:
 
 ```js
 pass.primaryFields.add({ key: "time", label: "Time", value: "10:00AM" });
 ```
 
-You can also call `add` with an array of triplets or array of objects.
-
 To get one or all fields:
 
 ```js
 const dateField = pass.primaryFields.get("date");
-const allFields = pass.primaryFields.all();
+for (const [key, { value }] of pass.primaryFields.entries()) {
+  // ...
+}
 ```
 
 To remove one or all fields:
 
 ```js
-pass.primaryFields.remove("date");
+pass.primaryFields.delete("date");
 pass.primaryFields.clear();
 ```
 
 Adding images to a pass is the same as adding images to a template:
 
 ```js
-pass.images.icon = iconFilename;
-pass.icon(iconFilename);
+await pass.images.setImage("icon", iconFilename, "2x", "ru");
+
+// following will load all appropriate images in all densities and localizations
 await pass.images.loadFromDirectory("./images");
 ```
 
-You can add the image itself or a `Buffer`. You can also provide a function that will
-be called when it's time to load the image, and should pass an error, or `null`
-and a buffer to its callback.
+You can add the image itself or a `Buffer`. Image format is enforced to be **PNG**.
 
-Additionally localizations can be added if needed (images localizations are not supported at the moment, but will be added soon):
+Additionally localizations can be added if needed:
 
 ```js
 pass.addLocalization("en", {
@@ -184,26 +177,34 @@ Localization applies for all fields' `label` and `value`. There is a note about 
 To generate a file:
 
 ```js
-const file = fs.createWriteStream("mypass.pkpass");
-pass.on("error", error => {
-  console.error(error);
-  process.exit(1);
-});
-pass.pipe(file);
+async () => {
+  const buf = await pass.asBuffer();
+  await fs.writeFile("pathToPass.pass", buf);
+};
 ```
 
-Your pass will emit the `error` event if it fails to generate a valid Passbook
-file, and emit the `end` event when it successfully completed generating the
-file.
-
-You can pipe to any writable stream. When working with HTTP, the `render`
-method will set the content type, pipe to the HTTP response, and make use of a
-callback (if supplied).
+You can sent the buffer directly to an HTTP server response:
 
 ```js
-server.get("/mypass", (request, response) => {
-  pass.render(response, error => {
-    if (error) console.error(error);
-  });
+app.use(async (ctx, next) => {
+  ctx.status = 200;
+  ctx.type = passkit.constants.PASS_MIME_TYPE;
+  ctx.body = await pass.asBuffer();
 });
 ```
+
+# Credits
+
+This projects started as fork of [assaf/node-passbook](http://github.com/assaf/node-passbook).
+Since version 5.0 our module is not API compatible, please see [Releases](https://github.com/destinationstransfers/passkit/releases) for more information.
+
+- Targeting Node >= 10 and refactored in ES6 Classes, removing deprecated calls (`new Buffer`, etc)
+- Replaces `openssl` spawning with native Javascript RSA implementation (via `node-forge`)
+- Includes `Template.pushUpdates(pushToken)` that sends APN update request for a given pass type to a pushToken (get `pushToken` at your PassKit Web Service implementation)
+- Adds constants for dictionary fields string values
+- Migrated tests to Jest
+- Increased test coverage
+- Adds strict dictionary fields values validation (where possible) to prevent errors earlier
+- Adding support for geolocation fields and Becon fields
+- Adding easy template and localization load from JSON file
+- We use it in production at [Transfers.do](https://transfers.do/)
