@@ -15,7 +15,8 @@
     "dist/*.ts",
     "bin/passkit-keys"
   ],
-  "main": "dist/index.js",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "^7.4.4",
     "@babel/preset-env": "^7.4.4",
@@ -36,9 +37,9 @@
   "scripts": {
     "test": "node -r env-app-yaml/config --expose-gc node_modules/jest/bin/jest --detectOpenHandles --notify --logHeapUsage",
     "lint:js": "eslint \"{src,__tests__}/**/*.ts\" --ignore-pattern \"*test*\" --ignore-path .gitignore",
-    "typecheck": "tsc --p jsconfig.json",
     "preversion": "npm test",
-    "postversion": "git push origin master --tags"
+    "postversion": "git push origin master --tags",
+    "prepublishOnly": "tsc"
   },
   "keywords": [
     "iOS",
