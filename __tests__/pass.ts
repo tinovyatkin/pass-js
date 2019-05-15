@@ -103,7 +103,7 @@ describe('Pass', () => {
 
   it('without logo.png should not be valid', async () => {
     const pass = template.createPass(fields);
-    await pass.images.setImage(
+    await pass.images.set(
       'icon',
       path.resolve(__dirname, './resources/icon.png'),
       undefined,
@@ -154,7 +154,7 @@ describe('Pass', () => {
 
   it('asBuffer returns buffer with ZIP file', async () => {
     const pass = template.createPass(fields);
-    await pass.images.loadFromDirectory(path.resolve(__dirname, './resources'));
+    await pass.images.load(path.resolve(__dirname, './resources'));
     pass.headerFields.add({ key: 'date', value: 'Date', label: 'Nov 1' });
     pass.primaryFields.add({
       key: 'location',
@@ -182,7 +182,7 @@ describe('generated', () => {
   beforeAll(async () => {
     jest.setTimeout(100000);
     const pass = template.createPass(fields);
-    await pass.images.loadFromDirectory(path.resolve(__dirname, './resources'));
+    await pass.images.load(path.resolve(__dirname, './resources'));
     pass.headerFields.add({ key: 'date', label: 'Date', value: 'Nov 1' });
     pass.primaryFields.add({
       key: 'location',

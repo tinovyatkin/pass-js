@@ -11,9 +11,13 @@ const STRUCTURE_FIELDS_SET = new Set([...STRUCTURE_FIELDS, 'nfc']);
 
 export class PassBase extends PassStructure {
   images: PassImages;
-  protected localization = new Localizations();
+  localization: Localizations;
 
-  constructor(fields: Partial<ApplePass> = {}, images?: PassImages) {
+  constructor(
+    fields: Partial<ApplePass> = {},
+    images?: PassImages,
+    localizations?: Localizations,
+  ) {
     super(fields);
 
     // restore via setters
@@ -25,6 +29,9 @@ export class PassBase extends PassStructure {
 
     // copy images
     this.images = new PassImages(images);
+
+    // copy localizations
+    this.localization = new Localizations(localizations);
   }
 
   // Returns the pass.json object (not a string).

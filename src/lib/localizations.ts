@@ -71,12 +71,21 @@ export function getLprojBuffer(strings: Map<string, string>): Buffer {
  * Localizations class Map<lang, Map<key, translation>>
  */
 export class Localizations extends Map<string, Map<string, string>> {
-  add(lang: string, values: { [k: string]: string }): void {
+  constructor(v?: Localizations) {
+    // copy localizations if provided
+    super(
+      v instanceof Localizations
+        ? [...v].map(([lang, map]) => [lang, new Map([...map])])
+        : undefined,
+    );
+  }
+  add(lang: string, values: { [k: string]: string }): this {
     const map: Map<string, string> = this.get(lang) || new Map();
     for (const [key, value] of Object.entries(values)) {
       map.set(key, value);
     }
     if (!this.has(lang)) this.set(lang, map);
+    return this;
   }
 
   toArray(): { path: string; data: Buffer }[] {

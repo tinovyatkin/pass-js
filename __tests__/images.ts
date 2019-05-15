@@ -7,20 +7,20 @@ import { PassImages } from '../src/lib/images';
 describe('PassImages', () => {
   it('has class properties', () => {
     const img = new PassImages();
-    expect(img.loadFromDirectory).toBeInstanceOf(Function);
+    expect(img.load).toBeInstanceOf(Function);
   });
 
   it('reads all images from directory without localized images', async () => {
     const img = new PassImages();
     const imgDir = path.resolve(__dirname, '../images/');
-    await img.loadFromDirectory(imgDir);
+    await img.load(imgDir);
     expect(img.count).toBe(18);
   });
 
   it('should read localized images', async () => {
     const img = new PassImages();
     const imgDir = path.resolve(__dirname, './resources/passes/Generic');
-    await img.loadFromDirectory(imgDir);
+    await img.load(imgDir);
     expect(img.count).toBe(5);
     const arr = await img.toArray();
     expect(arr).toBeInstanceOf(Array);

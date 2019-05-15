@@ -21,21 +21,16 @@ import { ApplePass } from './interfaces';
 // fields    - Pass fields (description, serialNumber, logoText)
 export class Pass extends PassBase {
   private template: import('./template').Template;
-  /**
-   *
-   * @param {import('./template')} template
-   * @param {*} [fields]
-   * @param {*} [images]
-   */
   constructor(
     template: import('./template').Template,
     fields: Partial<ApplePass> = {},
     images?: PassImages,
+    localization?: import('./lib/localizations').Localizations,
   ) {
     super(fields, images);
 
     this.template = template;
-    if (images) Object.assign(this.images, images);
+    if (images) Object.assign(this.images, images, localization);
 
     Object.preventExtensions(this);
   }
