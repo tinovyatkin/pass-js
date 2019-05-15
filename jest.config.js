@@ -1,22 +1,23 @@
 module.exports = {
   collectCoverage: true,
   verbose: true,
-  coverageReporters: ['text', 'json', 'html', 'cobertura'],
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-  preset: 'ts-jest',
-  testEnvironment: 'node',
+  coverageReporters: ["text", "json", "html", "cobertura"],
+  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
+  preset: "ts-jest",
+  testEnvironment: "node",
+  setupFilesAfterEnv: [require.resolve("expect-more-jest")],
   watchPathIgnorePatterns: [
-    '<rootDir>/node_modules/',
-    '<rootDir>/.sonarlint/',
-    '<rootDir>/dist/',
-    '<rootDir>/coverage/',
-    '<rootDir>/.vscode/',
+    "<rootDir>/node_modules/",
+    "<rootDir>/.sonarlint/",
+    "<rootDir>/dist/",
+    "<rootDir>/coverage/",
+    "<rootDir>/.vscode/"
   ],
   globals: {
-    'ts-jest': {
+    "ts-jest": {
       diagnostics: {
-        ignoreCodes: [2571, 2532, 2322, 2345, 6031, 6133, 7006, 18003],
-      },
-    },
-  },
+        ignoreCodes: [2571, 2532, 2322, 2339, 2345, 6031, 6133, 7006, 18003]
+      }
+    }
+  }
 };

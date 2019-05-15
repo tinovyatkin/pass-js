@@ -29,13 +29,14 @@
     "@typescript-eslint/parser": "^1.9.0",
     "env-app-yaml": "^1.0.0",
     "eslint": "^5.16.0",
+    "expect-more-jest": "^2.4.1",
     "jest": "^24.8.0",
     "jest-junit": "^6.4.0",
     "ts-jest": "^24.0.2",
     "typescript": "^3.4.5"
   },
   "scripts": {
-    "test": "node -r env-app-yaml/config --expose-gc node_modules/jest/bin/jest --detectOpenHandles --notify --logHeapUsage",
+    "test": "node -r env-app-yaml/config --expose-gc node_modules/jest/bin/jest --detectOpenHandles --notify --logHeapUsage --maxWorkers=1",
     "lint:js": "eslint \"{src,__tests__}/**/*.ts\" --ignore-pattern \"*test*\" --ignore-path .gitignore",
     "preversion": "npm test",
     "postversion": "git push origin master --tags",
