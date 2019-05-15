@@ -10,10 +10,10 @@ import { PassStructure } from './pass-structure';
 const STRUCTURE_FIELDS_SET = new Set([...STRUCTURE_FIELDS, 'nfc']);
 
 export class PassBase extends PassStructure {
-  images = new PassImages();
+  images: PassImages;
   protected localization = new Localizations();
 
-  constructor(fields: Partial<ApplePass> = {}) {
+  constructor(fields: Partial<ApplePass> = {}, images?: PassImages) {
     super(fields);
 
     // restore via setters
@@ -22,6 +22,9 @@ export class PassBase extends PassStructure {
         this[key] = value;
       }
     }
+
+    // copy images
+    this.images = new PassImages(images);
   }
 
   // Returns the pass.json object (not a string).
@@ -389,8 +392,6 @@ export class PassBase extends PassStructure {
 
     // copy array
     this.fields.barcodes = [...v];
-    // set backward compatibility field
-    [this.fields.barcode] = v;
   }
 
   /**
@@ -408,12 +409,12 @@ export class PassBase extends PassStructure {
     relevantText?: string,
   ): this {
     const { longitude, latitude, altitude } = getGeoPoint(point);
-    const location = {
+    const location: import('../interfaces').Location = {
       longitude,
       latitude,
-      altitude,
-      relevantText,
     };
+    if (altitude) location.altitude = altitude;
+    if (typeof relevantText === 'string') location.relevantText = relevantText;
     if (!Array.isArray(this.fields.locations))
       this.fields.locations = [location];
     else this.fields.locations.push(location);
