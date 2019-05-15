@@ -37,6 +37,12 @@
       "error",
       { "allowExpressions": true, "allowTypedFunctionExpressions": true }
     ],
+    "@typescript-eslint/no-object-literal-type-assertion": [
+      "error",
+      {
+        "allowAsParameter": true // Allow type assertion in call and new expression, default false
+      }
+    ],
     "@typescript-eslint/no-this-alias": [
       "error",
       {
