@@ -18,6 +18,10 @@
   "rules": {
     "@destinationstransfers/prefer-class-properties": "off",
     "node/no-unsupported-features/es-syntax": "off",
+    "node/no-unsupported-features/node-builtins": [
+      "error",
+      { "ignores": ["fs.promises"] }
+    ],
     "import/no-unresolved": "off",
     "dependencies/no-unresolved": "off",
     "@typescript-eslint/explicit-member-accessibility": [
