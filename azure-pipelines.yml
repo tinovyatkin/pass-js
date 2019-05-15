@@ -17,6 +17,10 @@ jobs:
           organization: 'destinations-transfers'
           scannerMode: 'CLI'
           configMode: 'file'
+      - task: SonarCloudAnalyze@1
+        displayName: 'Run Code Analysis'
+        # This will fail on PR builds https://go.microsoft.com/fwlink/?linkid=862029
+        continueOnError: true
       - task: SonarCloudPublish@1
         inputs:
           pollingTimeoutSec: '1000'
