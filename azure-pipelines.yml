@@ -9,6 +9,14 @@ jobs:
      vmImage: 'Ubuntu-16.04'
     steps:
       - template: azure-pipelines-steps.yml
+      - task: SonarCloudPrepare@1
+        inputs:
+          SonarCloud: 'SonarCloud'
+          scannerMode: 'CLI'
+          configMode: 'file'
+      - task: SonarCloudPublish@1
+        inputs:
+          pollingTimeoutSec: '300'
       - task: Npm@1
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         inputs:
