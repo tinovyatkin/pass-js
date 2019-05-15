@@ -128,6 +128,9 @@ describe('Pass', () => {
     // ensure it parses well fields
     expect(templ.backFields.size).toBe(2);
     expect(templ.auxiliaryFields.size).toBe(4);
+    expect(templ.relevantDate).toBeDate();
+    expect(templ.relevantDate.getFullYear()).toBe(2012);
+    expect(templ.barcodes).toBeArrayOfObjects();
     // switching transit type
     const pass = templ.createPass();
     expect(pass.transitType).toBe(constants.TRANSIT.AIR);
@@ -138,6 +141,15 @@ describe('Pass', () => {
         transitType: constants.TRANSIT.BUS,
       }),
     });
+  });
+
+  it('should convert back to the same pass.json', async () => {
+    const t = await Template.load(
+      path.resolve(__dirname, './resources/passes/Event.pass'),
+    );
+    expect(require('./resources/passes/Event.pass/pass.json')).toMatchObject(
+      JSON.parse(JSON.stringify(t)),
+    );
   });
 
   it('asBuffer returns buffer with ZIP file', async () => {
