@@ -1,7 +1,0 @@
-__tests__
-.eslintrc
-.vscode
-coverage
-*.yml
-wallaby.js
-*.enc
