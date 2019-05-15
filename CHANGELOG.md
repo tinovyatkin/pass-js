@@ -1,7 +1,49 @@
 ## 6.0 May 2019
 
-- **[Breaking]** Removed Pass.render method
-- **[Breaking]** Removed Pass.stream method
+- Rewritten in TypeScript, so, all the type checking and VSCode InteliSense magic are now available
+- **[Breaking]** Switched to properties instead of getters/setters functions:
+
+  ```js
+  // was
+  pass.foregroundColor("red");
+  console.log(pass.foregroundColor()); // -> 'rgb(255, 0, 0)'
+  // since 6.0
+  pass.foregroundColor = "red";
+  console.log(pass.foregroundColor); // -> [255, 0, 0]
+  ```
+
+- **[Breaking]** Drop stream API, removing `Pass.render`, `Pass.pipe` and `Pass.stream`. Only available method now is `async pass.asBuffer()` that resolves into a Buffer with ZIP file content:
+
+  ```js
+  router.use(async (ctx, next) => {
+    ctx.status = 200;
+    ctx.type = passkit.constants.PASS_MIME_TYPE;
+    ctx.body = await pass.asBuffer();
+  });
+  ```
+
+  Motivation here is simple: while Node.js originally is all about streams, with async functions in place and relatively small size of pass files it makes no sense to use streams. Removing it makes whole lib way simpler and faster while also improving developer experience.
+
+- **[Breaking]** Structure fields `.add` method now works only with object hash:
+
+  ```js
+  // was
+  pass.headerFields.add("date", "Date", "Nov 1");
+  pass.primaryFields.add([
+    { key: "location", label: "Place", value: "High ground" }
+  ]);
+  // since 6.0 the only call signature available is:
+  pass.primaryFields.add({
+    key: "location",
+    label: "Place",
+    value: "High ground"
+  });
+  ```
+
+- **[Breaking]** Not setting/reading deprecated `barcode` property anymore. Use `barcodes` array.
+- **[FIX]** Mutating images and base fields in Pass doesn't affect original template anymore
+- **[Feature]** Template `pass.json` can now have comments that will be stripped in resulting pass
+
 - **[May be Breaking]** `Pass` class is not extending `EventEmitter` anymore
 
 ## 5.1 Apr 26, 2019
