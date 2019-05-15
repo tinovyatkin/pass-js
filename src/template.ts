@@ -30,9 +30,9 @@ const { stat, readFile } = fs;
 // style  - Pass style (coupon, eventTicket, etc)
 // fields - Pass fields (passTypeIdentifier, teamIdentifier, etc)
 export class Template extends PassBase {
-  key: forge.pki.PrivateKey;
-  certificate: forge.pki.Certificate;
-  private apn: http2.ClientHttp2Session;
+  key: forge.pki.PrivateKey | undefined;
+  certificate: forge.pki.Certificate | undefined;
+  private apn: http2.ClientHttp2Session | undefined;
   /**
    *
    * @param {PassStyle} style
@@ -72,7 +72,7 @@ export class Template extends PassBase {
     >;
 
     // Trying to detect the type of pass
-    let type;
+    let type: PassStyle | undefined;
     for (const t of PASS_STYLES) {
       if (t in passJson) {
         type = t;
@@ -157,6 +157,14 @@ export class Template extends PassBase {
    * @param {string} pushToken
    */
   async pushUpdates(pushToken: string): Promise<http2.IncomingHttpHeaders> {
+    if (!this.key)
+      throw new ReferenceError(
+        `Set private key before trying to push pass updates`,
+      );
+    if (!this.certificate)
+      throw new ReferenceError(
+        `Set pass certificate before trying to push pass updates`,
+      );
     // https://developer.apple.com/library/content/documentation/UserExperience/Conceptual/PassKit_PG/Updating.html
     if (!this.apn || this.apn.destroyed) {
       // creating APN Provider
@@ -165,8 +173,11 @@ export class Template extends PassBase {
         cert: forge.pki.certificateToPem(this.certificate),
       });
       // Events
-      this.apn.once('goaway', () => this.apn.destroy());
+      this.apn.once('goaway', () => {
+        if (this.apn && !this.apn.destroyed) this.apn.destroy();
+      });
       await new Promise((resolve, reject) => {
+        if (!this.apn) throw new Error('APN was destroyed before connecting');
         this.apn.once('connect', resolve);
         this.apn.once('error', reject);
       });
@@ -176,6 +187,7 @@ export class Template extends PassBase {
 
     // sending to APN
     return new Promise((resolve, reject) => {
+      if (!this.apn) throw new Error('APN was destroyed before connecting');
       const req = this.apn.request({
         [HTTP2_HEADER_METHOD]: HTTP2_METHOD_POST,
         [HTTP2_HEADER_PATH]: `/3/device/${encodeURIComponent(pushToken)}`,

@@ -4,6 +4,7 @@
  */
 
 import { PassColor } from './lib/pass-color';
+import { FieldsMap } from './lib/fieldsMap';
 
 type DataDetectors =
   | 'PKDataDetectorTypePhoneNumber'
@@ -269,23 +270,23 @@ export interface PassCommonStructure {
    * Use header fields sparingly; unlike all other fields,
    * they remain visible when a stack of passes are displayed.
    */
-  headerFields?: Field[];
+  headerFields?: Field[] | FieldsMap;
   /**
    * Fields to be displayed prominently on the front of the pass.
    */
-  primaryFields?: Field[];
+  primaryFields?: Field[] | FieldsMap;
   /**
    * Fields to be displayed on the front of the pass.
    */
-  secondaryFields?: Field[];
+  secondaryFields?: Field[] | FieldsMap;
   /**
    * Additional fields to be displayed on the front of the pass.
    */
-  auxiliaryFields?: Field[];
+  auxiliaryFields?: Field[] | FieldsMap;
   /**
    * Fields to be on the back of the pass.
    */
-  backFields?: Field[];
+  backFields?: Field[] | FieldsMap;
 }
 
 /**

@@ -80,6 +80,14 @@ export class Pass extends PassBase {
   async asBuffer(): Promise<Buffer> {
     // Validate before attempting to create
     this.validate();
+    if (!this.template.certificate)
+      throw new ReferenceError(
+        `Set pass certificate in template before producing pass buffers`,
+      );
+    if (!this.template.key)
+      throw new ReferenceError(
+        `Set private key in pass template before producing pass buffers`,
+      );
 
     // Creating new Zip file
     const zip = [] as { path: string; data: Buffer | string }[];
@@ -97,10 +105,13 @@ export class Pass extends PassBase {
     // adding manifest
     // Construct manifest here
     const manifestJson = JSON.stringify(
-      zip.reduce((res, { path, data }) => {
-        res[path] = getBufferHash(data);
-        return res;
-      }, {}),
+      zip.reduce(
+        (res, { path, data }) => {
+          res[path] = getBufferHash(data);
+          return res;
+        },
+        {} as { [k: string]: string },
+      ),
     );
     zip.push({ path: 'manifest.json', data: manifestJson });
 

@@ -9,7 +9,7 @@ import {
   ApplePass,
   PassStyle,
   TransitType,
-  PassStructureFields,
+  PassCommonStructure,
 } from '../interfaces';
 import { PASS_STYLES, TRANSIT, STRUCTURE_FIELDS } from '../constants';
 
@@ -32,7 +32,7 @@ export class PassStructure {
           this.fields.nfc = new NFCField();
           if (Array.isArray(fields.nfc)) this.fields.nfc.addRaw(fields.nfc);
         }
-        const structure = fields[this.style] as PassStructureFields;
+        const structure: PassCommonStructure = fields[this.style];
         for (const prop of STRUCTURE_FIELDS) {
           if (prop in structure) {
             if (Array.isArray(structure[prop]))
@@ -80,7 +80,7 @@ export class PassStructure {
             };
             return props;
           },
-          /** @type {PropertyDescriptorMap} */ ({}),
+          /** @type {PropertyDescriptorMap} */ {},
         ),
       );
 

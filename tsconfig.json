@@ -10,10 +10,9 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "strictNullChecks": true,
+    "strict": true,
     // "noImplicitAny": true,
     "allowSyntheticDefaultImports": true,
-    // "strictPropertyInitialization": true,
     "suppressImplicitAnyIndexErrors": true,
     /* Module Resolution Options */
     "moduleResolution": "node",
@@ -25,6 +24,6 @@
     "outDir": "./dist",
     "sourceMap": true
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*.ts", "global.d.ts"],
+  "exclude": ["node_modules", "@types"]
 }
