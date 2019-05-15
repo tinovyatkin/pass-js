@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="42" failures="0" time="3.329">
+  <testsuite name="Pass" errors="0" failures="0" skipped="0" timestamp="2019-05-15T04:23:58" time="1.223" tests="16">
+    <testcase classname="Pass from template" name="Pass from template" time="0.004">
+    </testcase>
+    <testcase classname="Pass barcodes as Array" name="Pass barcodes as Array" time="0.013">
+    </testcase>
+    <testcase classname="Pass without serial number should not be valid" name="Pass without serial number should not be valid" time="0.004">
+    </testcase>
+    <testcase classname="Pass without organization name should not be valid" name="Pass without organization name should not be valid" time="0.001">
+    </testcase>
+    <testcase classname="Pass without description should not be valid" name="Pass without description should not be valid" time="0.002">
+    </testcase>
+    <testcase classname="Pass without icon.png should not be valid" name="Pass without icon.png should not be valid" time="0.007">
+    </testcase>
+    <testcase classname="Pass without logo.png should not be valid" name="Pass without logo.png should not be valid" time="0.012">
+    </testcase>
+    <testcase classname="Pass boarding pass has string-only property in structure fields" name="Pass boarding pass has string-only property in structure fields" time="0.036">
+    </testcase>
+    <testcase classname="Pass should convert back to the same pass.json" name="Pass should convert back to the same pass.json" time="0.029">
+    </testcase>
+    <testcase classname="Pass asBuffer returns buffer with ZIP file" name="Pass asBuffer returns buffer with ZIP file" time="0.104">
+    </testcase>
+    <testcase classname="generated should be a valid ZIP" name="generated should be a valid ZIP" time="0.007">
+    </testcase>
+    <testcase classname="generated should contain pass.json" name="generated should contain pass.json" time="0.01">
+    </testcase>
+    <testcase classname="generated should contain a manifest" name="generated should contain a manifest" time="0.01">
+    </testcase>
+    <testcase classname="generated should contain a signature" name="generated should contain a signature" time="0.098">
+    </testcase>
+    <testcase classname="generated should contain the icon" name="generated should contain the icon" time="0.009">
+    </testcase>
+    <testcase classname="generated should contain the logo" name="generated should contain the logo" time="0.009">
+    </testcase>
+  </testsuite>
+  <testsuite name="Template" errors="0" failures="0" skipped="0" timestamp="2019-05-15T04:23:59" time="0.737" tests="6">
+    <testcase classname="Template should throw an error on unsupported type" name="Template should throw an error on unsupported type" time="0.006">
+    </testcase>
+    <testcase classname="Template fields" name="Template fields" time="0.001">
+    </testcase>
+    <testcase classname="Template webServiceURL" name="Template webServiceURL" time="0.003">
+    </testcase>
+    <testcase classname="Template color values as RGB triplets" name="Template color values as RGB triplets" time="0.009">
+    </testcase>
+    <testcase classname="Template loading template from a folder" name="Template loading template from a folder" time="0.05">
+    </testcase>
+    <testcase classname="Template push updates" name="Template push updates" time="0.578">
+    </testcase>
+  </testsuite>
+  <testsuite name="undefined" errors="0" failures="0" skipped="0" timestamp="2019-05-15T04:24:00" time="0.235" tests="1">
+    <testcase classname=" signManifest" name=" signManifest" time="0.16">
+    </testcase>
+  </testsuite>
+  <testsuite name="NFCField" errors="0" failures="0" skipped="0" timestamp="2019-05-15T04:24:01" time="0.105" tests="4">
+    <testcase classname="NFCField returns undefined for JSON stringify" name="NFCField returns undefined for JSON stringify" time="0.001">
+    </testcase>
+    <testcase classname="NFCField decodes public key" name="NFCField decodes public key" time="0.001">
+    </testcase>
+    <testcase classname="NFCField add Base64 encoded public key" name="NFCField add Base64 encoded public key" time="0.001">
+    </testcase>
+    <testcase classname="NFCField throws on wrong algorithm public key or no public key" name="NFCField throws on wrong algorithm public key or no public key" time="0.049">
+    </testcase>
+  </testsuite>
+  <testsuite name="PassImages" errors="0" failures="0" skipped="0" timestamp="2019-05-15T04:24:01" time="0.14" tests="3">
+    <testcase classname="PassImages has class properties" name="PassImages has class properties" time="0.003">
+    </testcase>
+    <testcase classname="PassImages reads all images from directory without localized images" name="PassImages reads all images from directory without localized images" time="0.052">
+    </testcase>
+    <testcase classname="PassImages should read localized images" name="PassImages should read localized images" time="0.024">
+    </testcase>
+  </testsuite>
+  <testsuite name="Localizations files helpers" errors="0" failures="0" skipped="0" timestamp="2019-05-15T04:24:01" time="0.096" tests="3">
+    <testcase classname="Localizations files helpers should read pass.strings file" name="Localizations files helpers should read pass.strings file" time="0.011">
+    </testcase>
+    <testcase classname="Localizations files helpers returns string as utf-16 .lproj buffer" name="Localizations files helpers returns string as utf-16 .lproj buffer" time="0.007">
+    </testcase>
+    <testcase classname="Localizations files helpers loads localizations from files" name="Localizations files helpers loads localizations from files" time="0.017">
+    </testcase>
+  </testsuite>
+  <testsuite name="PassBase" errors="0" failures="0" skipped="0" timestamp="2019-05-15T04:24:01" time="0.078" tests="1">
+    <testcase classname="PassBase should have all required pass properties" name="PassBase should have all required pass properties" time="0.009">
+    </testcase>
+  </testsuite>
+  <testsuite name="getGeoPoint" errors="0" failures="0" skipped="0" timestamp="2019-05-15T04:24:01" time="0.054" tests="4">
+    <testcase classname="getGeoPoint works with 4 numbers array" name="getGeoPoint works with 4 numbers array" time="0.001">
+    </testcase>
+    <testcase classname="getGeoPoint throws on bad input" name="getGeoPoint throws on bad input" time="0.003">
+    </testcase>
+    <testcase classname="getGeoPoint works with lat/lng/alt object" name="getGeoPoint works with lat/lng/alt object" time="0">
+    </testcase>
+    <testcase classname="getGeoPoint work with longitude/latitude object" name="getGeoPoint work with longitude/latitude object" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="W3C dates strings " errors="0" failures="0" skipped="0" timestamp="2019-05-15T04:24:01" time="0.06" tests="3">
+    <testcase classname="W3C dates strings  isValidW3CDateString" name="W3C dates strings  isValidW3CDateString" time="0.002">
+    </testcase>
+    <testcase classname="W3C dates strings  getW3CDateString" name="W3C dates strings  getW3CDateString" time="0.001">
+    </testcase>
+    <testcase classname="W3C dates strings  parseable to Date" name="W3C dates strings  parseable to Date" time="0.003">
+    </testcase>
+  </testsuite>
+  <testsuite name="undefined" errors="0" failures="0" skipped="0" timestamp="2019-05-15T04:24:01" time="0.047" tests="1">
+    <testcase classname=" FieldsMap Class" name=" FieldsMap Class" time="0.003">
+    </testcase>
+  </testsuite>
+</testsuites>

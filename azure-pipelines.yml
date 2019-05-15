@@ -9,6 +9,8 @@ jobs:
      vmImage: 'Ubuntu-16.04'
     steps:
       - template: azure-pipelines-steps.yml
+      - script: npm run lint -- --format json -o eslint-results.json
+        displayName: 'Run ESLint for Sonar'
       - task: SonarCloudPrepare@1
         inputs:
           SonarCloud: 'SonarCloud'

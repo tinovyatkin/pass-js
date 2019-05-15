@@ -37,7 +37,7 @@
   },
   "scripts": {
     "test": "node -r env-app-yaml/config --expose-gc node_modules/jest/bin/jest --detectOpenHandles --notify --logHeapUsage --maxWorkers=1",
-    "lint:js": "eslint \"{src,__tests__}/**/*.ts\" --ignore-pattern \"*test*\" --ignore-path .gitignore",
+    "lint": "eslint \"{src,__tests__}/**/*.ts\" --ignore-pattern \"*test*\" --ignore-path .gitignore",
     "preversion": "npm test",
     "postversion": "git push origin master --tags",
     "prepublishOnly": "tsc"
