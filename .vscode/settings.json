@@ -1,6 +1,26 @@
 {
+  "files.associations": {
+    "pass.json": "jsonc"
+  },
   "deepscan.enable": false,
   "deepscan.ignoreConfirmWarning": true,
   "eslint.autoFixOnSave": true,
-  "eslint.enable": true
+  "eslint.enable": true,
+  "eslint.validate": [
+    {
+      "language": "typescript",
+      "autoFix": true
+    }
+  ],
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "prettier.disableLanguages": ["typescript"],
+  "typescript.implementationsCodeLens.enabled": true,
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "typescript.check.npmIsInstalled": true,
+  "typescript.suggest.autoImports": false,
+  "typescript.referencesCodeLens.enabled": true,
+  "[typescript]": {
+    "editor.formatOnSave": false
+  },
+  "jest.runAllTestsFirst": false
 }

@@ -1,8 +1,9 @@
 {
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "project": "./jsconfig.json",
-    "sourceType": "script"
+    "ecmaVersion": 2018,
+    "project": "./tsconfig.json",
+    "sourceType": "module"
   },
   "plugins": ["@destinationstransfers", "@typescript-eslint"],
   "extends": [
@@ -16,6 +17,15 @@
   },
   "rules": {
     "@destinationstransfers/prefer-class-properties": "off",
+    "node/no-unsupported-features/es-syntax": "off",
+    "import/no-unresolved": "off",
+    "dependencies/no-unresolved": "off",
+    "@typescript-eslint/explicit-member-accessibility": [
+      "error",
+      {
+        "accessibility": "no-public"
+      }
+    ],
     "@typescript-eslint/no-var-requires": "off",
     "@typescript-eslint/camelcase": "off",
     "@typescript-eslint/member-ordering": "error",
@@ -23,6 +33,16 @@
     "@typescript-eslint/type-annotation-spacing": "error",
     "@typescript-eslint/no-extraneous-class": "error",
     "@typescript-eslint/no-non-null-assertion": "error",
+    "@typescript-eslint/explicit-function-return-type": [
+      "error",
+      { "allowExpressions": true, "allowTypedFunctionExpressions": true }
+    ],
+    "@typescript-eslint/no-object-literal-type-assertion": [
+      "error",
+      {
+        "allowAsParameter": true // Allow type assertion in call and new expression, default false
+      }
+    ],
     "@typescript-eslint/no-this-alias": [
       "error",
       {
@@ -42,18 +62,25 @@
       }
     ],
     // requires project
-    // "@typescript-eslint/promise-function-async": "error",
+    "@typescript-eslint/promise-function-async": "error",
     "@typescript-eslint/no-for-in-array": "error"
   },
   "overrides": [
     {
-      "files": ["__tests__/*.js", "*.test.js"],
+      "files": ["__tests__/*.ts", "*.test.ts"],
       "env": {
         "jest": true
       },
       "rules": {
-        "@typescript-eslint/no-unused-vars": "warn"
+        "@typescript-eslint/no-unused-vars": "warn",
+        "@typescript-eslint/explicit-function-return-type": "off"
       }
     }
-  ]
+  ],
+  "settings": {
+    "import/extensions": [".ts"],
+    "import/parsers": {
+      "@typescript-eslint/parser": [".ts"]
+    }
+  }
 }

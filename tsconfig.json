@@ -3,21 +3,27 @@
   // for the documentation about the jsconfig.json format
   "compilerOptions": {
     // Keep allowJs here to allow use this config with tsc command line
-    "allowJs": true,
-    "checkJs": true,
     "target": "esnext",
-    "lib": ["esnext"],
+    "lib": ["esnext", "dom"],
     /* Additional Checks */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "noImplicitAny": true,
-    "noEmit": true,
+    "strict": true,
+    // "noImplicitAny": true,
+    "allowSyntheticDefaultImports": true,
+    "suppressImplicitAnyIndexErrors": true,
     /* Module Resolution Options */
     "moduleResolution": "node",
-    "esModuleInterop": false
+    "module": "commonjs",
+    "pretty": true,
+    "declaration": true,
+    "importHelpers": true,
+    "listEmittedFiles": true,
+    "outDir": "./dist",
+    "sourceMap": true
   },
-  "include": ["index.js"],
-  "exclude": ["**/node_modules/*", "**/__test__/**/*"]
+  "include": ["src/**/*.ts", "global.d.ts"],
+  "exclude": ["node_modules", "@types"]
 }
