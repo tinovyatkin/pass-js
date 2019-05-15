@@ -5,6 +5,7 @@
   "teamIdentifier": "A93A5CM278",
   "webServiceURL": "https://example.com/passes/",
   "authenticationToken": "vxwxd7J8AlNNFPS8k0a0FfUFtq0ewzFdc",
+  // that should be restored into a Date object
   "relevantDate": "2012-07-22T14:25-08:00",
   "locations": [
     {
@@ -12,11 +13,13 @@
       "latitude": 37.6189722
     }
   ],
-  "barcode": {
-    "message": "SFOJFK JOHN APPLESEED LH451 2012-07-22T14:25-08:00",
-    "format": "PKBarcodeFormatPDF417",
-    "messageEncoding": "iso-8859-1"
-  },
+  "barcodes": [
+    {
+      "message": "SFOJFK JOHN APPLESEED LH451 2012-07-22T14:25-08:00",
+      "format": "PKBarcodeFormatPDF417",
+      "messageEncoding": "iso-8859-1"
+    }
+  ],
   "organizationName": "Skyport Airways",
   "description": "Skyport Boarding Pass",
   "logoText": "Skyport Airways",
