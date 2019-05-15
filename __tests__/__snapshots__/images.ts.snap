@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PassImages should read localized images 1`] = `
+Array [
+  "icon.png",
+  "ru.lproj/logo.png",
+  "ru.lproj/logo@2x.png",
+  "zh_CN.lproj/logo.png",
+  "zh_CN.lproj/logo@2x.png",
+]
+`;

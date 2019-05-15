@@ -1,10 +1,9 @@
 'use strict';
 
-const path = require('path');
-const { randomBytes } = require('crypto');
+import { randomBytes } from 'crypto';
 
-const signManifest = require('../src/lib/signManifest-forge');
-const Template = require('../src/template');
+import { signManifest } from '../src/lib/signManifest-forge';
+import { Template } from '../src/template';
 
 const TEST_STRING = randomBytes(1024).toString('base64');
 

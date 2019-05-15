@@ -1,17 +1,15 @@
 'use strict';
 
-const { createHash } = require('crypto');
+import { createHash } from 'crypto';
 
 /**
  *
  * @param {Buffer} buffer
  * @returns {string}
  */
-function getBufferHash(buffer) {
+export function getBufferHash(buffer: Buffer | string): string {
   // creating hash
   const sha = createHash('sha1');
   sha.update(buffer);
   return sha.digest('hex');
 }
-
-module.exports = getBufferHash;

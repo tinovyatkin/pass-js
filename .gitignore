@@ -7,3 +7,4 @@ test.js
 coverage/*
 .DS_Store
 .app.yml
+dist/*

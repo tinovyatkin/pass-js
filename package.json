@@ -2,7 +2,7 @@
   "name": "@destinationstransfers/passkit",
   "description": "Apple PassKit for the Node",
   "homepage": "https://github.com/destinationstransfers/passkit",
-  "version": "5.1.2",
+  "version": "6.0.0",
   "license": "MIT",
   "engines": {
     "node": ">=10.1"
@@ -11,32 +11,36 @@
     "passkit-keys": "./bin/passkit-keys"
   },
   "files": [
-    "index.js",
-    "src",
+    "dist/*.js",
+    "dist/*.ts",
     "bin/passkit-keys"
   ],
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
   "devDependencies": {
-    "@babel/plugin-proposal-class-properties": "^7.4.0",
-    "@babel/preset-env": "^7.4.3",
-    "@destinationstransfers/eslint-plugin": "^2.3.5",
-    "@types/jest": "^24.0.11",
-    "@types/node": "^11.13.7",
-    "@typescript-eslint/eslint-plugin": "^1.7.0",
-    "@typescript-eslint/parser": "^1.7.0",
+    "@babel/plugin-proposal-class-properties": "^7.4.4",
+    "@babel/preset-env": "^7.4.4",
+    "@destinationstransfers/eslint-plugin": "^2.3.9",
+    "@types/color-string": "^1.5.0",
+    "@types/jest": "^24.0.13",
+    "@types/node": "^12.0.2",
+    "@types/node-forge": "^0.8.3",
+    "@typescript-eslint/eslint-plugin": "^1.9.0",
+    "@typescript-eslint/parser": "^1.9.0",
     "env-app-yaml": "^1.0.0",
     "eslint": "^5.16.0",
-    "jest": "^24.7.1",
-    "jest-junit": "^6.3.0",
-    "node-stream-zip": "^1.8.0",
-    "stream-buffers": "^3.0.2",
+    "expect-more-jest": "^2.4.1",
+    "jest": "^24.8.0",
+    "jest-junit": "^6.4.0",
+    "ts-jest": "^24.0.2",
     "typescript": "^3.4.5"
   },
   "scripts": {
-    "test": "node -r env-app-yaml/config --expose-gc node_modules/jest/bin/jest --detectOpenHandles --notify --logHeapUsage",
-    "lint:js": "eslint \"**/*.{js,mjs}\" --ignore-pattern \"*test*\" --ignore-path .gitignore",
-    "typecheck": "tsc --p jsconfig.json",
+    "test": "node -r env-app-yaml/config --expose-gc node_modules/jest/bin/jest --detectOpenHandles --notify --logHeapUsage --maxWorkers=1",
+    "lint:js": "eslint \"{src,__tests__}/**/*.ts\" --ignore-pattern \"*test*\" --ignore-path .gitignore",
     "preversion": "npm test",
-    "postversion": "git push origin master --tags"
+    "postversion": "git push origin master --tags",
+    "prepublishOnly": "tsc"
   },
   "keywords": [
     "iOS",
@@ -64,18 +68,10 @@
   "author": "Tino Vyatkin <tino@vtkn.io>",
   "dependencies": {
     "color-string": "^1.5.3",
+    "do-not-zip": "^1.0.0",
+    "fast-glob": "^2.2.6",
+    "imagesize": "^1.0.0",
     "node-forge": "^0.8.2",
-    "yazl": "^2.5.1"
-  },
-  "jest": {
-    "collectCoverage": true,
-    "testEnvironment": "node",
-    "verbose": true,
-    "coverageReporters": [
-      "text",
-      "json",
-      "html",
-      "cobertura"
-    ]
+    "strip-json-comments": "^3.0.1"
   }
 }
