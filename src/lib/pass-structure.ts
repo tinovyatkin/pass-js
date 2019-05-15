@@ -62,31 +62,9 @@ export class PassStructure {
     for (const style of PASS_STYLES) if (style !== v) delete this.fields[style];
     if (!v) return;
     if (!PASS_STYLES.has(v)) throw new TypeError(`Invalid Pass type "${v}"`);
-    if (!(v in this.fields)) {
-      // Accessor methods for structure fields (primaryFields, backFields, etc).
-      //
-      // For example:
-      //
-      //   fields.boardingPass.headerFields.add({ key: "time", label: "The Time", value: "10:00AM" });
-      this.fields[v] = Object.defineProperties(
-        {},
-        STRUCTURE_FIELDS.reduce(
-          (props, key) => {
-            props[key] = {
-              writable: false,
-              configurable: false,
-              enumerable: true,
-              value: new FieldsMap(),
-            };
-            return props;
-          },
-          /** @type {PropertyDescriptorMap} */ {},
-        ),
-      );
-
-      // Add NFC fields
-      if ('storeCard' in this.fields) this.fields.nfc = new NFCField();
-    }
+    if (!(v in this.fields)) this.fields[v] = {};
+    // Add NFC fields
+    if ('storeCard' in this.fields) this.fields.nfc = new NFCField();
     //   if ('boardingPass' in this.fields && this.fields.boardingPass) this.fields.boardingPass.
   }
 
@@ -155,6 +133,8 @@ export class PassStructure {
       throw new ReferenceError(
         `Pass style is undefined, set the pass style before accessing pass structure fields`,
       );
+    if (!(this.fields[style].headerFields instanceof FieldsMap))
+      this.fields[style].headerFields = new FieldsMap();
     return this.fields[style].headerFields;
   }
   get auxiliaryFields(): FieldsMap {
@@ -163,6 +143,8 @@ export class PassStructure {
       throw new ReferenceError(
         `Pass style is undefined, set the pass style before accessing pass structure fields`,
       );
+    if (!(this.fields[style].auxiliaryFields instanceof FieldsMap))
+      this.fields[style].auxiliaryFields = new FieldsMap();
     return this.fields[style].auxiliaryFields;
   }
   get backFields(): FieldsMap {
@@ -171,6 +153,8 @@ export class PassStructure {
       throw new ReferenceError(
         `Pass style is undefined, set the pass style before accessing pass structure fields`,
       );
+    if (!(this.fields[style].backFields instanceof FieldsMap))
+      this.fields[style].backFields = new FieldsMap();
     return this.fields[style].backFields;
   }
   get primaryFields(): FieldsMap {
@@ -179,6 +163,8 @@ export class PassStructure {
       throw new ReferenceError(
         `Pass style is undefined, set the pass style before accessing pass structure fields`,
       );
+    if (!(this.fields[style].primaryFields instanceof FieldsMap))
+      this.fields[style].primaryFields = new FieldsMap();
     return this.fields[style].primaryFields;
   }
   get secondaryFields(): FieldsMap {
@@ -187,6 +173,8 @@ export class PassStructure {
       throw new ReferenceError(
         `Pass style is undefined, set the pass style before accessing pass structure fields`,
       );
+    if (!(this.fields[style].secondaryFields instanceof FieldsMap))
+      this.fields[style].secondaryFields = new FieldsMap();
     return this.fields[style].secondaryFields;
   }
 }
