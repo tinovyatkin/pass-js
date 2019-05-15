@@ -79,7 +79,7 @@ export class PassImages {
    * @param {string} dir - path to a directory with images
    * @memberof PassImages
    */
-  async load(dir: string): Promise<PassImages> {
+  async load(dir: string): Promise<this> {
     for await (const file of glob.stream(
       [path.join(dir, IMAGES_GLOB), path.join(dir, '*.lproj', IMAGES_GLOB)],
       {
