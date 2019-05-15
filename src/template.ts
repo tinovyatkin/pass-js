@@ -83,8 +83,12 @@ export class Template extends PassBase {
 
     const template = new Template(type, passJson);
 
-    // load images from the same folder
-    await template.images.loadFromDirectory(folderPath);
+    await Promise.all([
+      // load images from the same folder
+      template.images.load(folderPath),
+      // load localizations strings
+      await template.localization.load(folderPath),
+    ]);
 
     // checking if there is a key - must be named ${passTypeIdentifier}.pem
     const { passTypeIdentifier } = passJson;
@@ -223,6 +227,11 @@ export class Template extends PassBase {
    */
   createPass(fields: Partial<ApplePass> = {}): Pass {
     // Combine template and pass fields
-    return new Pass(this, { ...this.fields, ...fields }, this.images);
+    return new Pass(
+      this,
+      { ...this.fields, ...fields },
+      this.images,
+      this.localization,
+    );
   }
 }

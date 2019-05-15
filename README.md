@@ -85,7 +85,7 @@ template.setCertificate(pemEncodedPassCertificate);
 template.setPrivateKey(pemEncodedPrivateKey, optionalKeyPassword);
 
 // if you didn't use Template.load then you can load images from any other folder:
-await template.images.loadFromDirectory("./images"); // loadFromDirectory returns Promise
+await template.images.load("./images"); // loadFromDirectory returns Promise
 ```
 
 The last part is optional, but if you have images that are common to all passes,
@@ -140,34 +140,50 @@ pass.primaryFields.clear();
 Adding images to a pass is the same as adding images to a template:
 
 ```js
-await pass.images.setImage("icon", iconFilename, "2x", "ru");
+await pass.images.set("icon", iconFilename, "2x", "ru");
 
 // following will load all appropriate images in all densities and localizations
-await pass.images.loadFromDirectory("./images");
+await pass.images.load("./images");
 ```
 
 You can add the image itself or a `Buffer`. Image format is enforced to be **PNG**.
 
-Additionally localizations can be added if needed:
+# Localizations
+
+This library fully supports both [string localization](https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/PassKit_PG/Creating.html#//apple_ref/doc/uid/TP40012195-CH4-SW54) and/or [images localization](https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/PassKit_PG/Creating.html#//apple_ref/doc/uid/TP40012195-CH4-SW1):
 
 ```js
-pass.addLocalization("en", {
-  GATE: "GATE",
-  DEPART: "DEPART",
-  ARRIVE: "ARRIVE",
-  SEAT: "SEAT",
-  PASSENGER: "PASSENGER",
-  FLIGHT: "FLIGHT"
-});
+// everything from template
+// will load all localized images and strings from folders like ru.lproj/ or fr-CA.lproj/
+await template.load(folderPath);
 
-pass.addLocalization("ru", {
-  GATE: "ВЫХОД",
-  DEPART: "ВЫЛЕТ",
-  ARRIVE: "ПРИЛЁТ",
-  SEAT: "МЕСТО",
-  PASSENGER: "ПАССАЖИР",
-  FLIGHT: "РЕЙС"
-});
+// Strings
+
+pass.localizations
+  .add("en-GB", {
+    GATE: "GATE",
+    DEPART: "DEPART",
+    ARRIVE: "ARRIVE",
+    SEAT: "SEAT",
+    PASSENGER: "PASSENGER",
+    FLIGHT: "FLIGHT"
+  })
+  .localizations.add("ru", {
+    GATE: "ВЫХОД",
+    DEPART: "ВЫЛЕТ",
+    ARRIVE: "ПРИЛЁТ",
+    SEAT: "МЕСТО",
+    PASSENGER: "ПАССАЖИР",
+    FLIGHT: "РЕЙС"
+  });
+
+// Images
+await template.images.set(
+  "logo" | "icon" | etc,
+  imageFilePathOrBufferWithPNGdata,
+  "1x" | "2x" | "3x" | undefined,
+  "ru"
+);
 ```
 
 Localization applies for all fields' `label` and `value`. There is a note about that in [documentation](https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/PassKit_PG/Creating.html).
