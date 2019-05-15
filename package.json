@@ -12,7 +12,9 @@
   },
   "files": [
     "dist/*.js",
+    "dist/lib/*.js",
     "dist/*.ts",
+    "dist/lib/*.ts",
     "bin/passkit-keys"
   ],
   "types": "./dist/index.d.ts",
