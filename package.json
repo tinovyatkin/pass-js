@@ -71,7 +71,7 @@
     "do-not-zip": "^1.0.0",
     "fast-glob": "^2.2.6",
     "imagesize": "^1.0.0",
-    "node-forge": "^0.8.2",
+    "node-forge": "^0.8.3",
     "strip-json-comments": "^3.0.1"
   }
 }
