@@ -2,7 +2,7 @@
   "name": "@destinationstransfers/passkit",
   "description": "Apple PassKit for the Node",
   "homepage": "https://github.com/destinationstransfers/passkit",
-  "version": "6.2.2",
+  "version": "6.2.3",
   "license": "MIT",
   "engines": {
     "node": ">=10.1"
@@ -20,7 +20,7 @@
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
   "devDependencies": {
-    "@destinationstransfers/eslint-plugin": "2.4.1",
+    "@destinationstransfers/eslint-plugin": "2.4.2",
     "@types/color-string": "1.5.0",
     "@types/jest": "24.0.13",
     "@types/node": "12.0.2",
