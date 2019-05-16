@@ -1,7 +1,7 @@
 'use strict';
 
-import { createHash } from 'crypto';
-import { unlinkSync, mkdtempSync, writeFileSync } from 'fs';
+import { createHash, randomBytes } from 'crypto';
+import { unlinkSync, mkdtempSync, writeFileSync, readFileSync } from 'fs';
 import { tmpdir } from 'os';
 import * as path from 'path';
 import { execFileSync } from 'child_process';
@@ -55,7 +55,7 @@ describe('Pass', () => {
     expect(pass.passTypeIdentifier).toBe('pass.com.example.passbook');
 
     // should start with no images
-    expect(pass.images.count).toBe(0);
+    expect(pass.images.size).toBe(0);
 
     // should create a structure based on style
     expect(pass.style).toBe('coupon');
@@ -103,9 +103,9 @@ describe('Pass', () => {
 
   it('without logo.png should not be valid', async () => {
     const pass = template.createPass(fields);
-    await pass.images.set(
+    await pass.images.add(
       'icon',
-      path.resolve(__dirname, './resources/icon.png'),
+      readFileSync(path.resolve(__dirname, './resources/icon.png')),
       undefined,
       'en-US',
     );
@@ -162,7 +162,10 @@ describe('Pass', () => {
       value: 'High ground',
     });
     const tmd = mkdtempSync(`${tmpdir()}${path.sep}`);
-    const passFileName = path.join(tmd, 'pass.pkpass');
+    const passFileName = path.join(
+      tmd,
+      `pass-${randomBytes(10).toString('hex')}.pkpass`,
+    );
     const buf = await pass.asBuffer();
     expect(Buffer.isBuffer(buf)).toBeTruthy();
     writeFileSync(passFileName, buf);
@@ -177,7 +180,10 @@ describe('Pass', () => {
 
 describe('generated', () => {
   const tmd = mkdtempSync(`${tmpdir()}${path.sep}`);
-  const passFileName = path.join(tmd, 'pass.pkpass');
+  const passFileName = path.join(
+    tmd,
+    `pass-${randomBytes(10).toString('hex')}.pkpass`,
+  );
 
   beforeAll(async () => {
     jest.setTimeout(100000);
@@ -189,6 +195,7 @@ describe('generated', () => {
       label: 'Place',
       value: 'High ground',
     });
+    expect(pass.images.size).toBe(8);
     writeFileSync(passFileName, await pass.asBuffer());
   });
 

@@ -61,20 +61,20 @@ describe('Template', () => {
       path.resolve(__dirname, './resources/passes/BoardingPass.pass'),
     );
     expect(templ.passTypeIdentifier).toBe('pass.com.apple.devpubs.example');
-    expect(templ.images.count).toBe(4);
+    expect(templ.images.size).toBe(4);
 
     const templ2 = await Template.load(
       path.resolve(__dirname, './resources/passes/Event.pass'),
     );
     expect(templ2.teamIdentifier).toBe('A93A5CM278');
-    expect(templ2.images.count).toBe(8);
+    expect(templ2.images.size).toBe(8);
   });
 
   it('loads images and translation from folder without pass.json', async () => {
     const templ = await Template.load(
       path.resolve(__dirname, './resources/passes/Generic'),
     );
-    expect(templ.images.count).toBe(5);
+    expect(templ.images.size).toBe(5);
     expect(templ.localization.size).toBe(2);
     // ensure it normalizes locales name
     expect(templ.localization.has('zh-CN')).toBeTruthy();

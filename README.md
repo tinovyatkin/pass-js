@@ -140,7 +140,7 @@ pass.primaryFields.clear();
 Adding images to a pass is the same as adding images to a template:
 
 ```js
-await pass.images.set("icon", iconFilename, "2x", "ru");
+await pass.images.add("icon", iconFilename, "2x", "ru");
 
 // following will load all appropriate images in all densities and localizations
 await pass.images.load("./images");
@@ -178,7 +178,7 @@ pass.localizations
   });
 
 // Images
-await template.images.set(
+await template.images.add(
   "logo" | "icon" | etc,
   imageFilePathOrBufferWithPNGdata,
   "1x" | "2x" | "3x" | undefined,
