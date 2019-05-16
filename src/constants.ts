@@ -10,6 +10,7 @@ import {
   PassStyle,
   TransitType,
   TextAlignment,
+  NumberStyle,
   BarcodeFormat,
   DataStyleFormat,
   DataDetectors,
@@ -55,6 +56,13 @@ export const dataDetector = {
   LINK: 'PKDataDetectorTypeLink' as DataDetectors,
   ADDRESS: 'PKDataDetectorTypeAddress' as DataDetectors,
   CALENDAR: 'PKDataDetectorTypeCalendarEvent' as DataDetectors,
+};
+
+export const numberStyle = {
+  DECIMAL: 'PKNumberStyleDecimal' as NumberStyle,
+  PERCENT: 'PKNumberStylePercent' as NumberStyle,
+  SCIENTIFIC: 'PKNumberStyleScientific' as NumberStyle,
+  SPELL_OUT: 'PKNumberStyleSpellOut' as NumberStyle,
 };
 
 /**

@@ -25,6 +25,12 @@ export type TextAlignment =
   | 'PKTextAlignmentRight'
   | 'PKTextAlignmentNatural';
 
+export type NumberStyle =
+  | 'PKNumberStyleDecimal'
+  | 'PKNumberStylePercent'
+  | 'PKNumberStyleScientific'
+  | 'PKNumberStyleSpellOut';
+
 export type FieldDescriptor = {
   // Standard Field Dictionary Keys
   label?: string;
@@ -48,11 +54,7 @@ export type FieldDescriptor = {
       value: number;
       // Number Style Keys
       currencyCode?: string;
-      numberStyle?:
-        | 'PKNumberStyleDecimal'
-        | 'PKNumberStylePercent'
-        | 'PKNumberStyleScientific'
-        | 'PKNumberStyleSpellOut';
+      numberStyle?: NumberStyle;
     });
 
 export type Field = {
