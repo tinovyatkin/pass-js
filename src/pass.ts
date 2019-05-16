@@ -10,17 +10,12 @@ import { signManifest } from './lib/signManifest-forge';
 import { PassBase } from './lib/base-pass';
 import { ApplePass } from './interfaces';
 
-/**
- * @typedef {'PKBarcodeFormatQR' | 'PKBarcodeFormatPDF417' | 'PKBarcodeFormatAztec' | 'PKBarcodeFormatCode128'} BarcodeFormat
- * @typedef {{format: BarcodeFormat, message: string, messageEncoding: string}} BarcodeDescriptor
- */
-
 // Create a new pass.
 //
 // template  - The template
 // fields    - Pass fields (description, serialNumber, logoText)
 export class Pass extends PassBase {
-  private template: import('./template').Template;
+  private readonly template: import('./template').Template;
   constructor(
     template: import('./template').Template,
     fields: Partial<ApplePass> = {},
