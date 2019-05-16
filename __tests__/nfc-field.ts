@@ -17,8 +17,7 @@ describe('NFCField', () => {
   });
 
   it('decodes public key', () => {
-    const nfc = new NFCField();
-    nfc.addRaw([
+    const nfc = new NFCField([
       {
         message: 'test message',
         encryptionPublicKey: Buffer.from(TEST_PUBLIC_KEY, 'utf-8').toString(
@@ -26,7 +25,7 @@ describe('NFCField', () => {
         ),
       },
     ]);
-    expect(nfc.toJSON()).toBeInstanceOf(Array);
+    expect(nfc.toJSON()).toBeArrayOfObjects();
   });
 
   it('add Base64 encoded public key', () => {
