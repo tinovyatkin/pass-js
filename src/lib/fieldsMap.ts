@@ -71,7 +71,7 @@ export class FieldsMap extends Map<string, FieldDescriptor> {
    * @param {string} key
    * @param {string} label
    * @param {Date} date
-   * @param {{dateStyle?: string, ignoresTimeZone?: boolean, isRelative?: boolean, timeStyle?:string}} [formatOptions]
+   * @param {{dateStyle?: string, ignoresTimeZone?: boolean, isRelative?: boolean, timeStyle?:string, changeMessage?: string}} [formatOptions]
    * @returns {FieldsMap}
    * @throws if date is not a Date or invalid Date
    * @memberof FieldsMap
@@ -85,11 +85,13 @@ export class FieldsMap extends Map<string, FieldDescriptor> {
       ignoresTimeZone,
       isRelative,
       timeStyle,
+      changeMessage,
     }: {
       dateStyle?: DataStyleFormat;
       ignoresTimeZone?: boolean;
       isRelative?: boolean;
       timeStyle?: DataStyleFormat;
+      changeMessage?: string;
     } = {},
   ): this {
     if (typeof key !== 'string')
@@ -109,6 +111,7 @@ export class FieldsMap extends Map<string, FieldDescriptor> {
     this.set(key, {
       label,
       value: date,
+      changeMessage,
       dateStyle,
       ignoresTimeZone,
       isRelative,
