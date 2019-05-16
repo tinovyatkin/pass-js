@@ -59,7 +59,11 @@ describe('Pass', () => {
 
     // should create a structure based on style
     expect(pass.style).toBe('coupon');
-    expect(pass.labelColor).toEqual([255, 0, 0]);
+    // labelColor is array of 3 numbers
+    expect(pass.labelColor).toBeInstanceOf(Array);
+    expect(pass.labelColor).toHaveLength(3);
+    // but it stringifies to rgb string and Jest is using stringify for equality
+    expect(JSON.stringify(pass.labelColor)).toStrictEqual('"rgb(255, 0, 0)"');
   });
 
   //
