@@ -23,8 +23,8 @@ const imageSize: (
   v: import('stream').Readable,
 ) => Promise<ImageSizeResult> = promisify(imagesize);
 
-type ImageDensity = '1x' | '2x' | '3x';
-type ImageType =
+export type ImageDensity = '1x' | '2x' | '3x';
+export type ImageType =
   | 'logo'
   | 'icon'
   | 'background'

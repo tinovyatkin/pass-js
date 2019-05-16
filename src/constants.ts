@@ -6,7 +6,17 @@
 
 'use strict';
 
-import { PassStyle, TransitType } from './interfaces';
+import {
+  PassStyle,
+  TransitType,
+  TextAlignment,
+  BarcodeFormat,
+  DataStyleFormat,
+  DataDetectors,
+  PassCommonStructure,
+  ApplePass,
+} from './interfaces';
+import { ImageType, ImageDensity } from './lib/images';
 
 export const PASS_MIME_TYPE = 'application/vnd.apple.pkpass';
 
@@ -19,37 +29,41 @@ export const TRANSIT = {
 };
 
 export const textDirection = {
-  LEFT: 'PKTextAlignmentLeft',
-  CENTER: 'PKTextAlignmentCenter',
-  RIGHT: 'PKTextAlignmentRight',
-  NATURAL: 'PKTextAlignmentNatural',
+  LEFT: 'PKTextAlignmentLeft' as TextAlignment,
+  CENTER: 'PKTextAlignmentCenter' as TextAlignment,
+  RIGHT: 'PKTextAlignmentRight' as TextAlignment,
+  NATURAL: 'PKTextAlignmentNatural' as TextAlignment,
 };
 
 export const barcodeFormat = {
-  QR: 'PKBarcodeFormatQR',
-  PDF417: 'PKBarcodeFormatPDF417',
-  Aztec: 'PKBarcodeFormatAztec',
-  Code128: 'PKBarcodeFormatCode128',
+  QR: 'PKBarcodeFormatQR' as BarcodeFormat,
+  PDF417: 'PKBarcodeFormatPDF417' as BarcodeFormat,
+  Aztec: 'PKBarcodeFormatAztec' as BarcodeFormat,
+  Code128: 'PKBarcodeFormatCode128' as BarcodeFormat,
 };
 
 export const dateTimeFormat = {
-  NONE: 'PKDateStyleNone',
-  SHORT: 'PKDateStyleShort',
-  MEDIUM: 'PKDateStyleMedium',
-  LONG: 'PKDateStyleLong',
-  FULL: 'PKDateStyleFull',
+  NONE: 'PKDateStyleNone' as DataStyleFormat,
+  SHORT: 'PKDateStyleShort' as DataStyleFormat,
+  MEDIUM: 'PKDateStyleMedium' as DataStyleFormat,
+  LONG: 'PKDateStyleLong' as DataStyleFormat,
+  FULL: 'PKDateStyleFull' as DataStyleFormat,
 };
 
 export const dataDetector = {
-  PHONE: 'PKDataDetectorTypePhoneNumber',
-  LINK: 'PKDataDetectorTypeLink',
-  ADDRESS: 'PKDataDetectorTypeAddress',
-  CALENDAR: 'PKDataDetectorTypeCalendarEvent',
+  PHONE: 'PKDataDetectorTypePhoneNumber' as DataDetectors,
+  LINK: 'PKDataDetectorTypeLink' as DataDetectors,
+  ADDRESS: 'PKDataDetectorTypeAddress' as DataDetectors,
+  CALENDAR: 'PKDataDetectorTypeCalendarEvent' as DataDetectors,
 };
 
-// Supported images.
-/** @type {{[k: string]: { width: number, height: number, required?: boolean }}} */
-export const IMAGES = {
+/**
+ * Supported images.
+ */
+
+export const IMAGES: {
+  [k in ImageType]: { width: number; height: number; required?: boolean }
+} = {
   icon: {
     width: 29,
     height: 29,
@@ -78,21 +92,29 @@ export const IMAGES = {
   },
 };
 
-export const DENSITIES = new Set(['1x', '2x', '3x']);
+export const DENSITIES: ReadonlySet<ImageDensity> = new Set(['1x', '2x', '3x']);
 
 // Supported passbook styles.
-export const PASS_STYLES = new Set([
+export const PASS_STYLES: ReadonlySet<PassStyle> = new Set([
   'boardingPass',
   'coupon',
   'eventTicket',
   'storeCard',
   'generic',
-]) as Set<PassStyle>;
+]);
 
 // Optional top level fields
 // Top-level pass fields.
 // https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/TopLevel.html#//apple_ref/doc/uid/TP40012026-CH2-SW1
-export const TOP_LEVEL_FIELDS = {
+export const TOP_LEVEL_FIELDS: {
+  [k in keyof ApplePass]?: {
+    required?: boolean;
+    type: 'string' | 'number' | typeof Array | typeof Boolean | typeof Object;
+    templatable?: boolean;
+    localizable?: boolean;
+    minlength?: number;
+  }
+} = {
   // Standard Keys
   description: {
     required: true,
@@ -182,24 +204,19 @@ export const TOP_LEVEL_FIELDS = {
     type: 'string',
     templatable: true,
   },
-  // NFC-Enabled Pass Keys
-  nfc: {
-    type: Object,
-  },
 };
 
 // Pass structure keys.
 // https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/LowerLevel.html#//apple_ref/doc/uid/TP40012026-CH3-SW3
-export const STRUCTURE_FIELDS = [
+export const STRUCTURE_FIELDS: readonly (keyof PassCommonStructure)[] = [
   'auxiliaryFields',
   'backFields',
   'headerFields',
   'primaryFields',
   'secondaryFields',
-] as readonly string[];
+];
 
-/** @type {Set.<'PKBarcodeFormatQR' | 'PKBarcodeFormatPDF417' | 'PKBarcodeFormatAztec' | 'PKBarcodeFormatCode128'>} */
-export const BARCODES_FORMAT = new Set([
+export const BARCODES_FORMAT: ReadonlySet<BarcodeFormat> = new Set([
   'PKBarcodeFormatQR',
   'PKBarcodeFormatPDF417',
   'PKBarcodeFormatAztec',

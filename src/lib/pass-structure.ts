@@ -35,11 +35,12 @@ export class PassStructure {
         const structure: PassCommonStructure = fields[this.style];
         for (const prop of STRUCTURE_FIELDS) {
           if (prop in structure) {
-            if (Array.isArray(structure[prop]))
-              for (const field of structure[prop]) this[prop].add(field);
-            else if (structure[prop] instanceof FieldsMap)
+            const currentProperty = structure[prop];
+            if (Array.isArray(currentProperty))
+              for (const field of currentProperty) this[prop].add(field);
+            else if (currentProperty instanceof FieldsMap)
               // copy fields
-              for (const [key, data] of structure[prop])
+              for (const [key, data] of currentProperty)
                 this[prop].add({ key, ...data });
           }
         }
