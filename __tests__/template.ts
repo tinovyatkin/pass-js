@@ -70,6 +70,16 @@ describe('Template', () => {
     expect(templ2.images.count).toBe(8);
   });
 
+  it('loads images and translation from folder without pass.json', async () => {
+    const templ = await Template.load(
+      path.resolve(__dirname, './resources/passes/Generic'),
+    );
+    expect(templ.images.count).toBe(5);
+    expect(templ.localization.size).toBe(2);
+    // ensure it normalizes locales name
+    expect(templ.localization.has('zh-CN')).toBeTruthy();
+  });
+
   it('push updates', async () => {
     const template = new Template('coupon', {
       passTypeIdentifier: 'pass.com.example.passbook',

@@ -30,20 +30,22 @@ const { stat, readFile } = fs;
 // style  - Pass style (coupon, eventTicket, etc)
 // fields - Pass fields (passTypeIdentifier, teamIdentifier, etc)
 export class Template extends PassBase {
-  key: forge.pki.PrivateKey | undefined;
-  certificate: forge.pki.Certificate | undefined;
-  private apn: http2.ClientHttp2Session | undefined;
+  key?: forge.pki.PrivateKey;
+  certificate?: forge.pki.Certificate;
+  private apn?: http2.ClientHttp2Session;
   /**
    *
    * @param {PassStyle} style
    * @param {{[k: string]: any }} [fields]
    */
-  constructor(style: PassStyle, fields: Partial<ApplePass> = {}) {
+  constructor(style?: PassStyle, fields: Partial<ApplePass> = {}) {
     super(fields);
 
-    if (!PASS_STYLES.has(style))
-      throw new TypeError(`Unsupported pass style ${style}`);
-    this.style = style;
+    if (style) {
+      if (!PASS_STYLES.has(style))
+        throw new TypeError(`Unsupported pass style ${style}`);
+      this.style = style;
+    }
   }
 
   /**
@@ -66,22 +68,27 @@ export class Template extends PassBase {
       throw new ReferenceError(`Path ${folderPath} must be a directory!`);
 
     // getting main JSON file
-    const jsonContent = await readFile(join(folderPath, 'pass.json'), 'utf8');
-    const passJson = JSON.parse(stripJsonComments(jsonContent)) as Partial<
-      ApplePass
-    >;
+    let template: Template | undefined;
+    try {
+      const jsonContent = await readFile(join(folderPath, 'pass.json'), 'utf8');
+      const passJson = JSON.parse(stripJsonComments(jsonContent)) as Partial<
+        ApplePass
+      >;
 
-    // Trying to detect the type of pass
-    let type: PassStyle | undefined;
-    for (const t of PASS_STYLES) {
-      if (t in passJson) {
-        type = t;
-        break;
+      // Trying to detect the type of pass
+      let type: PassStyle | undefined;
+      for (const t of PASS_STYLES) {
+        if (t in passJson) {
+          type = t;
+          break;
+        }
       }
+      if (!type) throw new TypeError('Unknown pass style!');
+      template = new Template(type, passJson);
+    } catch (err) {
+      if (err.code !== 'ENOENT') throw err;
     }
-    if (!type) throw new TypeError('Unknown pass style!');
-
-    const template = new Template(type, passJson);
+    if (!template) template = new Template();
 
     await Promise.all([
       // load images from the same folder
@@ -91,7 +98,7 @@ export class Template extends PassBase {
     ]);
 
     // checking if there is a key - must be named ${passTypeIdentifier}.pem
-    const { passTypeIdentifier } = passJson;
+    const { passTypeIdentifier } = template;
     if (typeof passTypeIdentifier === 'string') {
       const keyName = `${passTypeIdentifier.replace(/^pass\./, '')}.pem`;
       const certFileName = join(folderPath, keyName);
