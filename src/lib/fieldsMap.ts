@@ -27,7 +27,7 @@ export class FieldsMap extends Map<string, FieldDescriptor> {
    * @returns {FieldsMap}
    * @memberof FieldsMap
    */
-  add(field: Field): FieldsMap {
+  add(field: Field): this {
     const { key, ...data } = field;
     if (typeof key !== 'string')
       throw new TypeError(
@@ -50,7 +50,7 @@ export class FieldsMap extends Map<string, FieldDescriptor> {
    * @param {string} value
    * @memberof FieldsMap
    */
-  setValue(key: string, value: string): FieldsMap {
+  setValue(key: string, value: string): this {
     if (typeof key !== 'string')
       throw new TypeError(
         `key for setValue must be a string, received ${typeof key}`,
@@ -91,7 +91,7 @@ export class FieldsMap extends Map<string, FieldDescriptor> {
       isRelative?: boolean;
       timeStyle?: DataStyleFormat;
     } = {},
-  ): FieldsMap {
+  ): this {
     if (typeof key !== 'string')
       throw new TypeError(`Key must be a string, received ${typeof key}`);
     if (typeof label !== 'string')

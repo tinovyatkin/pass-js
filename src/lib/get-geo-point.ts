@@ -7,7 +7,7 @@
  */
 export function getGeoPoint(
   point:
-    | number[]
+    | readonly number[]
     | { lat: number; lng: number; alt?: number }
     | { longitude: number; latitude: number } & (
         | { altitude?: number }

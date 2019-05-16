@@ -2,7 +2,7 @@
   "name": "@destinationstransfers/passkit",
   "description": "Apple PassKit for the Node",
   "homepage": "https://github.com/destinationstransfers/passkit",
-  "version": "6.1.0",
+  "version": "6.2.0",
   "license": "MIT",
   "engines": {
     "node": ">=10.1"
@@ -71,7 +71,7 @@
     "do-not-zip": "^1.0.0",
     "fast-glob": "^2.2.6",
     "imagesize": "^1.0.0",
-    "node-forge": "^0.8.2",
+    "node-forge": "^0.8.3",
     "strip-json-comments": "^3.0.1"
   }
 }

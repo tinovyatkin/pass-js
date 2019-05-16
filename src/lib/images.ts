@@ -23,8 +23,8 @@ const imageSize: (
   v: import('stream').Readable,
 ) => Promise<ImageSizeResult> = promisify(imagesize);
 
-type ImageDensity = '1x' | '2x' | '3x';
-type ImageType =
+export type ImageDensity = '1x' | '2x' | '3x';
+export type ImageType =
   | 'logo'
   | 'icon'
   | 'background'
@@ -35,23 +35,14 @@ type ImageType =
 const IMAGES_GLOB = `(${Object.keys(IMAGES).join('|')})*(@2x|@3x).png`;
 const IMAGES_TYPES = new Set(Object.keys(IMAGES));
 
-export class PassImages {
-  private map: Map<string, string | Buffer> = new Map();
-
+export class PassImages extends Map<string, string | Buffer> {
   constructor(images?: PassImages) {
-    if (images instanceof PassImages) {
-      this.map = new Map([...images.map]);
-    }
-    Object.preventExtensions(this);
-  }
-
-  get count(): number {
-    return this.map.size;
+    super(images instanceof PassImages ? [...images] : undefined);
   }
 
   async toArray(): Promise<{ path: string; data: Buffer }[]> {
     return Promise.all(
-      [...this.map].map(async ([filepath, pathOrBuffer]) => ({
+      [...this].map(async ([filepath, pathOrBuffer]) => ({
         path: filepath,
         data:
           typeof pathOrBuffer === 'string'
@@ -65,7 +56,7 @@ export class PassImages {
    * Checks that all required images is set or throws elsewhere
    */
   validate(): void {
-    const keys = [...this.map.keys()];
+    const keys = [...this.keys()];
     // Check for required images
     for (const requiredImage of ['icon', 'logo'])
       if (!keys.some(img => img.endsWith(`${requiredImage}.png`)))
@@ -79,7 +70,7 @@ export class PassImages {
    * @param {string} dir - path to a directory with images
    * @memberof PassImages
    */
-  async load(dir: string): Promise<PassImages> {
+  async load(dir: string): Promise<this> {
     for await (const file of glob.stream(
       [path.join(dir, IMAGES_GLOB), path.join(dir, '*.lproj', IMAGES_GLOB)],
       {
@@ -98,13 +89,13 @@ export class PassImages {
         density?: ImageDensity;
         lang?: string;
       };
-      await this.set(imageType, file, density, lang);
+      await this.add(imageType, file, density, lang);
     }
 
     return this;
   }
 
-  async set(
+  async add(
     imageType: ImageType,
     pathOrBuffer: string | Buffer,
     density?: ImageDensity,
@@ -129,14 +120,14 @@ export class PassImages {
       const { Parser } = imagesize;
       const parser = Parser();
       const res = parser.parse(pathOrBuffer);
-      if (!res !== Parser.DONE)
+      if (res !== Parser.DONE)
         throw new TypeError(
           `Supplied buffer doesn't contain valid PNG image for ${imageType}`,
         );
       sizeRes = parser.getResult() as ImageSizeResult;
     }
     this.checkImage(imageType, sizeRes, density);
-    this.map.set(this.getImageFilename(imageType, density, lang), pathOrBuffer);
+    super.set(this.getImageFilename(imageType, density, lang), pathOrBuffer);
   }
 
   // eslint-disable-next-line complexity

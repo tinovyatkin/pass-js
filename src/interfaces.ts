@@ -6,7 +6,7 @@
 import { PassColor } from './lib/pass-color';
 import { FieldsMap } from './lib/fieldsMap';
 
-type DataDetectors =
+export type DataDetectors =
   | 'PKDataDetectorTypePhoneNumber'
   | 'PKDataDetectorTypeLink'
   | 'PKDataDetectorTypeAddress'
@@ -19,6 +19,12 @@ export type DataStyleFormat =
   | 'PKDateStyleLong'
   | 'PKDateStyleFull';
 
+export type TextAlignment =
+  | 'PKTextAlignmentLeft'
+  | 'PKTextAlignmentCenter'
+  | 'PKTextAlignmentRight'
+  | 'PKTextAlignmentNatural';
+
 export type FieldDescriptor = {
   // Standard Field Dictionary Keys
   label?: string;
@@ -28,11 +34,7 @@ export type FieldDescriptor = {
 } & (
   | {
       value: string;
-      textAlignment?:
-        | 'PKTextAlignmentLeft'
-        | 'PKTextAlignmentCenter'
-        | 'PKTextAlignmentRight'
-        | 'PKTextAlignmentNatural';
+      textAlignment?: TextAlignment;
     }
   | {
       value: Date;

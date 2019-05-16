@@ -10,8 +10,8 @@ import { PassStructure } from './pass-structure';
 const STRUCTURE_FIELDS_SET = new Set([...STRUCTURE_FIELDS, 'nfc']);
 
 export class PassBase extends PassStructure {
-  images: PassImages;
-  localization: Localizations;
+  readonly images: PassImages;
+  readonly localization: Localizations;
 
   constructor(
     fields: Partial<ApplePass> = {},
@@ -271,7 +271,7 @@ export class PassBase extends PassStructure {
     | undefined
     | PassColor {
     if (!(this.fields.backgroundColor instanceof PassColor)) return undefined;
-    return this.fields.backgroundColor.getRGB();
+    return this.fields.backgroundColor;
   }
   set backgroundColor(
     v: string | [number, number, number] | undefined | PassColor,
@@ -296,7 +296,7 @@ export class PassBase extends PassStructure {
     | undefined
     | PassColor {
     if (!(this.fields.foregroundColor instanceof PassColor)) return undefined;
-    return this.fields.foregroundColor.getRGB();
+    return this.fields.foregroundColor;
   }
   set foregroundColor(
     v: string | [number, number, number] | PassColor | undefined,
@@ -317,7 +317,7 @@ export class PassBase extends PassStructure {
    */
   get labelColor(): [number, number, number] | string | undefined | PassColor {
     if (!(this.fields.labelColor instanceof PassColor)) return undefined;
-    return this.fields.labelColor.getRGB();
+    return this.fields.labelColor;
   }
   set labelColor(v: string | [number, number, number] | PassColor | undefined) {
     if (!v) {

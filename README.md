@@ -1,6 +1,6 @@
 [![npm (scoped)](https://img.shields.io/npm/v/@destinationstransfers/passkit.svg)](https://www.npmjs.com/package/@destinationstransfers/passkit) [![codecov](https://codecov.io/gh/destinationstransfers/passkit/branch/master/graph/badge.svg)](https://codecov.io/gh/destinationstransfers/passkit)
 [![Build Status](https://dev.azure.com/destinationstransfers/passkit/_apis/build/status/destinationstransfers.passkit?branchName=master)](https://dev.azure.com/destinationstransfers/passkit/_build/latest?definitionId=2&branchName=master)
-[![Known Vulnerabilities](https://snyk.io/test/github/destinationstransfers/passkit/badge.svg)](https://snyk.io/test/github/destinationstransfers/passkit) [![DeepScan Grade](https://deepscan.io/api/projects/352/branches/551/badge/grade.svg)](https://deepscan.io/dashboard/#view=project&pid=352&bid=551) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=destinationstransfers_passkit&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=destinationstransfers_passkit) [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=destinationstransfers_passkit&metric=ncloc)](https://sonarcloud.io/dashboard?id=destinationstransfers_passkit) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=destinationstransfers_passkit&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=destinationstransfers_passkit) [![tested with jest](https://img.shields.io/badge/tested_with-jest-99424f.svg)](https://github.com/facebook/jest)
+[![Known Vulnerabilities](https://snyk.io/test/github/destinationstransfers/passkit/badge.svg)](https://snyk.io/test/github/destinationstransfers/passkit) [![DeepScan grade](https://deepscan.io/api/teams/2667/projects/4302/branches/35050/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=2667&pid=4302&bid=35050) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=destinationstransfers_passkit&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=destinationstransfers_passkit) [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=destinationstransfers_passkit&metric=ncloc)](https://sonarcloud.io/dashboard?id=destinationstransfers_passkit) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=destinationstransfers_passkit&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=destinationstransfers_passkit) [![tested with jest](https://img.shields.io/badge/tested_with-jest-99424f.svg)](https://github.com/facebook/jest)
 
 # @destinationstransfers/passkit
 
@@ -140,7 +140,7 @@ pass.primaryFields.clear();
 Adding images to a pass is the same as adding images to a template:
 
 ```js
-await pass.images.set("icon", iconFilename, "2x", "ru");
+await pass.images.add("icon", iconFilename, "2x", "ru");
 
 // following will load all appropriate images in all densities and localizations
 await pass.images.load("./images");
@@ -178,7 +178,7 @@ pass.localizations
   });
 
 // Images
-await template.images.set(
+await template.images.add(
   "logo" | "icon" | etc,
   imageFilePathOrBufferWithPNGdata,
   "1x" | "2x" | "3x" | undefined,

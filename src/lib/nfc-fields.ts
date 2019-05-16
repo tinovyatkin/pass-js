@@ -10,12 +10,13 @@ import { NFCDictionary } from '../interfaces';
  * @see {@link https://github.com/digitalbazaar/forge/issues/237}
  */
 
-export class NFCField {
-  private nfc: { message: string; publicKey?: string }[] = [];
-
+export class NFCField extends Array<{
+  message: string;
+  publicKey?: string;
+}> {
   toJSON(): NFCDictionary[] | undefined {
-    if (this.nfc.length < 1) return undefined;
-    return this.nfc.map(({ message, publicKey }) => ({
+    if (this.length < 1) return undefined;
+    return this.map(({ message, publicKey }) => ({
       message,
       encryptionPublicKey: publicKey
         ? // we need internal part of PEM message
@@ -57,7 +58,7 @@ export class NFCField {
       if (!oid.includes('840.10045.2.1'))
         throw new TypeError(`Public key must be a ECDH public key`);
 
-      this.nfc.push({ message, publicKey });
+      this.push({ message, publicKey });
     }
     return this;
   }
@@ -95,7 +96,7 @@ export class NFCField {
   }
 
   clear(): this {
-    this.nfc = [];
+    this.length = 0;
     return this;
   }
 }
