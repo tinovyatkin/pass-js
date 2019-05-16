@@ -10,8 +10,8 @@ import { PassStructure } from './pass-structure';
 const STRUCTURE_FIELDS_SET = new Set([...STRUCTURE_FIELDS, 'nfc']);
 
 export class PassBase extends PassStructure {
-  images: PassImages;
-  localization: Localizations;
+  readonly images: PassImages;
+  readonly localization: Localizations;
 
   constructor(
     fields: Partial<ApplePass> = {},
