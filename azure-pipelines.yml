@@ -9,6 +9,8 @@ jobs:
      vmImage: 'Ubuntu-latest'
     steps:
       - template: azure-pipelines-steps.yml
+      - script: npx tsc --noEmit
+        displayName: Typescript check
       - script: npm run lint -- --format json -o eslint-results.json
         displayName: 'Run ESLint for Sonar'
       - task: SonarCloudPrepare@1

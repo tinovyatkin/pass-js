@@ -14,9 +14,48 @@ export class NFCField extends Array<{
   message: string;
   publicKey?: string;
 }> {
+  constructor(nfcs?: NFCDictionary[]) {
+    super();
+    if (!nfcs) return;
+    /**
+     * The payload to be transmitted to the Apple Pay terminal.
+     * Must be 64 bytes or less.
+     * Messages longer than 64 bytes are truncated by the system.
+     
+     message: string;
+   */
+    /**
+         * The public encryption key used by the Value Added Services protocol.
+         * Use a Base64 encoded X.509 SubjectPublicKeyInfo structure containing a ECDH public key for group P256.
+          
+         encryptionPublicKey ?: string;
+      */
+    // we will decode everything
+    if (!Array.isArray(nfcs))
+      throw new TypeError(
+        `nfc must be an array, received ${typeof nfcs}: ${JSON.stringify(
+          nfcs,
+        )}`,
+      );
+    if (nfcs.length < 1) return;
+    for (const { message, encryptionPublicKey } of nfcs) {
+      if (encryptionPublicKey) {
+        if (typeof encryptionPublicKey !== 'string')
+          throw new TypeError(
+            `encryptionPublicKey must be Base64 encoded X.509 SubjectPublicKeyInfo structure containing a ECDH public key for group P256`,
+          );
+        // this will check the PEM
+        this.add(
+          message,
+          Buffer.from(encryptionPublicKey, 'base64').toString('utf8'),
+        );
+      } else this.add(message);
+    }
+  }
+
   toJSON(): NFCDictionary[] | undefined {
     if (this.length < 1) return undefined;
-    return this.map(({ message, publicKey }) => ({
+    return Array.from(this, ({ message, publicKey }) => ({
       message,
       encryptionPublicKey: publicKey
         ? // we need internal part of PEM message
@@ -61,38 +100,6 @@ export class NFCField extends Array<{
       this.push({ message, publicKey });
     }
     return this;
-  }
-
-  addRaw(nfcs: NFCDictionary[]): void {
-    /**
-     * The payload to be transmitted to the Apple Pay terminal.
-     * Must be 64 bytes or less.
-     * Messages longer than 64 bytes are truncated by the system.
-     
-     message: string;
-   */
-    /**
-         * The public encryption key used by the Value Added Services protocol.
-         * Use a Base64 encoded X.509 SubjectPublicKeyInfo structure containing a ECDH public key for group P256.
-          
-         encryptionPublicKey ?: string;
-      */
-    // we will decode everything
-    if (!Array.isArray(nfcs)) throw new TypeError(`nfc must be an array`);
-    if (nfcs.length < 1) return;
-    for (const { message, encryptionPublicKey } of nfcs) {
-      if (encryptionPublicKey) {
-        if (typeof encryptionPublicKey !== 'string')
-          throw new TypeError(
-            `encryptionPublicKey must be Base64 encoded X.509 SubjectPublicKeyInfo structure containing a ECDH public key for group P256`,
-          );
-        // this will check the PEM
-        this.add(
-          message,
-          Buffer.from(encryptionPublicKey, 'base64').toString('utf8'),
-        );
-      } else this.add(message);
-    }
   }
 
   clear(): this {
