@@ -12,7 +12,7 @@ describe('Template', () => {
     expect(() => new Template('discount')).toThrow();
   });
 
-  it('fields', () => {
+  it('doesn`t mutate fields', () => {
     const templ = new Template('coupon', originalFields);
     expect(templ.passTypeIdentifier).toBe('com.example.passbook');
     templ.passTypeIdentifier = 'com.byaka.buka';
@@ -22,38 +22,6 @@ describe('Template', () => {
     // should not change when original object changes'
     originalFields.passTypeIdentifier = 'com.example.somethingelse';
     expect(templ.passTypeIdentifier).toBe('com.byaka.buka');
-  });
-
-  it('webServiceURL', () => {
-    const templ = new Template('coupon', originalFields);
-    expect(() => {
-      templ.webServiceURL = 'https://transfers.do/webservice';
-    }).not.toThrow();
-    // should throw on bad url
-    expect(() => {
-      templ.webServiceURL = '/webservice';
-    }).toThrow();
-  });
-
-  it('color values as RGB triplets', () => {
-    const templ = new Template('coupon', originalFields);
-    expect(() => {
-      templ.backgroundColor = 'rgb(125, 125,0)';
-    }).not.toThrow();
-    // color-string reduces maximum to 255 but still generates the color
-    expect(() => {
-      templ.labelColor = 'rgba(33, 344,3)';
-    }).not.toThrow();
-    expect(() => {
-      templ.foregroundColor = 'rgb(33, 0,287)';
-    }).not.toThrow();
-    // should convert values to rgb
-    templ.foregroundColor = 'white';
-    expect(templ.foregroundColor).toEqual([255, 255, 255]);
-    // should throw on bad color
-    expect(() => {
-      templ.foregroundColor = 'byaka a ne color';
-    }).toThrow('Invalid color value');
   });
 
   it('loading template from a folder', async () => {
