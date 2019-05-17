@@ -5,7 +5,7 @@ Array [
   "icon.png",
   "ru.lproj/logo.png",
   "ru.lproj/logo@2x.png",
-  "zh_CN.lproj/logo.png",
-  "zh_CN.lproj/logo@2x.png",
+  "zh-CN.lproj/logo.png",
+  "zh-CN.lproj/logo@2x.png",
 ]
 `;

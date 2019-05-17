@@ -5,12 +5,10 @@
  * @see {@link https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/PassKit_PG/Creating.html#//apple_ref/doc/uid/TP40012195-CH4-SW54}
  */
 
-import { createReadStream } from 'fs';
+import { createReadStream, promises as fs } from 'fs';
 import { createInterface } from 'readline';
 import * as path from 'path';
 import { EOL } from 'os';
-
-import * as glob from 'fast-glob';
 
 /**
  * Just as in C, some characters must be prefixed with a backslash before you can include them in the string.
@@ -122,43 +120,38 @@ export class Localizations extends Map<string, Map<string, string>> {
     }));
   }
 
+  normalizeLang(lang: string): string {
+    return lang.replace(/_/g, '-');
+  }
+
+  async addFile(language: string, filename: string): Promise<void> {
+    this.set(this.normalizeLang(language), await readLprojStrings(filename));
+  }
+
   /**
    * Loads available localizations from given folder path
    *
    * @param {string} dirPath
    */
   async load(dirPath: string): Promise<void> {
-    for await (const file of glob.stream(
-      [path.join(dirPath, '*.lproj/pass.strings')],
-      {
-        onlyFiles: true,
-        deep: 1,
-      },
-    )) {
-      if (typeof file !== 'string') continue;
-      /*
-          The file is always ends with something like /zh_CN.lproj/pass.string
-          So, taking the end will give us a language
-          */
-      const language = path
-        .basename(path.dirname(file), '.lproj')
-        .replace(/_/g, '-'); // we will tolerate zh_CN as well as zh-CN
-      /**
-       * @see {@link https://stackoverflow.com/questions/8758340/regex-to-detect-locales}
-       */
-      if (
-        !/^[A-Za-z]{2,4}(-([A-Za-z]{4}|\d{3}))?(-([A-Za-z]{2}|\d{3}))?$/.test(
-          language,
-        )
-      ) {
-        console.warn(
-          'Localization file %s was not loaded because "%s" is not looks like a valid language/locale code',
-          file,
-          language,
+    const entries = await fs.readdir(dirPath, { withFileTypes: true });
+    const loaders: Promise<void>[] = [];
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      // check if it's a localization folder
+      const test = /^(?<lang>[-A-Z_a-z]+)\.lproj$/.exec(entry.name);
+      if (!test) continue;
+      const { lang } = test.groups as { lang: string };
+      const currentPath = path.join(dirPath, entry.name);
+      const localizations = await fs.readdir(currentPath, {
+        withFileTypes: true,
+      });
+      // check if it has strings and load
+      if (localizations.find(f => f.isFile() && f.name === 'pass.strings'))
+        loaders.push(
+          this.addFile(lang, path.join(currentPath, 'pass.strings')),
         );
-        return;
-      }
-      this.set(language, await readLprojStrings(file));
     }
+    await Promise.all(loaders);
   }
 }

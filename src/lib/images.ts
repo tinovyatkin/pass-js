@@ -8,7 +8,6 @@ import { promisify } from 'util';
 import * as path from 'path';
 import { createReadStream, promises as fs } from 'fs';
 
-import glob from 'fast-glob';
 import * as imagesize from 'imagesize';
 
 import { IMAGES, DENSITIES } from '../constants';
@@ -32,8 +31,10 @@ export type ImageType =
   | 'strip'
   | 'thumbnail';
 
-const IMAGES_GLOB = `(${Object.keys(IMAGES).join('|')})*(@2x|@3x).png`;
 const IMAGES_TYPES = new Set(Object.keys(IMAGES));
+export const IMAGE_FILENAME_REGEX = new RegExp(
+  `^(?<imageType>${Object.keys(IMAGES).join('|')}+)(@(?<density>[23]x))?.png$`,
+);
 
 export class PassImages extends Map<string, string | Buffer> {
   constructor(images?: PassImages) {
@@ -67,31 +68,52 @@ export class PassImages extends Map<string, string | Buffer> {
    * Load all images from the specified directory. Only supported images are
    * loaded, nothing bad happens if directory contains other files.
    *
-   * @param {string} dir - path to a directory with images
+   * @param {string} dirPath - path to a directory with images
    * @memberof PassImages
    */
-  async load(dir: string): Promise<this> {
-    for await (const file of glob.stream(
-      [path.join(dir, IMAGES_GLOB), path.join(dir, '*.lproj', IMAGES_GLOB)],
-      {
-        onlyFiles: true,
-        deep: 1,
-      },
-    )) {
-      if (typeof file !== 'string') continue;
-      // getting image type and optional density and language
-      const re = /((?<lang>[-A-Z_a-z]+)\.lproj\/)?(?<imageType>[a-z]+)(@(?<density>[23]x))?\.png$/.exec(
-        file,
-      );
-      if (!re) continue;
-      const { imageType, density, lang } = re.groups as {
-        imageType: ImageType;
-        density?: ImageDensity;
-        lang?: string;
-      };
-      await this.add(imageType, file, density, lang);
+  async load(dirPath: string): Promise<this> {
+    // Check if the path is accessible directory actually
+    const entries = await fs.readdir(dirPath, { withFileTypes: true });
+    // checking rest of files
+    const entriesLoader: Promise<void>[] = [];
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        // check if it's a localization folder
+        const test = /(?<lang>[-A-Z_a-z]+)\.lproj/.exec(entry.name);
+        if (!test || !test.groups || !test.groups.lang) continue;
+        const lang = test.groups.lang.replace(/_/g, '-');
+        // reading this directory
+        const currentPath = path.join(dirPath, entry.name);
+        const localizations = await fs.readdir(currentPath, {
+          withFileTypes: true,
+        });
+        // check if we have any localized images
+        for (const f of localizations) {
+          const img = this.parseFilename(f.name);
+          if (img)
+            entriesLoader.push(
+              this.add(
+                img.imageType,
+                path.join(currentPath, f.name),
+                img.density,
+                lang,
+              ),
+            );
+        }
+      } else {
+        // check it it's an image
+        const img = this.parseFilename(entry.name);
+        if (img)
+          entriesLoader.push(
+            this.add(
+              img.imageType,
+              path.join(dirPath, entry.name),
+              img.density,
+            ),
+          );
+      }
     }
-
+    await Promise.all(entriesLoader);
     return this;
   }
 
@@ -128,6 +150,14 @@ export class PassImages extends Map<string, string | Buffer> {
     }
     this.checkImage(imageType, sizeRes, density);
     super.set(this.getImageFilename(imageType, density, lang), pathOrBuffer);
+  }
+
+  parseFilename(
+    fileName: string,
+  ): { imageType: ImageType; density?: ImageDensity } | undefined {
+    const test = IMAGE_FILENAME_REGEX.exec(fileName);
+    if (!test) return undefined;
+    return test.groups as { imageType: ImageType; density?: ImageDensity };
   }
 
   // eslint-disable-next-line complexity

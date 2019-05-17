@@ -23,7 +23,7 @@ const {
   NGHTTP2_CANCEL,
   HTTP2_METHOD_POST,
 } = http2.constants;
-const { stat, readFile } = fs;
+const { readFile, readdir } = fs;
 
 // Create a new template.
 //
@@ -58,18 +58,19 @@ export class Template extends PassBase {
    * @throws - if given folder doesn't contain pass.json or it is in invalid format
    * @memberof Template
    */
+  // eslint-disable-next-line max-statements, sonarjs/cognitive-complexity
   static async load(
     folderPath: string,
     keyPassword?: string,
   ): Promise<Template> {
     // Check if the path is accessible directory actually
-    const stats = await stat(folderPath);
-    if (!stats.isDirectory())
-      throw new ReferenceError(`Path ${folderPath} must be a directory!`);
-
+    const entries = await readdir(folderPath, { withFileTypes: true });
     // getting main JSON file
     let template: Template | undefined;
-    try {
+
+    // read pass.json first to create template instance
+    if (entries.find(entry => entry.isFile() && entry.name === 'pass.json')) {
+      // loading main JSON file
       const jsonContent = await readFile(join(folderPath, 'pass.json'), 'utf8');
       const passJson = JSON.parse(stripJsonComments(jsonContent)) as Partial<
         ApplePass
@@ -85,30 +86,68 @@ export class Template extends PassBase {
       }
       if (!type) throw new TypeError('Unknown pass style!');
       template = new Template(type, passJson);
-    } catch (err) {
-      if (err.code !== 'ENOENT') throw err;
-    }
-    if (!template) template = new Template();
-
-    await Promise.all([
-      // load images from the same folder
-      template.images.load(folderPath),
-      // load localizations strings
-      await template.localization.load(folderPath),
-    ]);
-
-    // checking if there is a key - must be named ${passTypeIdentifier}.pem
+    } else template = new Template();
     const { passTypeIdentifier } = template;
-    if (typeof passTypeIdentifier === 'string') {
-      const keyName = `${passTypeIdentifier.replace(/^pass\./, '')}.pem`;
-      const certFileName = join(folderPath, keyName);
-      try {
-        // following will throw if file doesn't exists or can't be read
-        await template.loadCertificate(certFileName, keyPassword);
-      } catch (err) {
-        if (err.code !== 'ENOENT') throw err;
+    const keyName = passTypeIdentifier
+      ? `${passTypeIdentifier.replace(/^pass\./, '')}.pem`
+      : undefined;
+
+    // checking rest of files
+    const entriesLoader: Promise<void>[] = [];
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        // check if it's a localization folder
+        const test = /(?<lang>[-A-Z_a-z]+)\.lproj/.exec(entry.name);
+        if (!test || !test.groups || !test.groups.lang) continue;
+        const lang = template.localization.normalizeLang(test.groups.lang);
+        // reading this directory
+        const currentPath = join(folderPath, entry.name);
+        const localizations = await readdir(currentPath, {
+          withFileTypes: true,
+        });
+        // check if it has strings and load
+        if (localizations.find(f => f.isFile() && f.name === 'pass.strings'))
+          entriesLoader.push(
+            template.localization.addFile(
+              lang,
+              join(currentPath, 'pass.strings'),
+            ),
+          );
+        // check if we have any localized images
+        for (const f of localizations) {
+          const img = template.images.parseFilename(f.name);
+          if (img)
+            entriesLoader.push(
+              template.images.add(
+                img.imageType,
+                join(currentPath, f.name),
+                img.density,
+                lang,
+              ),
+            );
+        }
+      } else {
+        // check if it's a certificate/key
+        if (entry.name === keyName) {
+          // following will throw if file doesn't exists or can't be read
+          entriesLoader.push(
+            template.loadCertificate(join(folderPath, keyName), keyPassword),
+          );
+          continue;
+        }
+        // check it it's an image
+        const img = template.images.parseFilename(entry.name);
+        if (img)
+          entriesLoader.push(
+            template.images.add(
+              img.imageType,
+              join(folderPath, entry.name),
+              img.density,
+            ),
+          );
       }
     }
+    await Promise.all(entriesLoader);
     // done
     return template;
   }
