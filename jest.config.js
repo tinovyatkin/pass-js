@@ -5,7 +5,7 @@ module.exports = {
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
   preset: "ts-jest",
   testEnvironment: "node",
-  setupFilesAfterEnv: [require.resolve("expect-more-jest")],
+  setupFilesAfterEnv: ["jest-extended"],
   watchPathIgnorePatterns: [
     "<rootDir>/node_modules/",
     "<rootDir>/.sonarlint/",

@@ -24,6 +24,6 @@
     "outDir": "./dist",
     "sourceMap": true
   },
-  "include": ["src/**/*.ts", "global.d.ts"],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "@types"]
 }
