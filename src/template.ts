@@ -58,7 +58,7 @@ export class Template extends PassBase {
    * @throws - if given folder doesn't contain pass.json or it is in invalid format
    * @memberof Template
    */
-  // eslint-disable-next-line max-statements
+  // eslint-disable-next-line max-statements, sonarjs/cognitive-complexity
   static async load(
     folderPath: string,
     keyPassword?: string,
