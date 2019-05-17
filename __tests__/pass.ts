@@ -132,9 +132,13 @@ describe('Pass', () => {
     // ensure it parses well fields
     expect(templ.backFields.size).toBe(2);
     expect(templ.auxiliaryFields.size).toBe(4);
-    expect(templ.relevantDate).toBeDate();
+    expect(templ.relevantDate).toBeValidDate();
     expect(templ.relevantDate.getFullYear()).toBe(2012);
-    expect(templ.barcodes).toBeArrayOfObjects();
+    expect(templ.barcodes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ message: expect.toBeString() }),
+      ]),
+    );
     // switching transit type
     const pass = templ.createPass();
     expect(pass.transitType).toBe(constants.TRANSIT.AIR);

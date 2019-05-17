@@ -25,7 +25,11 @@ describe('NFCField', () => {
         ),
       },
     ]);
-    expect(nfc.toJSON()).toBeArrayOfObjects();
+    expect(nfc.toJSON()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ message: expect.toBeString() }),
+      ]),
+    );
   });
 
   it('add Base64 encoded public key', () => {
