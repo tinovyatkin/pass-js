@@ -1,12 +1,14 @@
 /**
  * Class to handle Apple pass localizations
- * @see {@link https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/PassKit_PG/Creating.html#//apple_ref/doc/uid/TP40012195-CH4-SW54}
  *
+ * @see {@link @see https://apple.co/2M9LWVu} - String Resources
+ * @see {@link https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/PassKit_PG/Creating.html#//apple_ref/doc/uid/TP40012195-CH4-SW54}
  */
 
 import { createReadStream } from 'fs';
 import { createInterface } from 'readline';
 import * as path from 'path';
+import { EOL } from 'os';
 
 import * as glob from 'fast-glob';
 
@@ -35,12 +37,18 @@ export async function readLprojStrings(
     const test = /^"(?<msgId>.+)"\s*=\s*"(?<msgStr>.+)"\s*;/.exec(l);
     if (!test) continue;
     let { msgId, msgStr } = test.groups as { msgId: string; msgStr: string };
+    /**
+     * Just as in C, some characters must be prefixed with a backslash before you can include them in the string.
+     * These characters include double quotation marks, the backslash character itself,
+     * and special control characters such as linefeed (\n) and carriage returns (\r).
+     * @see {@link https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/LoadingResources/Strings/Strings.html#//apple_ref/doc/uid/10000051i-CH6-SW13}
+     */
     //  convert escaped quotes
     msgId = msgId.replace(/\\"/g, '"');
     msgStr = msgStr.replace(/\\"/g, '"');
     //  convert escaped new lines
-    msgId = msgId.replace(/\\n/g, '\n');
-    msgStr = msgStr.replace(/\\n/g, '\n');
+    msgId = msgId.replace(/\\n/g, EOL);
+    msgStr = msgStr.replace(/\\n/g, EOL);
     res.set(msgId, msgStr);
   }
   return res;
@@ -52,17 +60,24 @@ export async function readLprojStrings(
  * @param {Map.<string, string>} strings
  */
 export function getLprojBuffer(strings: Map<string, string>): Buffer {
+  /**
+   * Just as in C, some characters must be prefixed with a backslash before you can include them in the string.
+   * These characters include double quotation marks, the backslash character itself,
+   * and special control characters such as linefeed (\n) and carriage returns (\r).
+   * @see {@link https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/LoadingResources/Strings/Strings.html#//apple_ref/doc/uid/10000051i-CH6-SW13}
+   */
   return Buffer.from(
-    [...strings]
-      .map(
-        ([key, value]) =>
-          `"${key
-            .replace(/\n/gm, '\\n') // escape new lines
-            .replace(/"/g, '"')}" = "${value
-            .replace(/\n/gm, '\\n') // escape new lines
-            .replace(/"/g, '"')}";`,
-      )
-      .join('\n'),
+    '\ufeff' /* byte order mark - UTF16 LE */ +
+      [...strings]
+        .map(
+          ([key, value]) =>
+            `"${key
+              .replace(/\n/gm, '\\n') // escape new lines
+              .replace(/"/g, '"')}" = "${value
+              .replace(/\n/gm, '\\n') // escape new lines
+              .replace(/"/g, '"')}";`,
+        )
+        .join(EOL),
     'utf16le',
   );
 }
@@ -79,6 +94,12 @@ export class Localizations extends Map<string, Map<string, string>> {
         : undefined,
     );
   }
+
+  /**
+   *
+   * @param {string} lang -  ISO 3166 alpha-2 code for the language
+   * @param {{ [k: string]?: string }} values
+   */
   add(lang: string, values: { [k: string]: string }): this {
     const map: Map<string, string> = this.get(lang) || new Map();
     for (const [key, value] of Object.entries(values)) {
