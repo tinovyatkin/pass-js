@@ -33,4 +33,8 @@ describe('W3C dates strings ', () => {
     expect(date1.getMinutes()).toBe(date.getMinutes());
     expect(date.getTimezoneOffset()).toBe(date.getTimezoneOffset());
   });
+
+  it('throws on invalid argument type', () => {
+    expect(() => getW3CDateString({ byaka: 'buka' })).toThrow(TypeError);
+  });
 });
