@@ -13,6 +13,28 @@ import { EOL } from 'os';
 import * as glob from 'fast-glob';
 
 /**
+ * Just as in C, some characters must be prefixed with a backslash before you can include them in the string.
+ * These characters include double quotation marks, the backslash character itself,
+ * and special control characters such as linefeed (\n) and carriage returns (\r).
+ *
+ * @see {@link https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/LoadingResources/Strings/Strings.html#//apple_ref/doc/uid/10000051i-CH6-SW13}
+ */
+
+export function escapeString(str: string): string {
+  return str
+    .replace(/["\\]/g, '\\$&') // quote and backslash
+    .split(EOL)
+    .join('\\n'); // escape new lines
+}
+
+export function unescapeString(str: string): string {
+  return str
+    .split('\\n') // new line
+    .join(EOL)
+    .replace(/\\(["\\])/g, '$1'); // quote and backslash
+}
+
+/**
  * @see {@link https://github.com/justinklemm/i18n-strings-files/blob/dae303ed60d9d43dbe1a39bb66847be8a0d62c11/index.coffee#L100}
  * @param {string} filename - path to pass.strings file
  */
@@ -36,20 +58,8 @@ export async function readLprojStrings(
     // check for first quote, assignment operator, and final semicolon
     const test = /^"(?<msgId>.+)"\s*=\s*"(?<msgStr>.+)"\s*;/.exec(l);
     if (!test) continue;
-    let { msgId, msgStr } = test.groups as { msgId: string; msgStr: string };
-    /**
-     * Just as in C, some characters must be prefixed with a backslash before you can include them in the string.
-     * These characters include double quotation marks, the backslash character itself,
-     * and special control characters such as linefeed (\n) and carriage returns (\r).
-     * @see {@link https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/LoadingResources/Strings/Strings.html#//apple_ref/doc/uid/10000051i-CH6-SW13}
-     */
-    //  convert escaped quotes
-    msgId = msgId.replace(/\\"/g, '"');
-    msgStr = msgStr.replace(/\\"/g, '"');
-    //  convert escaped new lines
-    msgId = msgId.replace(/\\n/g, EOL);
-    msgStr = msgStr.replace(/\\n/g, EOL);
-    res.set(msgId, msgStr);
+    const { msgId, msgStr } = test.groups as { msgId: string; msgStr: string };
+    res.set(unescapeString(msgId), unescapeString(msgStr));
   }
   return res;
 }
@@ -71,13 +81,9 @@ export function getLprojBuffer(strings: Map<string, string>): Buffer {
       [...strings]
         .map(
           ([key, value]) =>
-            `"${key
-              .replace(/\n/gm, '\\n') // escape new lines
-              .replace(/"/g, '"')}" = "${value
-              .replace(/\n/gm, '\\n') // escape new lines
-              .replace(/"/g, '"')}";`,
+            `"${escapeString(key)}" = "${escapeString(value)}";`,
         )
-        .join(EOL),
+        .join('\n'), // macOs compatible output for Buffer, so no EOL
     'utf16le',
   );
 }

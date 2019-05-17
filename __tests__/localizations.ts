@@ -18,6 +18,14 @@ const ZH_STRINGS_FILE = path.resolve(
 );
 
 describe('Localizations files helpers', () => {
+  it('escapeString -> unescape', () => {
+    const str = `This is "multiline" string',
+      with some rare character like \\ and \\\\ 😜 inside it`;
+    expect(Localization.unescapeString(Localization.escapeString(str))).toBe(
+      str,
+    );
+  });
+
   if (process.platform === 'darwin') {
     it('string fixtures files must pass plutil -lint', async () => {
       const stdout = execFileSync(
@@ -49,17 +57,13 @@ describe('Localizations files helpers', () => {
 
   if (process.platform === 'darwin') {
     it('output buffer passes plutil -lint', async () => {
-      const resRu = await Localization.readLprojStrings(ZH_STRINGS_FILE);
+      const resZh = await Localization.readLprojStrings(ZH_STRINGS_FILE);
       const tmd = mkdtempSync(`${tmpdir()}${path.sep}`);
       const stringsFileName = path.join(
         tmd,
         `pass-${randomBytes(10).toString('hex')}.strings`,
       );
-      writeFileSync(
-        stringsFileName,
-        Localization.getLprojBuffer(resRu),
-        'utf16le',
-      );
+      writeFileSync(stringsFileName, Localization.getLprojBuffer(resZh));
 
       const stdout = execFileSync('plutil', ['-lint', stringsFileName], {
         encoding: 'utf8',
@@ -75,6 +79,28 @@ describe('Localizations files helpers', () => {
     expect(loc.size).toBe(2);
     // ensure it normalizes locale
     expect(loc.has('zh-CN')).toBeTruthy();
+  });
+
+  it('read -> write -> compare', async () => {
+    const resRu = await Localization.readLprojStrings(RU_STRINGS_FILE);
+    const tmd = mkdtempSync(`${tmpdir()}${path.sep}`);
+    const stringsFileName = path.join(
+      tmd,
+      `pass-${randomBytes(10).toString('hex')}.strings`,
+    );
+    writeFileSync(stringsFileName, Localization.getLprojBuffer(resRu));
+
+    const resRu2 = await Localization.readLprojStrings(stringsFileName);
+
+    // If we on macOs we can't miss an opportunity to plutil -lint
+    if (process.platform === 'darwin') {
+      const stdout = execFileSync('plutil', ['-lint', stringsFileName], {
+        encoding: 'utf8',
+      });
+      expect(stdout.trim()).toEndWith(': OK');
+    }
+    unlinkSync(stringsFileName);
+    expect([...resRu]).toIncludeSameMembers([...resRu2]);
   });
 
   it('should clone other instance if provided for constructor', () => {
