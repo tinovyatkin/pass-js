@@ -70,8 +70,10 @@ export function signManifest(
     ],
   });
 
-  p7.sign();
-  if (p7.contentInfo) p7.contentInfo.value.pop();
+  /**
+   * Creating a detached signature because we don't need the signed content.
+   */
+  p7.sign({ detached: true });
 
   return Buffer.from(forge.asn1.toDer(p7.toAsn1()).getBytes(), 'binary');
 }
