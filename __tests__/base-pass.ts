@@ -44,16 +44,24 @@ describe('PassBase', () => {
     expect(() => {
       bp.backgroundColor = 'rgb(125, 125,0)';
     }).not.toThrow();
-    // color-string reduces maximum to 255 but still generates the color
     expect(() => {
       bp.labelColor = 'rgba(33, 344,3)';
-    }).not.toThrow();
+    }).toThrow();
     expect(() => {
       bp.foregroundColor = 'rgb(33, 0,287)';
-    }).not.toThrow();
+    }).toThrow();
     // should convert values to rgb
     bp.foregroundColor = 'white';
     expect(bp.foregroundColor).toEqual([255, 255, 255]);
+    // should convert values to rgb
+    bp.foregroundColor = 'rgb(254, 254, 254)';
+    expect(bp.foregroundColor).toEqual([254, 254, 254]);
+    bp.foregroundColor = '#FFF';
+    expect(bp.foregroundColor).toEqual([255, 255, 255]);
+    bp.foregroundColor = 'rgba(0, 0, 255, 0.4)';
+    expect(bp.foregroundColor).toEqual([0, 0, 255]);
+    bp.foregroundColor = 'rgb(0%, 0%, 100%)';
+    expect(bp.foregroundColor).toEqual([0, 0, 255]);
     // should throw on bad color
     expect(() => {
       bp.foregroundColor = 'byaka a ne color';

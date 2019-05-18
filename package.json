@@ -21,12 +21,13 @@
   "main": "./dist/index.js",
   "devDependencies": {
     "@destinationstransfers/eslint-plugin": "2.4.2",
-    "@types/color-string": "1.5.0",
+    "@types/color-name": "1.1.1",
     "@types/jest": "24.0.13",
     "@types/node": "12.0.2",
     "@types/node-forge": "0.8.3",
     "@typescript-eslint/eslint-plugin": "1.9.0",
     "@typescript-eslint/parser": "1.9.0",
+    "cost-of-modules": "^1.0.1",
     "env-app-yaml": "1.0.0",
     "eslint": "5.16.0",
     "jest": "24.8.0",
@@ -40,7 +41,8 @@
     "lint": "eslint \"{src,__tests__}/**/*.ts\" --ignore-pattern \"*test*\" --ignore-path .gitignore",
     "preversion": "npm test",
     "postversion": "git push origin master --tags",
-    "prepublishOnly": "tsc"
+    "prepublishOnly": "tsc",
+    "costs": "cost-of-modules --no-install"
   },
   "keywords": [
     "iOS",
@@ -67,7 +69,7 @@
   },
   "author": "Tino Vyatkin <tino@vtkn.io>",
   "dependencies": {
-    "color-string": "^1.5.3",
+    "color-name": "1.1.4",
     "do-not-zip": "^1.0.0",
     "imagesize": "^1.0.0",
     "node-forge": "^0.8.3",
