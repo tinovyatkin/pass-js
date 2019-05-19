@@ -13,22 +13,21 @@ Portal](https://developer.apple.com/ios/manage/passtypeids/index.action). You
 need one certificate per Pass Type ID.
 
 After adding this certificate to your Keychain, you need to export it as a
-`.p12` file and copy it into the keys directory.
-
-You will also need the [Apple Worldwide Developer Relations Certification
-Authority](https://www.apple.com/certificateauthority/) certificate and to convert the `.p12` files into `.pem` files. You
-can do both using the `passkit-keys` command:
+`.p12` file first, then convert that file into a `.pem` file using the `passkit-keys` command:
 
 ```sh
 ./bin/passkit-keys ./pathToKeysFolder
 ```
 
-This is the same directory into which you placed the `.p12` files.
+and copy it into the keys directory.
+
+The [Apple Worldwide Developer Relations Certification
+Authority](https://www.apple.com/certificateauthority/) certificate is not needed anymore since it is already included in this package.
 
 # Start with a template
 
 Start with a template. A template has all the common data fields that will be
-shared between your passes, and also defines the keys to use for signing it.
+shared between your passes.
 
 ```js
 const { Template } = require("@destinationstransfers/passkit");
@@ -38,16 +37,6 @@ const template = new Template("coupon", {
   teamIdentifier: "MXL",
   backgroundColor: "red"
 });
-
-// or
-
-const template = await Template.load(
-  "./path/to/templateFolder",
-  "secretKeyPasswod"
-);
-// .load will load all fields from pass.json,
-// as well as all images and com.example.passbook.pem file as key
-// and localized images too
 ```
 
 The first argument is the pass style (`coupon`, `eventTicket`, etc), and the
@@ -57,23 +46,18 @@ You can access template fields directly, or from chained accessor methods, e.g:
 
 ```js
 template.passTypeIdentifier = "pass.com.example.passbook";
-
-console.log(template.passTypeIdentifier);
-
 template.teamIdentifier = "MXL";
-template.passTypeIdentifier = "pass.com.example.passbook";
 ```
 
 The following template fields are required:
-`passTypeIdentifier` - The Apple Pass Type ID, begins with "pass."
-`teamIdentifier` - May contain an I
+* `passTypeIdentifier` - The Apple Pass Type ID, which has the prefix `pass.`
+* `teamIdentifier` - May contain an I
 
 You can set any available fields either on a template or pass instance, such as: `backgroundColor`,
 `foregroundColor`, `labelColor`, `logoText`, `organizationName`,
 `suppressStripShine` and `webServiceURL`.
 
-In addition, you need to tell the template where to find the key files and where
-to load images from:
+In addition, you need to tell the template where to find the key file:
 
 ```js
 await template.loadCertificate(
@@ -83,13 +67,28 @@ await template.loadCertificate(
 // or set them as strings
 template.setCertificate(pemEncodedPassCertificate);
 template.setPrivateKey(pemEncodedPrivateKey, optionalKeyPassword);
-
-// if you didn't use Template.load then you can load images from any other folder:
-await template.images.load("./images"); // loadFromDirectory returns Promise
 ```
 
-The last part is optional, but if you have images that are common to all passes,
-you may want to specify them once in the template.
+If you have images that are common to all passes, you may want to specify them once in the template:
+
+```js
+// specify a single image with specific density and localization
+await pass.images.add("icon", iconFilename, "2x", "ru");
+// load all appropriate images in all densities and localizations
+await template.images.load("./images");
+```
+
+You can add the image itself or a `Buffer`. Image format is enforced to be **PNG**.
+
+Alternatively, if you have one directory containing the template file `pass.json`, the key
+`com.example.passbook.pem` and all the needed images, you can just use this single command:
+
+```js
+const template = await Template.load(
+  "./path/to/templateFolder",
+  "secretKeyPasswod"
+);
+```
 
 # Create your pass
 
@@ -102,11 +101,10 @@ const pass = template.createPass({
 });
 ```
 
-Just like template, you can access pass fields directly, e.g:
+Just like the template, you can access pass fields directly, e.g:
 
 ```js
 pass.serialNumber = "12345";
-console.log(pass.serialNumber);
 pass.description = "20% off";
 ```
 
@@ -137,16 +135,7 @@ pass.primaryFields.delete("date");
 pass.primaryFields.clear();
 ```
 
-Adding images to a pass is the same as adding images to a template:
-
-```js
-await pass.images.add("icon", iconFilename, "2x", "ru");
-
-// following will load all appropriate images in all densities and localizations
-await pass.images.load("./images");
-```
-
-You can add the image itself or a `Buffer`. Image format is enforced to be **PNG**.
+Adding images to a pass is the same as adding images to a template (see above).
 
 # Localizations
 
@@ -178,6 +167,7 @@ pass.localizations
   });
 
 // Images
+
 await template.images.add(
   "logo" | "icon" | etc,
   imageFilePathOrBufferWithPNGdata,
@@ -193,13 +183,11 @@ Localization applies for all fields' `label` and `value`. There is a note about 
 To generate a file:
 
 ```js
-async () => {
-  const buf = await pass.asBuffer();
-  await fs.writeFile("pathToPass.pass", buf);
-};
+const buf = await pass.asBuffer();
+await fs.writeFile("pathToPass.pass", buf);
 ```
 
-You can sent the buffer directly to an HTTP server response:
+You can send the buffer directly to an HTTP server response:
 
 ```js
 app.use(async (ctx, next) => {
@@ -208,6 +196,11 @@ app.use(async (ctx, next) => {
   ctx.body = await pass.asBuffer();
 });
 ```
+
+# Troubleshooting
+
+If the pass file generates without errors but still you're not able to open it, you can try opening the pass
+in macOS 10.14+ and inspecting the output in the Console app.
 
 # Credits
 
@@ -221,6 +214,6 @@ Since version 5.0 our module is not API compatible, please see [Releases](https:
 - Migrated tests to Jest
 - Increased test coverage
 - Adds strict dictionary fields values validation (where possible) to prevent errors earlier
-- Adding support for geolocation fields and Becon fields
+- Adding support for geolocation fields and Beacon fields
 - Adding easy template and localization load from JSON file
 - We use it in production at [Transfers.do](https://transfers.do/)
