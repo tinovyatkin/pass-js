@@ -2,9 +2,15 @@
 [![Build Status](https://dev.azure.com/destinationstransfers/passkit/_apis/build/status/destinationstransfers.passkit?branchName=master)](https://dev.azure.com/destinationstransfers/passkit/_build/latest?definitionId=2&branchName=master)
 [![Known Vulnerabilities](https://snyk.io/test/github/destinationstransfers/passkit/badge.svg?targetFile=package.json)](https://snyk.io/test/github/destinationstransfers/passkit?targetFile=package.json) [![DeepScan grade](https://deepscan.io/api/teams/2667/projects/4302/branches/35050/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=2667&pid=4302&bid=35050) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=destinationstransfers_passkit&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=destinationstransfers_passkit) [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=destinationstransfers_passkit&metric=ncloc)](https://sonarcloud.io/dashboard?id=destinationstransfers_passkit) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=destinationstransfers_passkit&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=destinationstransfers_passkit) [![tested with jest](https://img.shields.io/badge/tested_with-jest-99424f.svg)](https://github.com/facebook/jest) [![install size](https://packagephobia.now.sh/badge?p=@destinationstransfers/passkit)](https://packagephobia.now.sh/result?p=@destinationstransfers/passkit) [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/destinationstransfers/passkit.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/destinationstransfers/passkit/context:javascript)
 
+
+<img src="https://docs-assets.developer.apple.com/published/c104c9bff0/841b02dd-b78c-4cad-8da4-700761d34e14.png" alt="Apple Wallet logo" width="216" height="216" align="left">
+
 # @destinationstransfers/passkit
 
-A Node (>= 10.x) module for generating Apple Wallet passes with localizations, NFC and web service push updates support.
+<p align="center">A Node.js library for generating Apple Wallet passes with localizations, NFC and web service push updates support. Written in Typescript.</p>
+
+<br><br><br>
+
 
 # Get your certificates
 
@@ -230,7 +236,7 @@ in macOS 10.14+ and inspecting the output in the Console app.
 This projects started as fork of [assaf/node-passbook](http://github.com/assaf/node-passbook).
 Since version 5.0 our module is not API compatible, please see [Releases](https://github.com/destinationstransfers/passkit/releases) for more information.
 
-- Targeting Node >= 10 and refactored in ES6 Classes, removing deprecated calls (`new Buffer`, etc)
+- Targeting Node >= 10 and rewritten in Typescript, removing deprecated calls (`new Buffer`, etc)
 - Replaces `openssl` spawning with native Javascript RSA implementation (via `node-forge`)
 - Includes `Template.pushUpdates(pushToken)` that sends APN update request for a given pass type to a pushToken (get `pushToken` at your PassKit Web Service implementation)
 - Adds constants for dictionary fields string values
