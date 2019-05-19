@@ -7,6 +7,8 @@ import { PassImages, IMAGE_FILENAME_REGEX } from '../src/lib/images';
 describe('PassImages', () => {
   it('IMAGE_FILENAME_REGEX', () => {
     expect('logo.png').toMatch(IMAGE_FILENAME_REGEX);
+    expect('Somefolder/logo.png').toMatch(IMAGE_FILENAME_REGEX);
+    expect('byakablogo.png').not.toMatch(IMAGE_FILENAME_REGEX);
     expect('icon@2x.png').toMatch(IMAGE_FILENAME_REGEX);
     expect('thumbnail@3x.png').toMatch(IMAGE_FILENAME_REGEX);
     expect('logo@4x').not.toMatch(IMAGE_FILENAME_REGEX);

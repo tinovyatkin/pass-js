@@ -1,4 +1,5 @@
 import * as path from 'path';
+import { readFileSync } from 'fs';
 
 import { Template } from '../src/template';
 
@@ -46,6 +47,17 @@ describe('Template', () => {
     expect(templ.localization.size).toBe(2);
     // ensure it normalizes locales name
     expect(templ.localization.has('zh-CN')).toBeTruthy();
+  });
+
+  it('loads template from ZIP buffer', async () => {
+    const buffer = readFileSync(
+      path.resolve(__dirname, './resources/passes/Generic.zip'),
+    );
+    const res = await Template.fromBuffer(buffer);
+    expect(res).toBeInstanceOf(Template);
+    expect(res.images.size).toBe(8);
+    expect(res.localization.size).toBe(3);
+    expect(res.localization.get('zh-CN').size).toBe(29);
   });
 
   it('push updates', async () => {
