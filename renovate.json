@@ -12,7 +12,8 @@
   "timezone": "America/Santo_Domingo",
   "pin": {
     "requiredStatusChecks": null,
-    "automerge": true
+    "automerge": true,
+    "bumpVersion": null
   },
   "bumpVersion": "patch"
 }
