@@ -65,6 +65,19 @@
         "caughtErrors": "none"
       }
     ],
+    "@typescript-eslint/ban-types": [
+      "error",
+      {
+        "types": {
+          "Array": null,
+          "Object": "Use {} instead",
+          "String": {
+            "message": "Use string instead",
+            "fixWith": "string"
+          }
+        }
+      }
+    ],
     // requires project
     "@typescript-eslint/promise-function-async": "error",
     "@typescript-eslint/no-for-in-array": "error"

@@ -22,10 +22,8 @@ export class Pass extends PassBase {
     images?: PassImages,
     localization?: import('./lib/localizations').Localizations,
   ) {
-    super(fields, images);
-
+    super(fields, images, localization);
     this.template = template;
-    if (images) Object.assign(this.images, images, localization);
 
     Object.preventExtensions(this);
   }

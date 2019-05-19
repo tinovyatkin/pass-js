@@ -12,6 +12,8 @@ import * as imagesize from 'imagesize';
 
 import { IMAGES, DENSITIES } from '../constants';
 
+import { normalizeLocale } from './normalize-locale';
+
 interface ImageSizeResult {
   format: 'gif' | 'png' | 'jpeg';
   width: number;
@@ -33,7 +35,9 @@ export type ImageType =
 
 const IMAGES_TYPES = new Set(Object.keys(IMAGES));
 export const IMAGE_FILENAME_REGEX = new RegExp(
-  `^(?<imageType>${Object.keys(IMAGES).join('|')}+)(@(?<density>[23]x))?.png$`,
+  `(^|/)((?<lang>[-A-Z_a-z]+).lproj/)?(?<imageType>${Object.keys(IMAGES).join(
+    '|',
+  )}+)(@(?<density>[23]x))?.png$`,
 );
 
 export class PassImages extends Map<string, string | Buffer> {
@@ -81,7 +85,7 @@ export class PassImages extends Map<string, string | Buffer> {
         // check if it's a localization folder
         const test = /(?<lang>[-A-Z_a-z]+)\.lproj/.exec(entry.name);
         if (!test || !test.groups || !test.groups.lang) continue;
-        const lang = test.groups.lang.replace(/_/g, '-');
+        const { lang } = test.groups;
         // reading this directory
         const currentPath = path.join(dirPath, entry.name);
         const localizations = await fs.readdir(currentPath, {
@@ -154,10 +158,19 @@ export class PassImages extends Map<string, string | Buffer> {
 
   parseFilename(
     fileName: string,
-  ): { imageType: ImageType; density?: ImageDensity } | undefined {
+  ):
+    | { imageType: ImageType; density?: ImageDensity; lang?: string }
+    | undefined {
     const test = IMAGE_FILENAME_REGEX.exec(fileName);
-    if (!test) return undefined;
-    return test.groups as { imageType: ImageType; density?: ImageDensity };
+    if (!test || !test.groups) return undefined;
+    const res: {
+      imageType: ImageType;
+      density?: ImageDensity;
+      lang?: string;
+    } = { imageType: test.groups.imageType as ImageType };
+    if (test.groups.density) res.density = test.groups.density as ImageDensity;
+    if (test.groups.lang) res.lang = normalizeLocale(test.groups.lang);
+    return res;
   }
 
   // eslint-disable-next-line complexity
@@ -263,7 +276,7 @@ export class PassImages extends Map<string, string | Buffer> {
     density?: ImageDensity,
     lang?: string,
   ): string {
-    return `${lang ? `${lang}.lproj/` : ''}${imageType}${
+    return `${lang ? `${normalizeLocale(lang)}.lproj/` : ''}${imageType}${
       /^[23]x$/.test(density || '') ? `@${density}` : ''
     }.png`;
   }

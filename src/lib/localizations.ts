@@ -10,6 +10,8 @@ import { createInterface } from 'readline';
 import * as path from 'path';
 import { EOL } from 'os';
 
+import { normalizeLocale } from './normalize-locale';
+
 /**
  * Just as in C, some characters must be prefixed with a backslash before you can include them in the string.
  * These characters include double quotation marks, the backslash character itself,
@@ -32,18 +34,13 @@ export function unescapeString(str: string): string {
     .replace(/\\(["\\])/g, '$1'); // quote and backslash
 }
 
-/**
- * @see {@link https://github.com/justinklemm/i18n-strings-files/blob/dae303ed60d9d43dbe1a39bb66847be8a0d62c11/index.coffee#L100}
- * @param {string} filename - path to pass.strings file
- */
-export async function readLprojStrings(
-  filename: string,
+async function readStringsFromStream(
+  stream: import('stream').Readable,
 ): Promise<Map<string, string>> {
   const res = new Map() as Map<string, string>;
   let nextLineIsComment = false;
-  const rl = createInterface(
-    createReadStream(filename, { encoding: 'utf16le' }),
-  );
+  stream.setEncoding('utf-16le');
+  const rl = createInterface(stream);
   for await (const line of rl) {
     // skip empty lines
     const l = line.trim();
@@ -60,6 +57,18 @@ export async function readLprojStrings(
     res.set(unescapeString(msgId), unescapeString(msgStr));
   }
   return res;
+}
+
+/**
+ * @see {@link https://github.com/justinklemm/i18n-strings-files/blob/dae303ed60d9d43dbe1a39bb66847be8a0d62c11/index.coffee#L100}
+ * @param {string} filename - path to pass.strings file
+ */
+export async function readLprojStrings(
+  filename: string,
+): Promise<Map<string, string>> {
+  return readStringsFromStream(
+    createReadStream(filename, { encoding: 'utf16le' }),
+  );
 }
 
 /**
@@ -105,11 +114,12 @@ export class Localizations extends Map<string, Map<string, string>> {
    * @param {{ [k: string]?: string }} values
    */
   add(lang: string, values: { [k: string]: string }): this {
-    const map: Map<string, string> = this.get(lang) || new Map();
+    const locale = normalizeLocale(lang);
+    const map: Map<string, string> = this.get(locale) || new Map();
     for (const [key, value] of Object.entries(values)) {
       map.set(key, value);
     }
-    if (!this.has(lang)) this.set(lang, map);
+    if (!this.has(lang)) this.set(locale, map);
     return this;
   }
 
@@ -120,12 +130,15 @@ export class Localizations extends Map<string, Map<string, string>> {
     }));
   }
 
-  normalizeLang(lang: string): string {
-    return lang.replace(/_/g, '-');
+  async addFile(language: string, filename: string): Promise<void> {
+    this.set(normalizeLocale(language), await readLprojStrings(filename));
   }
 
-  async addFile(language: string, filename: string): Promise<void> {
-    this.set(this.normalizeLang(language), await readLprojStrings(filename));
+  async addFromStream(
+    language: string,
+    stream: import('stream').Readable,
+  ): Promise<void> {
+    this.set(normalizeLocale(language), await readStringsFromStream(stream));
   }
 
   /**

@@ -7,15 +7,63 @@
 import * as http2 from 'http2';
 import { join } from 'path';
 import { promises as fs } from 'fs';
+import { promisify } from 'util';
 
 import * as forge from 'node-forge';
+import { EventIterator } from 'event-iterator';
+import { fromBuffer as ZipFromBuffer, ZipFile } from 'yauzl';
 
 import { Pass } from './pass';
 import { PASS_STYLES } from './constants';
 import { PassStyle, ApplePass } from './interfaces';
 import { PassBase } from './lib/base-pass';
+import { streamToBuffer } from './lib/stream-to-buffer';
 
 import stripJsonComments = require('strip-json-comments');
+
+// Promisifying yauzl
+Object.defineProperties(ZipFile.prototype, {
+  [Symbol.asyncIterator]: {
+    enumerable: true,
+    writable: false,
+    configurable: false,
+    value() {
+      return new EventIterator<import('yauzl').Entry>((push, stop, fail) => {
+        this.addListener('entry', push);
+        this.addListener('end', stop);
+        this.addListener('error', fail);
+      })[Symbol.asyncIterator]();
+    },
+  },
+  openReadStreamAsync: {
+    enumerable: true,
+    writable: false,
+    configurable: false,
+    value: promisify(ZipFile.prototype.openReadStream),
+  },
+  getBuffer: {
+    enumerable: true,
+    writable: false,
+    configurable: false,
+    async value(entry: import('yauzl').Entry) {
+      const stream = await this.openReadStreamAsync(entry);
+      return streamToBuffer(stream);
+    },
+  },
+});
+const unzipBuffer = (promisify(ZipFromBuffer) as unknown) as (
+  buffer: Buffer,
+  options?: import('yauzl').Options,
+) => Promise<
+  ZipFile & {
+    openReadStreamAsync: (
+      v: import('yauzl').Entry,
+    ) => Promise<import('stream').Readable>;
+    getBuffer: (entry: import('yauzl').Entry) => Promise<Buffer>;
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    [Symbol.asyncIterator](): AsyncIterator<import('yauzl').Entry>;
+  }
+>;
 
 const {
   HTTP2_HEADER_METHOD,
@@ -33,13 +81,14 @@ export class Template extends PassBase {
   key?: forge.pki.PrivateKey;
   certificate?: forge.pki.Certificate;
   private apn?: http2.ClientHttp2Session;
-  /**
-   *
-   * @param {PassStyle} style
-   * @param {{[k: string]: any }} [fields]
-   */
-  constructor(style?: PassStyle, fields: Partial<ApplePass> = {}) {
-    super(fields);
+
+  constructor(
+    style?: PassStyle,
+    fields: Partial<ApplePass> = {},
+    images?: import('./lib/images').PassImages,
+    localization?: import('./lib/localizations').Localizations,
+  ) {
+    super(fields, images, localization);
 
     if (style) {
       if (!PASS_STYLES.has(style))
@@ -99,7 +148,7 @@ export class Template extends PassBase {
         // check if it's a localization folder
         const test = /(?<lang>[-A-Z_a-z]+)\.lproj/.exec(entry.name);
         if (!test || !test.groups || !test.groups.lang) continue;
-        const lang = template.localization.normalizeLang(test.groups.lang);
+        const { lang } = test.groups;
         // reading this directory
         const currentPath = join(folderPath, entry.name);
         const localizations = await readdir(currentPath, {
@@ -149,6 +198,62 @@ export class Template extends PassBase {
     }
     await Promise.all(entriesLoader);
     // done
+    return template;
+  }
+
+  /**
+   * Load template from a given buffer with ZIPped pass/template content
+   *
+   * @param {Buffer} buffer
+   */
+  static async fromBuffer(buffer: Buffer): Promise<Template> {
+    const zip = await unzipBuffer(buffer);
+    if (zip.entryCount < 1)
+      throw new TypeError(`Provided ZIP buffer contains no entries`);
+
+    let template = new Template();
+
+    for await (const entry of zip) {
+      if (entry.fileName.endsWith('/')) continue;
+
+      if (/\/?pass\.json$/i.test(entry.fileName)) {
+        if (template.style)
+          throw new TypeError(
+            `Archive contains more than one pass.json - found ${
+              entry.fileName
+            }`,
+          );
+        const buf = await zip.getBuffer(entry);
+        const passJSON = JSON.parse(stripJsonComments(buf.toString('utf8')));
+        template = new Template(
+          undefined,
+          passJSON,
+          template.images,
+          template.localization,
+        );
+      } else {
+        // test if it's an image
+        const img = template.images.parseFilename(entry.fileName);
+        if (img)
+          await template.images.add(
+            img.imageType,
+            await zip.getBuffer(entry),
+            img.density,
+            img.lang,
+          );
+        else {
+          // the only option lest is 'pass.strings' file in localization folder
+          const test = /(^|\/)(?<lang>[-_a-z]+)\.lproj\/pass\.strings$/i.exec(
+            entry.fileName,
+          );
+          if (test && test.groups && test.groups.lang) {
+            // found a localization file
+            const stream = await zip.openReadStreamAsync(entry);
+            await template.localization.addFromStream(test.groups.lang, stream);
+          }
+        }
+      }
+    }
     return template;
   }
 
