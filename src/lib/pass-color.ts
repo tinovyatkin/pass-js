@@ -55,7 +55,7 @@ function getRgb(colorString: string): [number, number, number] {
   }
 
   throw new TypeError(
-    `Invalid color value "${colorString}": unknown format - must be something like 'blue', "#FFF", "rgba(200, 60, 60, 0.3)", "rgb(200, 200, 200)", "rgb(0%, 0%, 100%)", "hsla(360, 60%, 50%, 0.4)"`,
+    `Invalid color value "${colorString}": unknown format - must be something like 'blue', "#FFF", "rgba(200, 60, 60, 0.3)", "rgb(200, 200, 200)", "rgb(0%, 0%, 100%)"`,
   );
 }
 

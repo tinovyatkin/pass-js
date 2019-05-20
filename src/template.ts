@@ -312,60 +312,60 @@ export class Template extends PassBase {
    * @param {string} pushToken
    */
   async pushUpdates(pushToken: string): Promise<http2.IncomingHttpHeaders> {
-    if (!this.key)
-      throw new ReferenceError(
-        `Set private key before trying to push pass updates`,
-      );
-    if (!this.certificate)
-      throw new ReferenceError(
-        `Set pass certificate before trying to push pass updates`,
-      );
     // https://developer.apple.com/library/content/documentation/UserExperience/Conceptual/PassKit_PG/Updating.html
     if (!this.apn || this.apn.destroyed) {
       // creating APN Provider
-      this.apn = http2.connect('https://api.push.apple.com:443', {
-        key: forge.pki.privateKeyToPem(this.key),
-        cert: forge.pki.certificateToPem(this.certificate),
-      });
-      // Events
-      this.apn.once('goaway', () => {
-        if (this.apn && !this.apn.destroyed) this.apn.destroy();
-      });
       await new Promise((resolve, reject) => {
-        if (!this.apn) throw new Error('APN was destroyed before connecting');
-        this.apn.once('connect', resolve);
-        this.apn.once('error', reject);
+        if (!this.key)
+          throw new ReferenceError(
+            `Set private key before trying to push pass updates`,
+          );
+        if (!this.certificate)
+          throw new ReferenceError(
+            `Set pass certificate before trying to push pass updates`,
+          );
+        const apn = http2.connect('https://api.push.apple.com:443', {
+          key: forge.pki.privateKeyToPem(this.key),
+          cert: forge.pki.certificateToPem(this.certificate),
+        });
+        // Calling unref() on a socket will allow the program to exit if this is the only active socket in the event system
+        apn.unref();
+        // Events
+        apn
+          .once('goaway', () => {
+            if (this.apn && !this.apn.destroyed) this.apn.destroy();
+          })
+          .once('error', reject)
+          .once('connect', () => {
+            if (apn.destroyed)
+              throw new Error('APN was destroyed before connecting');
+            this.apn = apn;
+            resolve();
+          });
       });
-      // Calling unref() on a socket will allow the program to exit if this is the only active socket in the event system
-      this.apn.unref();
     }
 
     // sending to APN
     return new Promise((resolve, reject) => {
-      if (!this.apn) throw new Error('APN was destroyed before connecting');
+      if (!this.apn || this.apn.destroyed)
+        throw new Error('APN was destroyed before connecting');
       const req = this.apn.request({
         [HTTP2_HEADER_METHOD]: HTTP2_METHOD_POST,
         [HTTP2_HEADER_PATH]: `/3/device/${encodeURIComponent(pushToken)}`,
       });
 
       // Cancel request after timeout
-      req.setTimeout(5000, () => req.close(NGHTTP2_CANCEL));
-
-      // Response handling
-      req.on('response', headers => {
-        // consuming data, even if we are not interesting in it
-        req.on('data', () => {});
-        req.once('end', () => resolve(headers));
+      req.setTimeout(5000, () => {
+        req.close(NGHTTP2_CANCEL, () =>
+          reject(new Error(`http2: timeout connecting to api.push.apple.com`)),
+        );
       });
 
       // Error handling
       req.once('error', reject);
-      req.once('timeout', () =>
-        reject(new Error(`http2: timeout connecting to api.push.apple.com`)),
-      );
 
       // Post payload (always empty in our case)
-      req.end('{}');
+      req.end('{}', resolve);
     });
   }
 

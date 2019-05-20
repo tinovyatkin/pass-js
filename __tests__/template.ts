@@ -64,7 +64,7 @@ describe('Template', () => {
     const template = new Template('coupon', {
       passTypeIdentifier: 'pass.com.example.passbook',
       teamIdentifier: 'MXL',
-      // labelColor: 'red',
+      labelColor: 'red',
     });
 
     template.setCertificate(process.env.APPLE_PASS_CERTIFICATE as string);
@@ -73,15 +73,17 @@ describe('Template', () => {
       process.env.APPLE_PASS_KEY_PASSWORD,
     );
 
-    const res = await template.pushUpdates(
-      '0e40d22a36e101a59ab296d9e6021df3ee1dcf95e29e8ab432213b12ba522dbb',
-    );
+    await expect(
+      template.pushUpdates(
+        '0e40d22a36e101a59ab296d9e6021df3ee1dcf95e29e8ab432213b12ba522dbb',
+      ),
+    ).resolves.toBeUndefined();
     // if (template.apn) template.apn.destroy();
-    expect(res).toEqual(
-      expect.objectContaining({
-        ':status': 200,
-        'apns-id': expect.any(String),
-      }),
-    );
-  });
+    // expect(res).toEqual(
+    //   expect.objectContaining({
+    //     ':status': 200,
+    //     'apns-id': expect.any(String),
+    //   }),
+    // );
+  }, 7000);
 });

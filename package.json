@@ -2,7 +2,7 @@
   "name": "@destinationstransfers/passkit",
   "description": "Apple PassKit for the Node",
   "homepage": "https://github.com/destinationstransfers/passkit",
-  "version": "6.4.0",
+  "version": "6.4.1",
   "license": "MIT",
   "engines": {
     "node": ">=10.1"
@@ -47,7 +47,9 @@
   "keywords": [
     "iOS",
     "apple",
-    "passbook",
+    "passkit",
+    "wallet",
+    "pass",
     "library"
   ],
   "repository": {
@@ -70,11 +72,11 @@
   "author": "Tino Vyatkin <tino@vtkn.io>",
   "dependencies": {
     "color-name": "1.1.4",
-    "do-not-zip": "^1.0.0",
+    "do-not-zip": "1.0.0",
     "event-iterator": "1.2.0",
-    "imagesize": "^1.0.0",
-    "node-forge": "^0.8.3",
-    "strip-json-comments": "^3.0.1",
+    "imagesize": "1.0.0",
+    "node-forge": "0.8.3",
+    "strip-json-comments": "3.0.1",
     "yauzl": "2.10.0"
   }
 }
