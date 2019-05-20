@@ -1,8 +1,8 @@
 {
   "name": "@destinationstransfers/passkit",
-  "description": "Apple PassKit for the Node",
+  "description": "Apple Wallet Pass generating and pushing updates from Node.js",
   "homepage": "https://github.com/destinationstransfers/passkit",
-  "version": "6.4.1",
+  "version": "6.4.2",
   "license": "MIT",
   "engines": {
     "node": ">=10.1"
@@ -45,12 +45,13 @@
     "costs": "npx cost-of-modules --no-install"
   },
   "keywords": [
-    "iOS",
     "apple",
-    "passkit",
     "wallet",
     "pass",
-    "library"
+    "passkit",
+    "iOS",
+    "generating",
+    "APN"
   ],
   "repository": {
     "type": "git",
