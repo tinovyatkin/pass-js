@@ -82,7 +82,7 @@ export class Pass extends PassBase {
 
     // Adding required files
     // Create pass.json
-    zip.push({ path: 'pass.json', data: JSON.stringify(this) });
+    zip.push({ path: 'pass.json', data: Buffer.from(JSON.stringify(this)) });
 
     // Localization
     zip.push(...this.localization.toArray());
