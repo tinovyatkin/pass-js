@@ -166,6 +166,14 @@ pass.primaryFields.clear();
 
 Adding images to a pass is the same as adding images to a template (see above).
 
+# Working with Dates
+If you have [dates in your fields](https://developer.apple.com/library/archive/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/FieldDictionary.html#//apple_ref/doc/uid/TP40012026-CH4-SW6) make sure they are in ISO 8601 format with timezone, since `new Date().toISOString()` is not properly parsed on iOS, this might be a problem, luckily this library got you covered, just pass `new Date()` object to value, and date will be generated with right format. 
+ For example:
+
+```js
+pass.primaryFields.add({ key: "updated", label: "Updated at", value: new Date(), dateStyle: "PKDateStyleShort", timeStyle: "PKDateStyleShort" });
+```
+
 # Localizations
 
 This library fully supports both [string localization](https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/PassKit_PG/Creating.html#//apple_ref/doc/uid/TP40012195-CH4-SW54) and/or [images localization](https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/PassKit_PG/Creating.html#//apple_ref/doc/uid/TP40012195-CH4-SW1):
@@ -226,10 +234,9 @@ app.use(async (ctx, next) => {
 });
 ```
 
-# Troubleshooting
+# Troubleshooting with Console app
 
-If the pass file generates without errors but still you're not able to open it, you can try opening the pass
-in macOS 10.14+ and inspecting the output in the Console app.
+If the pass file generates without errors but you aren't able to open your pass on an iPhone, plug the iPhone into a Mac with macOS 10.14+ and open the 'Console' application. On the left, you can select your iPhone. You will then be able to inspect any errors that occur while adding the pass.
 
 # Credits
 
