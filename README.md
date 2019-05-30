@@ -64,7 +64,8 @@ const template = new Template("coupon", {
   teamIdentifier: "MXL",
   backgroundColor: "red"
 });
-await template.images.add("icon", iconPngFileBuffer);
+await template.images.add("icon", iconPngFileBuffer)
+                     .add("logo", pathToLogoPNGfile)
 ```
 
 The first argument is the pass style (`coupon`, `eventTicket`, etc), and the
