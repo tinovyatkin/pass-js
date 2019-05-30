@@ -58,7 +58,7 @@ const s3file = await s3
   .promise();
 const template = await Template.fromBuffer(s3file.Body);
 
-// or create it from manually
+// or create it manually
 const template = new Template("coupon", {
   passTypeIdentifier: "pass.com.example.passbook",
   teamIdentifier: "MXL",
