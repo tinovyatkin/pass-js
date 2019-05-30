@@ -194,7 +194,7 @@ pass.localizations
     PASSENGER: "PASSENGER",
     FLIGHT: "FLIGHT"
   })
-  .localizations.add("ru", {
+  .add("ru", {
     GATE: "ВЫХОД",
     DEPART: "ВЫЛЕТ",
     ARRIVE: "ПРИЛЁТ",
