@@ -70,7 +70,7 @@ export const numberStyle = {
  */
 
 export const IMAGES: {
-  [k in ImageType]: { width: number; height: number; required?: boolean }
+  [k in ImageType]: { width: number; height: number; required?: boolean };
 } = {
   icon: {
     width: 29,
@@ -121,7 +121,7 @@ export const TOP_LEVEL_FIELDS: {
     templatable?: boolean;
     localizable?: boolean;
     minlength?: number;
-  }
+  };
 } = {
   // Standard Keys
   description: {

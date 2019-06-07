@@ -27,21 +27,21 @@ function getRgb(colorString: string): [number, number, number] {
     return match.slice(1, 4).map(c => parseInt(c + c, 16)) as [
       number,
       number,
-      number
+      number,
     ];
   }
   if ((match = HEX_RE.exec(string))) {
     return match.slice(1, 4).map(v => parseInt(v, 16)) as [
       number,
       number,
-      number
+      number,
     ];
   }
   if ((match = RGBA_RE.exec(string))) {
     return match.slice(1, 4).map(c => parseInt(c, 10)) as [
       number,
       number,
-      number
+      number,
     ];
   }
   if ((match = PERCENT_RE.exec(string))) {
