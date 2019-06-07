@@ -78,9 +78,7 @@ export class PassStructure {
   get transitType(): TransitType | undefined {
     if (this.style !== 'boardingPass')
       throw new ReferenceError(
-        `transitType field only allowed in Boarding Passes, current pass is ${
-          this.style
-        }`,
+        `transitType field only allowed in Boarding Passes, current pass is ${this.style}`,
       );
     if ('boardingPass' in this.fields && this.fields.boardingPass)
       return this.fields.boardingPass.transitType;
@@ -122,9 +120,7 @@ export class PassStructure {
   get nfc(): NFCField {
     if (!('storeCard' in this.fields))
       throw new ReferenceError(
-        `NFC fields only available for storeCard passes, current is ${
-          this.style
-        }`,
+        `NFC fields only available for storeCard passes, current is ${this.style}`,
       );
     return this.fields.nfc as NFCField;
   }

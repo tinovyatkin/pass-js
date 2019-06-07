@@ -219,9 +219,7 @@ export class Template extends PassBase {
       if (/\/?pass\.json$/i.test(entry.fileName)) {
         if (template.style)
           throw new TypeError(
-            `Archive contains more than one pass.json - found ${
-              entry.fileName
-            }`,
+            `Archive contains more than one pass.json - found ${entry.fileName}`,
           );
         const buf = await zip.getBuffer(entry);
         const passJSON = JSON.parse(stripJsonComments(buf.toString('utf8')));
@@ -372,7 +370,7 @@ export class Template extends PassBase {
   /**
    * Create a new pass from a template.
    *
-   * @param {Object} fields
+   * @param {object} fields
    * @returns {Pass}
    * @memberof Template
    */

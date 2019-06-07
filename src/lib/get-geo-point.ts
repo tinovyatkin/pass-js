@@ -19,9 +19,7 @@ export function getGeoPoint(
   if (Array.isArray(point)) {
     if (point.length < 2 || !point.every(n => Number.isFinite(n)))
       throw new Error(
-        `Invalid GeoJSON array of numbers, length must be 2 to 3, received ${
-          point.length
-        }`,
+        `Invalid GeoJSON array of numbers, length must be 2 to 3, received ${point.length}`,
       );
     return {
       longitude: point[0],
