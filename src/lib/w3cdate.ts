@@ -51,3 +51,43 @@ export function getW3CDateString(value: string | Date): string {
   const offsetSign = offset < 0 ? '-' : '+';
   return `${date.getFullYear()}-${month}-${day}T${hours}:${minutes}${offsetSign}${offsetHours}:${offsetMinutes}`;
 }
+
+export function getDateFromW3CString(value: string): Date {
+  if (!isValidW3CDateString(value))
+    throw new TypeError(`Date string ${value} is now a valid W3C date string`);
+  const res = /^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})T(?<hours>\d{2}):(?<mins>\d{2})(?<tzSign>[+-])(?<tzHour>\d{2}):(?<tzMin>\d{2})/.exec(
+    value,
+  );
+  if (!res)
+    throw new TypeError(`Date string ${value} is now a valid W3C date string`);
+  const {
+    year,
+    month,
+    day,
+    hours,
+    mins,
+    tzSign,
+    tzHour,
+    tzMin,
+  } = res.groups as {
+    year: string;
+    month: string;
+    day: string;
+    hours: string;
+    mins: string;
+    tzSign: '+' | '-';
+    tzHour: string;
+    tzMin: string;
+  };
+  let utcdate = Date.UTC(
+    parseInt(year, 10),
+    parseInt(month, 10) - 1, // months are zero-offset (!)
+    parseInt(day, 10),
+    parseInt(hours, 10),
+    parseInt(mins, 10), // hh:mm
+  ); // optional fraction
+  // utcdate is milliseconds since the epoch
+  const offsetMinutes = parseInt(tzHour, 10) * 60 + parseInt(tzMin, 10);
+  utcdate += (tzSign === '+' ? -1 : +1) * offsetMinutes * 60000;
+  return new Date(utcdate);
+}

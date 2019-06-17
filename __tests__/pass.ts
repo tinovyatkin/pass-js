@@ -155,8 +155,8 @@ describe('Pass', () => {
     const t = await Template.load(
       path.resolve(__dirname, './resources/passes/Event.pass'),
     );
-    expect(require('./resources/passes/Event.pass/pass.json')).toMatchObject(
-      JSON.parse(JSON.stringify(t)),
+    expect(JSON.parse(JSON.stringify(t))).toEqual(
+      require('./resources/passes/Event.pass/pass.json'),
     );
   });
 

@@ -6,6 +6,7 @@ import { PassImages } from './images';
 import { Localizations } from './localizations';
 import { getGeoPoint } from './get-geo-point';
 import { PassStructure } from './pass-structure';
+import { getW3CDateString, isValidW3CDateString } from './w3cdate';
 
 const STRUCTURE_FIELDS_SET = new Set([...STRUCTURE_FIELDS, 'nfc']);
 
@@ -36,7 +37,11 @@ export class PassBase extends PassStructure {
 
   // Returns the pass.json object (not a string).
   toJSON(): Partial<ApplePass> {
-    return { ...this.fields, formatVersion: 1 };
+    const res: Partial<ApplePass> = { formatVersion: 1 };
+    for (const [field, value] of Object.entries(this.fields)) {
+      res[field] = value instanceof Date ? getW3CDateString(value) : value;
+    }
+    return res;
   }
 
   get passTypeIdentifier(): string | undefined {
@@ -92,12 +97,23 @@ export class PassBase extends PassStructure {
   set expirationDate(v: ApplePass['expirationDate']) {
     if (!v) delete this.fields.expirationDate;
     else {
-      if (typeof v === 'string' || v instanceof Date)
+      if (v instanceof Date) {
+        if (!Number.isFinite(v.getTime()))
+          throw new TypeError(
+            `Value for expirationDate must be a valid Date, received ${v}`,
+          );
         this.fields.expirationDate = v;
-      else
-        throw new TypeError(
-          `expirationDate should be either string or Date, received ${typeof v}`,
-        );
+      } else if (typeof v === 'string') {
+        if (isValidW3CDateString(v)) this.fields.expirationDate = v;
+        else {
+          const date = new Date(v);
+          if (!Number.isFinite(date.getTime()))
+            throw new TypeError(
+              `Value for expirationDate must be a valid Date, received ${v}`,
+            );
+          this.fields.expirationDate = date;
+        }
+      }
     }
   }
 
@@ -116,12 +132,23 @@ export class PassBase extends PassStructure {
   set relevantDate(v: ApplePass['relevantDate']) {
     if (!v) delete this.fields.relevantDate;
     else {
-      if (typeof v === 'string' || v instanceof Date)
+      if (v instanceof Date) {
+        if (!Number.isFinite(v.getTime()))
+          throw new TypeError(
+            `Value for relevantDate must be a valid Date, received ${v}`,
+          );
         this.fields.relevantDate = v;
-      else
-        throw new TypeError(
-          `relevantDate should be either string or Date, received ${typeof v}`,
-        );
+      } else if (typeof v === 'string') {
+        if (isValidW3CDateString(v)) this.fields.relevantDate = v;
+        else {
+          const date = new Date(v);
+          if (!Number.isFinite(date.getTime()))
+            throw new TypeError(
+              `Value for relevantDate must be a valid Date, received ${v}`,
+            );
+          this.fields.relevantDate = date;
+        }
+      }
     }
   }
 

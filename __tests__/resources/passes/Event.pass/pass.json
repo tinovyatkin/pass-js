@@ -5,7 +5,7 @@
   "teamIdentifier": "A93A5CM278",
   "webServiceURL": "https://example.com/passes/",
   "authenticationToken": "vxwxd7J8AlNNFPS8k0a0FfUFtq0ewzFdc",
-  "relevantDate": "2011-12-08T13:00-08:00",
+  "relevantDate": "2011-12-08T13:00-04:00",
   "locations": [
     {
       "longitude": -122.3748889,

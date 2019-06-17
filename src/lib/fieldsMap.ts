@@ -39,7 +39,15 @@ export class FieldsMap extends Map<string, FieldDescriptor> {
           data,
         )}`,
       );
-    this.set(key, data);
+    if ('dateStyle' in data) {
+      const date =
+        data.value instanceof Date ? data.value : new Date(data.value);
+      if (!Number.isFinite(date.getTime()))
+        throw new TypeError(
+          `When dateStyle specified the value must be a valid Date instance or string, received ${data.value}`,
+        );
+      this.set(key, { ...data, value: date });
+    } else this.set(key, data);
     return this;
   }
 
