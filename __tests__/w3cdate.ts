@@ -1,6 +1,10 @@
 'use strict';
 
-import { getW3CDateString, isValidW3CDateString } from '../src/lib/w3cdate';
+import {
+  getW3CDateString,
+  isValidW3CDateString,
+  getDateFromW3CString,
+} from '../src/lib/w3cdate';
 
 describe('W3C dates strings ', () => {
   it('isValidW3CDateString', () => {
@@ -36,5 +40,11 @@ describe('W3C dates strings ', () => {
 
   it('throws on invalid argument type', () => {
     expect(() => getW3CDateString({ byaka: 'buka' })).toThrow(TypeError);
+  });
+
+  it.skip('circle conversion', () => {
+    expect(
+      getW3CDateString(getDateFromW3CString('2011-12-08T13:00-04:00')),
+    ).toBe('2011-12-08T13:00-04:00');
   });
 });

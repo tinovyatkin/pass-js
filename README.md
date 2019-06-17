@@ -168,11 +168,28 @@ pass.primaryFields.clear();
 Adding images to a pass is the same as adding images to a template (see above).
 
 # Working with Dates
-If you have [dates in your fields](https://developer.apple.com/library/archive/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/FieldDictionary.html#//apple_ref/doc/uid/TP40012026-CH4-SW6) make sure they are in ISO 8601 format with timezone, since `new Date().toISOString()` is not properly parsed on iOS, this might be a problem, luckily this library got you covered, just pass `new Date()` object to value, and date will be generated with right format. 
+If you have [dates in your fields](https://developer.apple.com/library/archive/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/FieldDictionary.html#//apple_ref/doc/uid/TP40012026-CH4-SW6) make sure they are in ISO 8601 format with timezone or a `Date` instance. 
  For example:
 
 ```js
-pass.primaryFields.add({ key: "updated", label: "Updated at", value: new Date(), dateStyle: "PKDateStyleShort", timeStyle: "PKDateStyleShort" });
+const { constants } = require('@destinationstransfers/passkit');
+
+pass.primaryFields.add({ key: "updated", label: "Updated at", value: new Date(), dateStyle: constants.dateTimeFormat.SHORT, timeStyle: constants.dateTimeFormat.SHORT });
+
+// there is also a helper setDateTime method
+pass.auxiliaryFields.setDateTime(
+  'serviceDate',
+  'DATE',
+  serviceMoment.toDate(),
+  {
+    dateStyle: constants.dateTimeFormat.MEDIUM,
+    timeStyle: constants.dateTimeFormat.NONE,
+    changeMessage: 'Service date changed to %@.',
+  },
+);
+// main fields also accept Date objects
+pass.relevantDate = new Date(2020, 1, 1, 10, 0);
+template.expirationDate = new Date(2020, 10, 10, 10, 10);
 ```
 
 # Localizations
