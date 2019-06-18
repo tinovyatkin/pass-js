@@ -2,7 +2,7 @@
   "name": "@destinationstransfers/passkit",
   "description": "Apple Wallet Pass generating and pushing updates from Node.js",
   "homepage": "https://github.com/destinationstransfers/passkit",
-  "version": "6.4.5",
+  "version": "6.4.6",
   "license": "MIT",
   "engines": {
     "node": ">=10.1"
