@@ -135,9 +135,11 @@ export class PassImages extends Map<string, string | Buffer> {
     // check data
     let sizeRes;
     if (typeof pathOrBuffer === 'string') {
-      const rs = createReadStream(pathOrBuffer);
+      // PNG size is in first 24 bytes
+      const rs = createReadStream(pathOrBuffer, { highWaterMark: 30 });
       sizeRes = await imageSize(rs);
-      rs.destroy();
+      // see https://github.com/nodejs/node/issues/25335#issuecomment-451945106
+      rs.once('readable', () => rs.destroy());
     } else {
       if (!Buffer.isBuffer(pathOrBuffer))
         throw new TypeError(
