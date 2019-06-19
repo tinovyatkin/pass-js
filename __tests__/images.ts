@@ -48,6 +48,6 @@ describe('PassImages', () => {
     expect(img.size).toBe(5);
     const arr = await img.toArray();
     expect(arr).toBeInstanceOf(Array);
-    expect(arr.map(f => f.path)).toMatchSnapshot();
+    expect(arr.map(f => f.path).sort()).toMatchSnapshot();
   });
 });
