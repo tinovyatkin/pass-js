@@ -20,7 +20,7 @@
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
   "devDependencies": {
-    "@destinationstransfers/eslint-plugin": "2.4.23",
+    "@destinationstransfers/eslint-plugin": "2.4.24",
     "@types/color-name": "1.1.1",
     "@types/jest": "24.0.15",
     "@types/node": "12.0.8",
