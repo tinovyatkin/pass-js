@@ -12,6 +12,17 @@
 <br><br><br>
 
 
+# Installation
+
+Install with `NPM` or `yarn`:
+```sh
+npm install @destinationstransfers/passkit --save
+
+yarn add @destinationstransfers/passkit
+```
+
+
+
 # Get your certificates
 
 To start with, you'll need a certificate issued by [the iOS Provisioning
