@@ -14,9 +14,11 @@
 
 # Installation
 
-Install with NPM:
+Install with `NPM` or `yarn`:
 ```sh
 npm install @destinationstransfers/passkit --save
+
+yarn add @destinationstransfers/passkit
 ```
 
 
