@@ -20,8 +20,8 @@
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
   "devDependencies": {
-    "@destinationstransfers/eslint-plugin": "2.4.33",
     "@types/buffer-crc32": "0.2.0",
+    "@destinationstransfers/eslint-plugin": "2.4.35",
     "@types/color-name": "1.1.1",
     "@types/jest": "24.0.15",
     "@types/node": "12.0.10",
