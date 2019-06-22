@@ -2,7 +2,7 @@
   "name": "@destinationstransfers/passkit",
   "description": "Apple Wallet Pass generating and pushing updates from Node.js",
   "homepage": "https://github.com/destinationstransfers/passkit",
-  "version": "6.4.7",
+  "version": "6.4.8",
   "license": "MIT",
   "engines": {
     "node": ">=10.1"
@@ -20,6 +20,7 @@
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
   "devDependencies": {
+    "@types/buffer-crc32": "0.2.0",
     "@destinationstransfers/eslint-plugin": "2.4.35",
     "@types/color-name": "1.1.1",
     "@types/jest": "24.0.15",
@@ -72,6 +73,7 @@
   },
   "author": "Tino Vyatkin <tino@vtkn.io>",
   "dependencies": {
+    "buffer-crc32": "0.2.13",
     "color-name": "1.1.4",
     "do-not-zip": "1.0.0",
     "event-iterator": "1.2.0",

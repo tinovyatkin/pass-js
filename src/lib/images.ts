@@ -194,12 +194,12 @@ export class PassImages extends Map<string, string | Buffer> {
      */
     switch (imageType) {
       case 'icon':
-        if (width !== 29 * densityMulti)
+        if (width < 29 * densityMulti)
           throw new TypeError(
             `icon image must have width ${29 *
               densityMulti}px for ${densityMulti}x density`,
           );
-        if (height !== 29 * densityMulti)
+        if (height < 29 * densityMulti)
           throw new TypeError(
             `icon image must have height ${29 *
               densityMulti}px for ${densityMulti}x density`,

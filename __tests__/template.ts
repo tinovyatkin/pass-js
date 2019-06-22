@@ -60,6 +60,16 @@ describe('Template', () => {
     expect(res.localization.get('zh-CN').size).toBe(29);
   });
 
+  it('can load existing pass as Template', async () => {
+    const buffer = readFileSync(
+      path.resolve(__dirname, './resources/passes/StoreCard.pkpass'),
+    );
+    const res = await Template.fromBuffer(buffer);
+    expect(res).toBeInstanceOf(Template);
+    expect(res.passTypeIdentifier).toBe('pass.com.apple.devpubs.example');
+    expect(res.images.size).toBe(5);
+  });
+
   it('push updates', async () => {
     const template = new Template('coupon', {
       passTypeIdentifier: 'pass.com.example.passbook',

@@ -1,8 +1,5 @@
 node_modules
-*.pkpass
-lib/server.js
 .dropbox
-test.js
 *.tgz
 coverage/*
 .DS_Store
