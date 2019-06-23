@@ -21,7 +21,7 @@
   "main": "./dist/index.js",
   "devDependencies": {
     "@types/buffer-crc32": "0.2.0",
-    "@destinationstransfers/eslint-plugin": "2.4.35",
+    "@destinationstransfers/eslint-plugin": "2.4.36",
     "@types/color-name": "1.1.1",
     "@types/jest": "24.0.15",
     "@types/node": "12.0.10",
