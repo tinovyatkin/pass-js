@@ -33,6 +33,9 @@ describe('PassBase', () => {
     expect(() => {
       bp.webServiceURL = 'https://transfers.do/webservice';
     }).not.toThrow();
+    expect(JSON.stringify(bp)).toMatchInlineSnapshot(
+      `"{\\"formatVersion\\":1,\\"webServiceURL\\":\\"https://transfers.do/webservice\\"}"`,
+    );
     // should throw on bad url
     expect(() => {
       bp.webServiceURL = '/webservice';
