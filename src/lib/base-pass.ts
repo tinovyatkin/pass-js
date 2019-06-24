@@ -260,7 +260,7 @@ export class PassBase extends PassStructure {
     const url = v instanceof URL ? v : new URL(v);
     if (url.protocol !== 'https:')
       throw new TypeError(`webServiceURL must be on HTTPS!`);
-    this.fields.webServiceURL = url;
+    this.fields.webServiceURL = v;
   }
 
   /**
