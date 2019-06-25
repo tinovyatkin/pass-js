@@ -30,7 +30,7 @@
     "@typescript-eslint/eslint-plugin": "1.11.0",
     "@typescript-eslint/parser": "1.11.0",
     "env-app-yaml": "1.0.0",
-    "eslint": "6.0.0",
+    "eslint": "6.0.1",
     "jest": "24.8.0",
     "jest-extended": "0.11.1",
     "jest-junit": "6.4.0",
