@@ -73,7 +73,8 @@ const template = await Template.fromBuffer(s3file.Body);
 const template = new Template("coupon", {
   passTypeIdentifier: "pass.com.example.passbook",
   teamIdentifier: "MXL",
-  backgroundColor: "red"
+  backgroundColor: "red",
+  sharingProhibited: true
 });
 await template.images.add("icon", iconPngFileBuffer)
                      .add("logo", pathToLogoPNGfile)
