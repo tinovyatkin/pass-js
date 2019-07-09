@@ -71,6 +71,15 @@ export class PassBase extends PassStructure {
     else this.fields.serialNumber = v;
   }
 
+  get sharingProhibited() {
+    return this.fields.sharingProhibited;
+  }
+  
+  set sharingProhibited(v) {
+    if (!v) delete this.fields.sharingProhibited;
+    else this.fields.sharingProhibited = !!v;
+  }
+  
   /**
    *  Indicates that the pass is void—for example, a one time use coupon that has been redeemed.
    *
