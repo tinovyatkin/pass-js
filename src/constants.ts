@@ -150,6 +150,11 @@ export const TOP_LEVEL_FIELDS: {
     type: 'string',
     templatable: true,
   },
+  sharingProhibited: {
+    required: false,
+    type: Boolean,
+    templatable: true,
+  },
   associatedStoreIdentifiers: {
     required: false,
     type: Array,
