@@ -134,6 +134,10 @@ export interface PassStandardKeys {
    * Team identifier of the organization that originated and signed the pass, as issued by Apple.
    */
   teamIdentifier: string;
+  /**
+   * Possibility to prohibite a sharing of pass
+   */
+  sharingProhibited: boolean;
 }
 
 /**
