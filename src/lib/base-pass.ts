@@ -71,13 +71,18 @@ export class PassBase extends PassStructure {
     else this.fields.serialNumber = v;
   }
 
+  /**
+   *  Indicates that the sharing of pass can be prohibited.
+   *
+   * @type {boolean}
+   */
   get sharingProhibited() {
     return this.fields.sharingProhibited;
   }
   
   set sharingProhibited(v) {
     if (!v) delete this.fields.sharingProhibited;
-    else this.fields.sharingProhibited = !!v;
+    else this.fields.sharingProhibited = true;
   }
   
   /**
