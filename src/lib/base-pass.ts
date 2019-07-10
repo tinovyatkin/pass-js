@@ -76,15 +76,15 @@ export class PassBase extends PassStructure {
    *
    * @type {boolean}
    */
-  get sharingProhibited() {
+  get sharingProhibited(): boolean | undefined {
     return this.fields.sharingProhibited;
   }
-  
+
   set sharingProhibited(v) {
     if (!v) delete this.fields.sharingProhibited;
     else this.fields.sharingProhibited = true;
   }
-  
+
   /**
    *  Indicates that the pass is void—for example, a one time use coupon that has been redeemed.
    *
