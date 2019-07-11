@@ -5,6 +5,7 @@ import { NFCDictionary } from '../interfaces';
 /**
  * node-forge doesn't support ECDH used by Apple in NFC,
  * so we will store keys as PEM encoded strings
+ *
  * @see {@link https://github.com/digitalbazaar/forge/issues/116}
  * @see {@link https://stackoverflow.com/questions/48438753/apple-wallet-nfc-encryptionpublickey}
  * @see {@link https://github.com/digitalbazaar/forge/issues/237}
@@ -92,6 +93,7 @@ export class NFCField extends Array<{
       const oid = forge.asn1.derToOid(der);
       /**
        * Ensure it's ECDH
+       *
        * @see {@link https://www.alvestrand.no/objectid/1.2.840.10045.2.1.html}
        */
       if (!oid.includes('840.10045.2.1'))

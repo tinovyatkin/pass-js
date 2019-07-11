@@ -1,5 +1,6 @@
 /**
  * Field accessors class
+ *
  * @see {@link https://developer.apple.com/library/archive/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/FieldDictionary.html}
  */
 
@@ -99,6 +100,7 @@ export interface BarcodeDescriptor {
  * The following sections list the required and optional keys used in this dictionary.
  * For each key whose value is a dictionary or an array of dictionaries,
  * there is also a section in Lower-Level Keys that lists the keys for that dictionary.
+ *
  * @see {@link https://developer.apple.com/library/archive/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/TopLevel.html#//apple_ref/doc/uid/TP40012026-CH2-SW1}
  */
 
@@ -134,6 +136,10 @@ export interface PassStandardKeys {
    * Team identifier of the organization that originated and signed the pass, as issued by Apple.
    */
   teamIdentifier: string;
+  /**
+   * Possibility to prohibit a sharing of pass
+   */
+  sharingProhibited: boolean;
 }
 
 /**
@@ -208,6 +214,7 @@ export interface Beacon {
   /**
    * Text displayed on the lock screen when the pass is currently relevant.
    * For example, a description of the nearby location
+   *
    * @example “Store nearby on 1st and Main.”
    */
   relevantText?: string;
@@ -232,6 +239,7 @@ export interface Location {
   /**
    * Text displayed on the lock screen when the pass is currently relevant.
    * For example, a description of the nearby location
+   *
    * @example “Store nearby on 1st and Main.”
    */
   relevantText?: string;
@@ -266,6 +274,7 @@ export interface PassRelevanceKeys {
 
 /**
  * Pass common structure keys
+ *
  * @see {@link https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/LowerLevel.html#//apple_ref/doc/uid/TP40012026-CH3-SW3}
  */
 export interface PassCommonStructure {
@@ -311,11 +320,13 @@ export interface PassVisualAppearanceKeys {
   barcodes?: BarcodeDescriptor[];
   /**
    * Background color of the pass, specified as an CSS-style RGB triple.
+   *
    * @example rgb(23, 187, 82)
    */
   backgroundColor?: PassColor | string;
   /**
    * Foreground color of the pass, specified as a CSS-style RGB triple.
+   *
    * @example rgb(100, 10, 110)
    */
   foregroundColor?: PassColor | string;
@@ -331,6 +342,7 @@ export interface PassVisualAppearanceKeys {
   groupingIdentifier?: string;
   /**
    * Color of the label text, specified as a CSS-style RGB triple.
+   *
    * @example rgb(255, 255, 255)
    */
   labelColor?: PassColor | string;
@@ -351,6 +363,7 @@ export interface PassWebServiceKeys {
    * The URL of a web service that conforms to the API described in PassKit Web Service Reference.
    * The web service must use the HTTPS protocol; the leading https:// is included in the value of this key.
    * On devices configured for development, there is UI in Settings to allow HTTP web services.
+   *
    * @see {@link https://developer.apple.com/library/archive/documentation/PassKit/Reference/PassKit_WebService/WebService.html#//apple_ref/doc/uid/TP40011988}
    */
   webServiceURL?: URL | string;

@@ -81,6 +81,7 @@ export function getLprojBuffer(strings: Map<string, string>): Buffer {
    * Just as in C, some characters must be prefixed with a backslash before you can include them in the string.
    * These characters include double quotation marks, the backslash character itself,
    * and special control characters such as linefeed (\n) and carriage returns (\r).
+   *
    * @see {@link https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/LoadingResources/Strings/Strings.html#//apple_ref/doc/uid/10000051i-CH6-SW13}
    */
   return Buffer.from(
