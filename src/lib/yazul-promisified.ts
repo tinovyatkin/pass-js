@@ -1,7 +1,7 @@
 import { promisify } from 'util';
 
+import { Entry, Options, ZipFile, fromBuffer as ZipFromBuffer } from 'yauzl';
 import { EventIterator } from 'event-iterator';
-import { fromBuffer as ZipFromBuffer, ZipFile, Entry, Options } from 'yauzl';
 
 import { streamToBuffer } from './stream-to-buffer';
 
@@ -42,7 +42,6 @@ export const unzipBuffer = (promisify(ZipFromBuffer) as unknown) as (
   ZipFile & {
     openReadStreamAsync: (v: Entry) => Promise<import('stream').Readable>;
     getBuffer: (entry: Entry) => Promise<Buffer>;
-    // eslint-disable-next-line @typescript-eslint/ban-types
     [Symbol.asyncIterator](): AsyncIterator<Entry>;
   }
 >;
