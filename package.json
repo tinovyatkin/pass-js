@@ -23,7 +23,7 @@
     "@destinationstransfers/eslint-plugin": "2.5.68",
     "@types/buffer-crc32": "0.2.0",
     "@types/color-name": "1.1.1",
-    "@types/jest": "24.0.16",
+    "@types/jest": "24.0.17",
     "@types/node": "12.6.9",
     "@types/node-forge": "0.8.6",
     "@types/yauzl": "2.9.1",
