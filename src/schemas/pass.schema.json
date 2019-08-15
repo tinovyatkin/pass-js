@@ -1,0 +1,484 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Pass",
+  "description": "Apple Wallet pass with localizations, NFC and web service push updates support.",
+  "type": "object",
+  "definitions": {
+    "field": {
+      "title": "Field",
+      "description": "Keys that define an individual field.",
+      "type": "object",
+      "properties": {
+        "attributedValue": {
+          "title": "Attributed Value",
+          "description": "Attributed value of the field.\nThe value may contain HTML markup for links. Only the <a> tag and its href attribute are supported. This key’s value overrides the text specified by the value key.\nAvailable in iOS 7.0.",
+          "anyOf": [
+            {"type": "number"},
+            {"type": "string"},
+            {
+              "type": "string",
+              "format": "date-time"
+            }
+          ],
+          "examples": ["<a href='http://example.com/customers/123'>Edit my profile</a>"]
+        },
+        "changeMessage": {
+          "title": "Change Message",
+          "description": "Format string for the alert text that is displayed when the pass is updated. The format string must contain the escape %@, which is replaced with the field’s new value. If you don’t specify a change message, the user isn’t notified when the field changes.\nLocalizable.",
+          "type": "string",
+          "examples": ["Gate changed to %@."]
+        },
+        "dataDetectorTypes": {
+          "title": "Data Detector Types",
+          "description": "Data detectors that are applied to the field’s value. Provide an empty array to use no data detectors. Data detectors are applied only to back fields.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "anyOf": [
+              {"const": "PKDataDetectorTypePhoneNumber"},
+              {"const": "PKDataDetectorTypeLink"},
+              {"const": "PKDataDetectorTypeAddress"},
+              {"const": "PKDataDetectorTypeCalendarEvent"}
+            ]
+          },
+          "default": ["PKDataDetectorTypePhoneNumber", "PKDataDetectorTypeLink", "PKDataDetectorTypeAddress", "PKDataDetectorTypeCalendarEvent"]
+        },
+        "key": {
+          "title": "Key",
+          "description": "The key must be unique within the scope of the entire pass.",
+          "type": "string",
+          "examples": ["departure-gate."]
+        },
+        "label": {
+          "title": "Label",
+          "description": "Label text for the field.\nLocalizable.",
+          "type": "string"
+        },
+        "textAlignment": {
+          "title": "Text Alignment",
+          "description": "Alignment for the field’s contents.\nThis key is not allowed for primary fields or back fields.",
+          "type": "string",
+          "enum": ["PKTextAlignmentLeft", "PKTextAlignmentCenter", "PKTextAlignmentRight", "PKTextAlignmentNatural"],
+          "default": "PKTextAlignmentNatural"
+        },
+        "value": {
+          "title": "Value",
+          "description": "Value of the field",
+          "anyOf": [
+            {"type": "number"},
+            {"type": "string"},
+            {
+              "type": "string",
+              "format": "date-time"
+            }
+          ],
+          "examples": [42]
+        },
+        "dateStyle": {
+          "title": "Date Style",
+          "description": "Style of date to display.",
+          "type": "string",
+          "enum": ["PKDateStyleNone", "PKDateStyleShort", "PKDateStyleMedium", "PKDateStyleLong", "PKDateStyleFull"]
+        },
+        "ignoresTimeZone": {
+          "title": "Ignores Time Zone",
+          "description": "Always display the time and date in the given time zone, not in the user’s current time zone.\nThe format for a date and time always requires a time zone, even if it will be ignored. For backward compatibility with iOS 6, provide an appropriate time zone, so that the information is displayed meaningfully even without ignoring time zones.\nThis key does not affect how relevance is calculated.\nAvailable in iOS 7.0.",
+          "type": "boolean",
+          "default": false
+        },
+        "isRelative": {
+          "title": "Is Relative",
+          "description": "If true, the label’s value is displayed as a relative date; otherwise, it is displayed as an absolute date.\nThis key does not affect how relevance is calculated.",
+          "type": "boolean",
+          "default": false
+        },
+        "timeStyle": {
+          "title": "Time Style",
+          "description": "Style of time to display.",
+          "type": "string",
+          "enum": ["PKDateStyleNone", "PKDateStyleShort", "PKDateStyleMedium", "PKDateStyleLong", "PKDateStyleFull"]
+        },
+        "currencyCode": {
+          "title": "Currency Code",
+          "description": "ISO 4217 currency code for the field’s value.",
+          "type": "string"
+        },
+        "numberStyle": {
+          "title": "Number Style",
+          "description": "Style of number to display. Number styles have the same meaning as the Cocoa number formatter styles with corresponding names. See https://developer.apple.com/documentation/foundation/nsnumberformatterstyle",
+          "type": "string",
+          "enum": ["PKNumberStyleDecimal", "PKNumberStylePercent", "PKNumberStyleScientific", "PKNumberStyleSpellOut"]
+        }
+      },
+      "required": ["key", "value"]
+    },
+    "numericArray": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "transitTypeNotRequired": {
+      "not": {
+        "required": ["transitType"]
+      }
+    },
+    "groupingIdentifierNotRequired": {
+      "not": {
+        "required": ["groupingIdentifier"]
+      }
+    },
+    "beacon": {
+      "title": "Beacon",
+      "description": "Information about a location beacon.",
+      "type": "object",
+      "properties": {
+        "major": {
+          "title": "Major",
+          "description": "Major identifier of a Bluetooth Low Energy location beacon.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "$comment": "16-bit unsigned integer"
+        },
+        "minor": {
+          "title": "Minor",
+          "description": "Minor identifier of a Bluetooth Low Energy location beacon.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "$comment": "16-bit unsigned integer"
+        },
+        "proximityUUID": {
+          "title": "Proximity UUID",
+          "description": "Unique identifier of a Bluetooth Low Energy location beacon.",
+          "type": "string"
+        },
+        "relevantText": {
+          "title": "Relevant Text",
+          "description": "Text displayed on the lock screen when the pass is currently relevant.",
+          "type": "string",
+          "examples": ["Store nearby on 1st and Main."]
+        }
+      },
+      "required": ["proximityUUID"]
+    },
+    "location": {
+      "title": "Location",
+      "description": "Information about a location.",
+      "type": "object",
+      "properties": {
+        "altitude": {
+          "title": "Altitude",
+          "description": "Altitude, in meters, of the location.",
+          "type": "number"
+        },
+        "latitude": {
+          "title": "Latitude",
+          "description": "Latitude, in degrees, of the location.",
+          "type": "number"
+        },
+        "longitude": {
+          "title": "Longitude",
+          "description": "Longitude, in degrees, of the location.",
+          "type": "number"
+        },
+        "relevantText": {
+          "title": "Relevant Text",
+          "description": "Text displayed on the lock screen when the pass is currently relevant.",
+          "type": "string",
+          "examples": ["Store nearby on 1st and Main."]
+        }
+      },
+      "required": ["latitude", "longitude"]
+    },
+    "passStructure": {
+      "title": "Pass Structure",
+      "description": "Keys that define the structure of the pass.\nThese keys are used for all pass styles and partition the fields into the various parts of the pass.",
+      "type": "object",
+      "properties": {
+        "auxiliaryFields": {
+          "title": "Auxiliary Fields",
+          "description": "Additional fields to be displayed on the front of the pass.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/field"
+          }
+        },
+        "backFields": {
+          "title": "Back Fields",
+          "description": "Fields to be on the back of the pass.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/field"
+          }
+        },
+        "headerFields": {
+          "title": "Header Fields",
+          "description": "Fields to be displayed in the header on the front of the pass.Use header fields sparingly; unlike all other fields, they remain visible when a stack of passes are displayed.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/field"
+          }
+        },
+        "primaryFields": {
+          "title": "Primary Fields",
+          "description": "Fields to be displayed prominently on the front of the pass.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/field"
+          }
+        },
+        "secondaryFields": {
+          "title": "Secondary Fields",
+          "description": "Fields to be displayed on the front of the pass.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/field"
+          }
+        },
+        "transitType": {
+          "title": "Transit Type",
+          "description": "Type of transit.",
+          "type": "string",
+          "enum": ["PKTransitTypeAir", "PKTransitTypeBoat", "PKTransitTypeBus", "PKTransitTypeGeneric", "PKTransitTypeTrain"]
+        }
+      }
+    },
+    "barcode": {
+      "title": "Barcode",
+      "description": "Information about a pass’s barcode.",
+      "type": "object",
+      "properties": {
+        "altText": {
+          "title": "Alternative Text",
+          "description": "Text displayed near the barcode. For example, a human-readable version of the barcode data in case the barcode doesn’t scan.",
+          "type": "string"
+        },
+        "format": {
+          "title": "Format",
+          "description": "Barcode format. PKBarcodeFormatCode128 may only be used for dictionaries in the barcodes array.",
+          "type": "string",
+          "enum": ["PKBarcodeFormatQR", "PKBarcodeFormatPDF417", "PKBarcodeFormatAztec", "PKBarcodeFormatCode128"]
+        },
+        "message": {
+          "title": "Message",
+          "description": "Message or payload to be displayed as a barcode.",
+          "type": "string"
+        },
+        "messageEncoding": {
+          "title": "Message Encoding",
+          "description": "Text encoding that is used to convert the message from the string representation to a data representation to render the barcode. The value is typically iso-8859-1, but you may use another encoding that is supported by your barcode scanning infrastructure.",
+          "type": "string"
+        }
+      },
+      "required": ["format", "message", "messageEncoding"]
+    },
+    "nfc": {
+      "title": "NFC",
+      "description": "Information about the NFC payload passed to an Apple Pay terminal.",
+      "type": "object",
+      "properties": {
+        "message": {
+          "title": "Message",
+          "description": "The payload to be transmitted to the Apple Pay terminal. Must be 64 bytes or less. Messages longer than 64 bytes are truncated by the system.",
+          "type": "string"
+        },
+        "encryptionPublicKey": {
+          "title": "Encryption Public Key",
+          "description": " The public encryption key used by the Value Added Services protocol. Use a Base64 encoded X.509 SubjectPublicKeyInfo structure containing a ECDH public key for group P256.",
+          "type": "string"
+        }
+      },
+      "required": ["message"]
+    }
+  },
+  "properties": {
+    "description": {
+      "title": "Description",
+      "description": "Brief description of the pass, used by the iOS accessibility technologies.\nDon’t try to include all of the data on the pass in its description, just include enough detail to distinguish passes of the same type.\n Localizable.",
+      "type": "string"
+    },
+    "formatVersion": {
+      "title": "Format Version",
+      "description": "Version of the file format.",
+      "const": 1
+    },
+    "organizationName": {
+      "title": "Organization Name",
+      "description": "Display name of the organization that originated and signed the pass.\n Localizable.",
+      "type": "string"
+    },
+    "passTypeIdentifier": {
+      "title": "Pass Type Identifier",
+      "description": "Pass type identifier, as issued by Apple. The value must correspond with your signing certificate.",
+      "type": "string"
+    },
+    "serialNumber": {
+      "title": "Serial Number",
+      "description": "Serial number that uniquely identifies the pass. No two passes with the same pass type identifier may have the same serial number.",
+      "type": "string"
+    },
+    "teamIdentifier": {
+      "title": "Team Identifier",
+      "description": "Team identifier of the organization that originated and signed the pass, as issued by Apple.",
+      "type": "string"
+    },
+    "appLaunchURL": {
+      "title": "App Launch URL",
+      "description": "A URL to be passed to the associated app when launching it. The app receives this URL in the application:didFinishLaunchingWithOptions: and application:openURL:options: methods of its app delegate.",
+      "type": "string",
+      "format": "iri"
+    },
+    "associatedStoreIdentifiers": {
+      "title": "Associated Store Identifiers",
+      "description": "A list of iTunes Store item identifiers for the associated apps.\nOnly one item in the list is used—the first item identifier for an app compatible with the current device. If the app is not installed, the link opens the App Store and shows the app. If the app is already installed, the link launches the app.",
+      "$ref": "#/definitions/numericArray" 
+    },
+    "userInfo": {
+      "title": "User Info",
+      "description": "Custom information for companion apps. This data is not displayed to the user.\nFor example, a pass for a cafe could include information about the user’s favorite drink and sandwich in a machine-readable form for the companion app to read, making it easy to place an order for “the usual” from the app.\nAvailable in iOS 7.0.",
+      "type": "object"
+    },
+    "expirationDate": {
+      "title": "Expiration Date",
+      "description": "Date and time when the pass expires.\nAvailable in iOS 7.0.",
+      "type": "string",
+      "format": "date-time"
+    },
+    "voided": {
+      "title": "Voided",
+      "description": "Indicates that the pass is void—for example, a one time use coupon that has been redeemed.\nAvailable in iOS 7.0.",
+      "type": "boolean",
+      "default": false
+    },
+    "beacons": {
+      "title": "Beacons",
+      "description": "Beacons marking locations where the pass is relevant.\nAvailable in iOS 7.0.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/beacon"
+      }
+    },
+    "locations": {
+      "title": "Locations",
+      "description": "Locations where the pass is relevant. For example, the location of your store.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/location"
+      }
+    },
+    "maxDistance": {
+      "title": "Maximum Distance",
+      "description": "Maximum distance in meters from a relevant latitude and longitude that the pass is relevant. This number is compared to the pass’s default distance and the smaller value is used.\nAvailable in iOS 7.0.",
+      "type": "number"
+    },
+    "relevantDate": {
+      "title": "Relevant Date",
+      "description": "Date and time when the pass becomes relevant. For example, the start time of a movie.\nRecommended for event tickets and boarding passes.",
+      "type": "string",
+      "format": "date-time"
+    },
+    "boardingPass": {
+      "title": "Boarding Pass",
+      "description": "Information specific to a boarding pass.",
+      "$ref": "#/definitions/passStructure",
+      "required": ["transitType"]
+    },
+    "coupon": {
+      "title": "Coupon",
+      "description": "Information specific to a coupon.",
+      "$ref": "#/definitions/passStructure",
+      "anyOf": [{"$ref": "#/definitions/transitTypeNotRequired"}]
+    },
+    "eventTicket": {
+      "title": "Event Ticket",
+      "description": "Information specific to an event ticket.",
+      "$ref": "#/definitions/passStructure",
+      "anyOf": [{"$ref": "#/definitions/transitTypeNotRequired"}]
+    },
+    "generic": {
+      "title": "Generic Pass",
+      "description": "Information specific to a generic pass.",
+      "$ref": "#/definitions/passStructure",
+      "anyOf": [{"$ref": "#/definitions/transitTypeNotRequired"}]
+    },
+    "storeCard": {
+      "title": "Store Card",
+      "description": "Information specific to a store card.",
+      "$ref": "#/definitions/passStructure",
+      "anyOf": [{"$ref": "#/definitions/transitTypeNotRequired"}]
+    },
+    "barcode": {
+      "title": "Barcode",
+      "description": "Information specific to the pass’s barcode.\nDeprecated in iOS 9.0 and later; use barcodes instead.",
+      "$ref": "#/definitions/barcode"
+    },
+    "barcodes": {
+      "title": "Barcodes",
+      "description": "Information specific to the pass’s barcode. The system uses the first valid barcode dictionary in the array. Additional dictionaries can be added as fallbacks.\nAvailable only in iOS 9.0 and later.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/barcode"
+      }
+    },
+    "backgroundColor": {
+      "title": "Background Color",
+      "description": "Background color of the pass, specified as an CSS-style RGB triple.",
+      "type": "string",
+      "examples": ["rgb(23, 187, 82)"]
+    },
+    "foregroundColor": {
+      "title": "Foreground Color",
+      "description": "Foreground color of the pass, specified as a CSS-style RGB triple",
+      "type": "string",
+      "examples": ["rgb(100, 10, 110)"]
+    },
+    "groupingIdentifier": {
+      "title": "Grouping Identifier",
+      "description": "Identifier used to group related passes. If a grouping identifier is specified, passes with the same style, pass type identifier, and grouping identifier are displayed as a group. Otherwise, passes are grouped automatically.\nUse this to group passes that are tightly related, such as the boarding passes for different connections of the same trip.\nAvailable in iOS 7.0.",
+      "type": "string"
+    },
+    "labelColor": {
+      "title": "Label Color",
+      "description": "olor of the label text, specified as a CSS-style RGB triple.\nIf omitted, the label color is determined automatically.",
+      "type": "string",
+      "examples": ["rgb(255, 255, 255)"]
+    },
+    "logoText": {
+      "title": "Logo Text",
+      "description": "Text displayed next to the logo on the pass.\nLocalizable.",
+      "type": "string"
+    },
+    "suppressStripShine": {
+      "title": "Suppress Strip Shine",
+      "description": "If true, the strip image is displayed without a shine effect. The default value prior to iOS 7.0 is false. In iOS 7.0, a shine effect is never applied, and this key is deprecated.",
+      "type": "boolean",
+      "default": false
+    },
+    "authenticationToken": {
+      "title": "Authentication Token",
+      "description": "The authentication token to use with the web service.",
+      "type": "string",
+      "minLength": 16
+    },
+    "webServiceURL": {
+      "title": "Web Service URL",
+      "description": "The URL of a web service that conforms to the API described in PassKit Web Service Reference. The web service must use the HTTPS protocol; the leading https:// is included in the value of this key. On devices configured for development, there is UI in Settings to allow HTTP web services.",
+      "type": "string",
+      "pattern": "^https://"
+    },
+    "nfc": {
+      "title": "NFC",
+      "description": "Information used for Value Added Service Protocol transactions.\nAvailable in iOS 9.0.",
+      "$ref": "#/definitions/nfc"
+    }
+  },
+  "dependencies": {
+    "appLaunchURL": {"required": ["associatedStoreIdentifiers"]},
+    "coupon": {"$ref": "#/definitions/groupingIdentifierNotRequired"},
+    "generic": {"$ref": "#/definitions/groupingIdentifierNotRequired"},
+    "storeCard": {"$ref": "#/definitions/groupingIdentifierNotRequired"}
+  },
+  "required": ["description", "formatVersion", "organizationName", "passTypeIdentifier", "serialNumber"]
+}
