@@ -4,6 +4,112 @@
   "description": "Apple Wallet pass with localizations, NFC and web service push updates support.",
   "type": "object",
   "definitions": {
+    "w3cDate": {
+      "title": "ISO 8601 Date",
+      "description": "An ISO 8601 formatted date represented as a JSON string.",
+      "type": "string",
+      "pattern": "^20[1-9]{2}-[01]\\d-[0-3]\\dT[0-5]\\d:[0-5]\\d(:[0-5]\\d)?(Z|([+-][01]\\d:[03]0)$)"
+    },
+    "color": {
+      "title": "Color",
+      "description": "CSS-style RGB triple color.",
+      "type": "string",
+      "pattern": "^rgba?\\(\\s*(1?\\d{1,2}|2[0-4]\\d|25[0-5])\\s*,\\s*(1?\\d{1,2}|2[0-4]\\d|25[0-5])\\s*,\\s*(1?\\d{1,2}|2[0-4]\\d|25[0-5])\\s*(?:,\\s*([+-]?[\\d.]+)\\s*)?\\)$"
+    },
+    "currencyCode": {
+      "title": "Currency Code",
+      "description": "ISO 4217 currency code.",
+      "type": "string"
+    },
+    "currencyAmount": {
+      "title": "Currency Amount",
+      "description": "An ISO 4217 currency code and an amount.",
+      "type": "object",
+      "properties": {
+        "currencyCode": {"$ref": "#/definitions/currencyCode"},
+        "amount": {
+          "title": "Amount",
+          "type": "string"
+        }
+      }
+    },
+    "personNameComponents": {
+      "title": "Person Name Components",
+      "description": "An object that manages the separate parts of a person's name",
+      "type": "object",
+      "properties": {
+        "namePrefix": {
+          "title": "Name Prefix",
+          "description": "The portion of a name’s full form of address that precedes the name itself.",
+          "type": "string",
+          "examples": ["Dr.", "Mr.", "Ms."]
+        },
+        "givenName": {
+          "title": "Given Name",
+          "description": "Name bestowed upon an individual to differentiate them from other members of a group that share a family name.",
+          "type": "string",
+          "examples": ["Johnathan"]
+        },
+        "middleName": {
+          "title": "Middle Name",
+          "description": "Secondary name bestowed upon an individual to differentiate them from others that have the same given name.",
+          "type": "string",
+          "examples": ["Maple"]
+        },
+        "familyName": {
+          "title": "Family Name",
+          "description": "Name bestowed upon an individual to denote membership in a group or family.",
+          "type": "string",
+          "examples": ["Appleseed"]
+        },
+        "nameSuffix": {
+          "title": "Name Suffix",
+          "description": "The portion of a name’s full form of address that follows the name itself.",
+          "type": "string",
+          "examples": ["Esq.", "Jr.", "Ph.D."]
+        },
+        "nickname": {
+          "title": "Nickname",
+          "description": "Name substituted for the purposes of familiarity.",
+          "type": "string",
+          "examples": ["Johnny"]
+        },
+        "phoneticRepresentation": {
+          "title": "Phonetic Representation",
+          "description": "The phonetic representation name components of the receiver.",
+          "type": "object",
+          "$ref": "#/definitions/personNameComponents",
+          "not": {
+            "required": ["phoneticRepresentation"]
+          }
+        }
+      }
+    },
+    "seat": {
+      "title": "Seat",
+      "description": "A dictionary with seat information",
+      "type": "object",
+      "properties": {
+        "seatSection": {
+          "type": "string"
+        },
+        "seatRow": {
+          "type": "string"
+        },
+        "seatNumber": {
+          "type": "string"
+        },
+        "seatIdentifier": {
+          "type": "string"
+        },
+        "seatType": {
+          "type": "string"
+        },
+        "seatDescription": {
+          "type": "string"
+        }
+      }
+    },
     "field": {
       "title": "Field",
       "description": "Keys that define an individual field.",
@@ -99,9 +205,7 @@
           "enum": ["PKDateStyleNone", "PKDateStyleShort", "PKDateStyleMedium", "PKDateStyleLong", "PKDateStyleFull"]
         },
         "currencyCode": {
-          "title": "Currency Code",
-          "description": "ISO 4217 currency code for the field’s value.",
-          "type": "string"
+          "$ref": "#/definitions/currencyCode"
         },
         "numberStyle": {
           "title": "Number Style",
