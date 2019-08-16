@@ -212,6 +212,374 @@
           "description": "Style of number to display. Number styles have the same meaning as the Cocoa number formatter styles with corresponding names. See https://developer.apple.com/documentation/foundation/nsnumberformatterstyle",
           "type": "string",
           "enum": ["PKNumberStyleDecimal", "PKNumberStylePercent", "PKNumberStyleScientific", "PKNumberStyleSpellOut"]
+        },
+        "semantics": {
+          "title": "Semantics",
+          "description": "Machine-readable metadata to allow the system to offer Wallet passes to users intelligently.",
+          "$comment": "All semantic data is optional and different semantic fields can be placed in auxiliary, primary, secondary, header or back fields.",
+          "type": "object",
+          "properties": {
+            "totalPrice": {
+              "title": "Total Price",
+              "description": "The total price for the pass.",
+              "$ref": "#/definitions/currencyAmount"
+            },
+            "duration": {
+              "title": "Duration",
+              "description": "The duration of the event or transit journey, in seconds.",
+              "type": "number"
+            },
+            "seats": {
+              "title": "Seats",
+              "description": "Seating details for all seats at the event or transit journey.",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/seat"
+              }
+            },
+            "silenceRequested": {
+              "title": "Silence Requested",
+              "description": "Request the user's device to remain silent during a the event or transit journey. This key may not be honored and the system will determine the length of the silence period.",
+              "type": "boolean"
+            },
+            "departureLocation": {
+              "title": "Departure Location",
+              "description": "The geographic coordinates of the transit departure, suitable to be shown on a map. If possible, precise locations are more useful to travelers, such as the specific location of the gate at an airport.",
+              "$ref": "#/definitions/location"
+            },
+            "departureLocationDescription": {
+              "title": "Departure Location Description",
+              "description": "A brief description of the departure location.",
+              "type": "string",
+              "examples": ["San Francisco"]
+            },
+            "destinationLocation": {
+              "title": "Destination Location",
+              "description": "The geographic coordinates of the transit destination, suitable to be shown on a map.",
+              "$ref": "#/definitions/location"
+            },
+            "destinationLocationDescription": {
+              "title": "Destination Location Description",
+              "description": "A brief description of the destination location.",
+              "$ref": "#/definitions/location"
+            },
+            "transitProvider": {
+              "title": "Transit Provider",
+              "description": "The name of the transit company.",
+              "type": "string"
+            },
+            "vehicleName": {
+              "title": "Vehicle Name",
+              "description": "The name of the vehicle being boarded, such as the name of a boat.",
+              "type": "string"
+            },
+            "vehicleNumber": {
+              "title": "Vehicle Number",
+              "description": "The identifier of the vehicle being boarded, such as the aircraft registration number or train number.",
+              "type": "string"
+            },
+            "vehicleType": {
+              "title": "Vehicle Type",
+              "description": "A brief description of the type of vehicle being boarded, such as the model and manufacturer of a plane or the class of a boat.",
+              "type": "string"
+            },
+            "originalDepartureDate": {
+              "title": "Original Departure Date",
+              "description": "The original scheduled date and time of departure.",
+              "$ref": "#/definitions/w3cDate"
+            },
+            "currentDepartureDate": {
+              "title": "Current Departure Date",
+              "description": "The updated date and time of departure, if different than the original scheduled date.",
+              "$ref": "#/definitions/w3cDate"
+            },
+            "originalArrivalDate": {
+              "title": "Original Arrival Date",
+              "description": "The original scheduled date and time of arrival.",
+              "$ref": "#/definitions/w3cDate"
+            },
+            "currentArrivalDate": {
+              "title": "Current Arrival Date",
+              "description": "The updated date and time of arrival, if different than the original scheduled date.",
+              "$ref": "#/definitions/w3cDate"
+            },
+            "originalBoardingDate": {
+              "title": "Original Boarding Date",
+              "description": "The original scheduled date and time of boarding.",
+              "$ref": "#/definitions/w3cDate"
+            },
+            "currentBoardingDate": {
+              "title": "Current Boarding Date",
+              "description": "The updated date and time of boarding, if different than the original scheduled date.",
+              "$ref": "#/definitions/w3cDate"
+            },
+            "boardingGroup": {
+              "title": "Boarding Group",
+              "description": "A group number for boarding.",
+              "type": "string"
+            },
+            "boardingSequenceNumber": {
+              "title": "Boarding Sequence Number",
+              "description": "A sequence number for boarding.",
+              "type": "string"
+            },
+            "confirmationNumber": {
+              "title": "Confirmation Number",
+              "description": "A booking or reservation confirmation number.",
+              "type": "string"
+            },
+            "transitStatus": {
+              "title": "Transit Status",
+              "description": "A brief description of the current status of the vessel being boarded. For delayed statuses, provide currentBoardingDate, currentDepartureDate, and currentArrivalDate where available.",
+              "type": "string",
+              "examples": ["On Time", "Delayed"]
+            },
+            "transitStatusReason": {
+              "title": "Transit Status Reason",
+              "description": "A brief description explaining the reason for the current transitStatus",
+              "type": "string",
+              "examples": ["Thunderstorms"]
+            },
+            "passengerName": {
+              "title": "Passenger Name",
+              "description": "The passenger's name.",
+              "$ref": "#/definitions/personNameComponents"
+            },
+            "membershipProgramName": {
+              "title": "Membership Program Name",
+              "description": "The name of a frequent flyer or loyalty program.",
+              "type": "string"
+            },
+            "membershipProgramNumber": {
+              "title": "Membership Program Number",
+              "description": "The ticketed passenger's frequent flyer or loyalty number.",
+              "type": "string"
+            },
+            "priorityStatus": {
+              "title": "Priority Status",
+              "description": "he priority status held by the ticketed passenger",
+              "type": "string",
+              "examples": ["Gold", "Silver"]
+            },
+            "securityScreening": {
+              "title": "Security Screening",
+              "description": " The type of security screening that the ticketed passenger will be subject to, such as 'Priority'.",
+              "type": "string"
+            },
+            "flightCode": {
+              "title": "Flight Code",
+              "description": "The IATA flight code",
+              "type": "string",
+              "examples": ["EX123"]
+            },
+            "airlineCode": {
+              "title": "The IATA airline code",
+              "description": "The IATA airline code, such as 'EX' for flightCode 'EX123'.",
+              "type": "string",
+              "examples": ["EX"]
+            },
+            "flightNumber": {
+              "title": "Flight Number",
+              "description": "The numeric portion of the IATA flightCode, such as 123 for flightCode 'EX123'",
+              "type": "number",
+              "examples": [123]
+            },
+            "departureAirportCode": {
+              "title": "Departure Airport Code",
+              "description": "The IATA airport code for the departure airport.",
+              "type": "string",
+              "examples": ["SFO", "SJC"]
+            },
+            "departureAirportName": {
+              "title": "Departure Airport Name",
+              "description": "The full name of the departure airport",
+              "type": "string",
+              "examples": ["San Francisco International Airport"]
+            },
+            "departureTerminal": {
+              "title": "Departure Terminal",
+              "description": "The terminal name or letter of the departure terminal, such as 'A'. Do not include the word 'Terminal'",
+              "type": "string",
+              "examples": ["A"]
+            },
+            "departureGate": {
+              "title": "Departure Gate",
+              "description": "The gate number or letters of the departure gate, such as '1A'. Do not include the word 'Gate'.",
+              "type": "string",
+              "examples": ["1A"]
+            },
+            "destinationAirportCode": {
+              "title": "Destination Airport Code",
+              "description": "The IATA airport code for the destination airport.",
+              "type": "string",
+              "examples": ["SFO", "SJC"]
+            },
+            "destinationAirportName": {
+              "title": "Destination Airport Name",
+              "description": "The full name of the destination airport",
+              "type": "string",
+              "examples": ["San Francisco International Airport"]
+            },
+            "destinationTerminal": {
+              "title": "Destination Terminal",
+              "description": "The terminal name or letter of the destination terminal, such as 'A'. Do not include the word 'Terminal'",
+              "type": "string",
+              "examples": ["A"]
+            },
+            "destinationGate": {
+              "title": "Destination Gate",
+              "description": "The gate number or letters of the destination gate, such as '1A'. Do not include the word 'Gate'.",
+              "type": "string",
+              "examples": ["1A"]
+            },
+            "departurePlatform": {
+              "title": "Departure Platform",
+              "description": "The name of the departure platform, such as 'A'. Do not include the word 'Platform'.",
+              "type": "string",
+              "examples": ["A"]
+            },
+            "departureStationName": {
+              "title": "Departure Station Name",
+              "description": "The name of the departure station.",
+              "type": "string",
+              "examples": ["1st Street Station"]
+            },
+            "destinationPlatform": {
+              "title": "Destination Platform",
+              "description": "The name of the destination platform, such as 'A'. Do not include the word 'Platform'.",
+              "type": "string",
+              "examples": ["A"]
+            },
+            "destinationStationName": {
+              "title": "Destination Station Name",
+              "description": "The name of the destination station.",
+              "type": "string",
+              "examples": ["1st Street Station"]
+            },
+            "carNumber": {
+              "title": "Car Number",
+              "description": "The car number.",
+              "type": "string"
+            },
+            "eventName": {
+              "title": "Event Name",
+              "description": "The full name for the event, such as the title of a movie.",
+              "type": "string"
+            },
+            "venueName": {
+              "title": "Venue Name",
+              "description": "The full name of the venue.",
+              "type": "string"
+            },
+            "venueLocation": {
+              "title": "Venue Location",
+              "description": "The geographic coordinates of the venue.",
+              "$ref": "#/definitions/location"
+            },
+            "venueEntrance": {
+              "title": "Venue Entrance",
+              "description": "The full name of the entrance to use to gain access to the ticketed event.",
+              "type": "string",
+              "examples": ["Gate A"]
+            },
+            "venuePhoneNumber": {
+              "title": "Venue Phone Number",
+              "description": "The phone number for enquiries about the venue's ticketed event.",
+              "type": "string"
+            },
+            "venueRoom": {
+              "title": "Venue Room",
+              "description": "The full name of the room where the ticketed event is taking place.",
+              "type": "string"
+            },
+            "eventType": {
+              "title": "Event Type",
+              "description": "The event type.",
+              "type": "string",
+              "enum": ["PKEventTypeGeneric", "PKEventTypeLivePerformance", "PKEventTypeMovie", "PKEventTypeSports", "PKEventTypeConference", "PKEventTypeConvention", "PKEventTypeWorkshop", "PKEventTypeSocialGathering"]
+            },
+            "eventStartDate": {
+              "title": "Event Start Date",
+              "description": "The date and time the event starts.",
+              "$ref": "#/definitions/w3cDate"
+            },
+            "eventEndDate": {
+              "title": "Event End Date",
+              "description": "The date and time the event ends.",
+              "$ref": "#/definitions/w3cDate"
+            },
+            "artistIDs": {
+              "title": "Artist IDs",
+              "description": "The Adam IDs for the artists performing, in decreasing order of significance.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "performerNames": {
+              "title": "Performer Names",
+              "description": "The full names of the performers and opening acts, in decreasing order of significance.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "genre": {
+              "title": "Genre",
+              "description": "The genre of the performance.",
+              "type": "string"
+            },
+            "leagueName": {
+              "title": "League Name",
+              "description": "he unabbreviated league name for a sporting event.",
+              "type": "string"
+            },
+            "leagueAbbreviation": {
+              "title": "League Abbreviation",
+              "description": "The abbreviated league name for a sporting event.",
+              "type": "string"
+            },
+            "homeTeamLocation": {
+              "title": "Home Team Location",
+              "description": "The home location of the home team.",
+              "type": "string"
+            },
+            "homeTeamName": {
+              "title": "Home Team Name",
+              "description": "The name of the home team.",
+              "type": "string"
+            },
+            "homeTeamAbbreviation": {
+              "title": "Home Team Abbreviation",
+              "description": "The unique abbreviation of the home team's name.",
+              "type": "string"
+            },
+            "awayTeamLocation": {
+              "title": "Away Team Location",
+              "description": "The home location of the away team.",
+              "type": "string"
+            },
+            "awayTeamName": {
+              "title": "Away Team Name",
+              "description": "The name of the away team.",
+              "type": "string"
+            },
+            "awayTeamAbbreviation": {
+              "title": "Away Team Abbreviation",
+              "description": "The unique abbreviation of the away team's name.",
+              "type": "string"
+            },
+            "sportName": {
+              "title": "Sport Name",
+              "description": "The commonly used local name of the sport.",
+              "type": "string"
+            },
+            "balance": {
+              "title": "Balance",
+              "description": "The balance redeemable with the pass.",
+              "$ref": "#/definitions/currencyAmount"
+            }
+          }
         }
       },
       "required": ["key", "value"]
