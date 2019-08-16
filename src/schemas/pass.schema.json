@@ -121,10 +121,7 @@
           "anyOf": [
             {"type": "number"},
             {"type": "string"},
-            {
-              "type": "string",
-              "format": "date-time"
-            }
+            {"$ref": "#/definitions/w3cDate"}
           ],
           "examples": ["<a href='http://example.com/customers/123'>Edit my profile</a>"]
         },
@@ -174,8 +171,7 @@
             {"type": "number"},
             {"type": "string"},
             {
-              "type": "string",
-              "format": "date-time"
+              "$ref": "#/definitions/w3cDate"
             }
           ],
           "examples": [42]
@@ -815,8 +811,7 @@
     "expirationDate": {
       "title": "Expiration Date",
       "description": "Date and time when the pass expires.\nAvailable in iOS 7.0.",
-      "type": "string",
-      "format": "date-time"
+      "$ref": "#/definitions/w3cDate"
     },
     "voided": {
       "title": "Voided",
@@ -848,8 +843,7 @@
     "relevantDate": {
       "title": "Relevant Date",
       "description": "Date and time when the pass becomes relevant. For example, the start time of a movie.\nRecommended for event tickets and boarding passes.",
-      "type": "string",
-      "format": "date-time"
+      "$ref": "#/definitions/w3cDate"
     },
     "boardingPass": {
       "title": "Boarding Pass",
@@ -897,13 +891,13 @@
     "backgroundColor": {
       "title": "Background Color",
       "description": "Background color of the pass, specified as an CSS-style RGB triple.",
-      "type": "string",
+      "$ref": "#/definitions/color",
       "examples": ["rgb(23, 187, 82)"]
     },
     "foregroundColor": {
       "title": "Foreground Color",
       "description": "Foreground color of the pass, specified as a CSS-style RGB triple",
-      "type": "string",
+      "$ref": "#/definitions/color",
       "examples": ["rgb(100, 10, 110)"]
     },
     "groupingIdentifier": {
@@ -914,7 +908,7 @@
     "labelColor": {
       "title": "Label Color",
       "description": "olor of the label text, specified as a CSS-style RGB triple.\nIf omitted, the label color is determined automatically.",
-      "type": "string",
+      "$ref": "#/definitions/color",
       "examples": ["rgb(255, 255, 255)"]
     },
     "logoText": {
