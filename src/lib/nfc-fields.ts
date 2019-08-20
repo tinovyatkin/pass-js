@@ -61,10 +61,10 @@ export class NFCField extends Array<{
       encryptionPublicKey: publicKey
         ? // we need internal part of PEM message
           Buffer.from(
-            // @ts-ignore
-            forge.pem
+            (forge.pem
               .decode(publicKey)
-              .find(({ type }) => type === 'PUBLIC KEY').body,
+              .find(({ type }) => type === 'PUBLIC KEY') as forge.pem.ObjectPEM)
+              .body,
             'binary',
           ).toString('base64')
         : undefined,
