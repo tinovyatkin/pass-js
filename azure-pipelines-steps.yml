@@ -1,26 +1,26 @@
 steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '12.x'
-  displayName: 'Install Node.js'
+  - task: NodeTool@0
+    inputs:
+      versionSpec: "12.x"
+    displayName: "Install Node.js"
 
-- script: npm ci
-  displayName: 'npm install'
+  - script: npm ci
+    displayName: "npm install"
 
-- script: npm test -- --ci --reporters=default --reporters=jest-junit
-  displayName: 'Run Jest'
+  - script: node --expose-gc node_modules/jest/bin/jest --forceExit --logHeapUsage --runInBand --ci --reporters=default --reporters=jest-junit
+    displayName: "Run Jest"
 
-- script: npx codecov -f "./coverage/coverage-final.json" -y "./.codecov.yml" -t $(CODECOV_TOKEN)
-  displayName: 'Upload to Codecov'
+  - script: npx codecov -f "./coverage/coverage-final.json" -y "./.codecov.yml" -t $(CODECOV_TOKEN)
+    displayName: "Upload to Codecov"
 
-- task: PublishTestResults@2
-  condition: succeededOrFailed()
-  inputs:
-    testRunner: JUnit
-    testResultsFiles: '**/junit.xml'
+  - task: PublishTestResults@2
+    condition: succeededOrFailed()
+    inputs:
+      testRunner: JUnit
+      testResultsFiles: "**/junit.xml"
 
-- task: PublishCodeCoverageResults@1
-  inputs:
-    codeCoverageTool: Cobertura
-    summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/cobertura-coverage.xml'
-    reportDirectory: '$(System.DefaultWorkingDirectory)/**/coverage'
+  - task: PublishCodeCoverageResults@1
+    inputs:
+      codeCoverageTool: Cobertura
+      summaryFileLocation: "$(System.DefaultWorkingDirectory)/**/cobertura-coverage.xml"
+      reportDirectory: "$(System.DefaultWorkingDirectory)/**/coverage"
