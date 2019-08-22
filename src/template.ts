@@ -329,8 +329,11 @@ export class Template extends PassBase {
       // Error handling
       req.once('error', reject);
 
+      // Wait for response before resolving
+      req.once('response', resolve);
+
       // Post payload (always empty in our case)
-      req.end('{}', resolve);
+      req.end('{}');
     });
   }
 
