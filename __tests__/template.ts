@@ -87,13 +87,11 @@ describe('Template', () => {
       template.pushUpdates(
         '0e40d22a36e101a59ab296d9e6021df3ee1dcf95e29e8ab432213b12ba522dbb',
       ),
-    ).resolves.toBeUndefined();
-    // if (template.apn) template.apn.destroy();
-    // expect(res).toEqual(
-    //   expect.objectContaining({
-    //     ':status': 200,
-    //     'apns-id': expect.any(String),
-    //   }),
-    // );
+    ).resolves.toEqual(
+      expect.objectContaining({
+        ':status': 200,
+        'apns-id': expect.any(String),
+      }),
+    );
   }, 7000);
 });
