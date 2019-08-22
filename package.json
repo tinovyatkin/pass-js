@@ -20,7 +20,7 @@
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
   "devDependencies": {
-    "@destinationstransfers/eslint-plugin": "2.6.8",
+    "@destinationstransfers/eslint-plugin": "2.6.9",
     "@types/buffer-crc32": "0.2.0",
     "@types/color-name": "1.1.1",
     "@types/jest": "24.0.18",
@@ -31,7 +31,7 @@
     "@typescript-eslint/parser": "2.0.0",
     "env-app-yaml": "1.0.0",
     "eslint": "6.2.1",
-    "jest": "24.9.0",
+    "jest": "25.0.0",
     "jest-extended": "0.11.2",
     "jest-junit": "7.0.0",
     "ts-jest": "24.0.2",
