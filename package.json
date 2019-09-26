@@ -24,7 +24,7 @@
     "@types/buffer-crc32": "0.2.0",
     "@types/color-name": "1.1.1",
     "@types/jest": "24.0.18",
-    "@types/node": "12.7.5",
+    "@types/node": "12.7.8",
     "@types/node-forge": "0.8.6",
     "@types/yauzl": "2.9.1",
     "@typescript-eslint/eslint-plugin": "2.3.1",
