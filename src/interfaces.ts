@@ -422,7 +422,7 @@ export interface GenericPass {
 
 export interface StoreCardPass {
   storeCard: PassCommonStructure;
-  nfc?: NFCDictionary[] | import('./lib/nfc-fields').NFCField;
+  nfc?: NFCDictionary;
 }
 
 export type PassStructureFields =

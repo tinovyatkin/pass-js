@@ -11,101 +11,71 @@ import { NFCDictionary } from '../interfaces';
  * @see {@link https://github.com/digitalbazaar/forge/issues/237}
  */
 
-export class NFCField extends Array<{
-  message: string;
-  publicKey?: string;
-}> {
-  constructor(nfcs?: NFCDictionary[]) {
-    super();
-    if (!nfcs) return;
-    /**
-     * The payload to be transmitted to the Apple Pay terminal.
-     * Must be 64 bytes or less.
-     * Messages longer than 64 bytes are truncated by the system.
-     
-     message: string;
+export class NFCField implements NFCDictionary {
+  message = '';
+  encryptionPublicKey?: string;
+
+  /**
+   *
    */
+
+  constructor(nfc?: NFCDictionary) {
+    if (!nfc) return;
+
+    // this will check the PEM
+    this.message = nfc.message;
+
     /**
          * The public encryption key used by the Value Added Services protocol.
          * Use a Base64 encoded X.509 SubjectPublicKeyInfo structure containing a ECDH public key for group P256.
           
          encryptionPublicKey ?: string;
       */
-    // we will decode everything
-    if (!Array.isArray(nfcs))
-      throw new TypeError(
-        `nfc must be an array, received ${typeof nfcs}: ${JSON.stringify(
-          nfcs,
-        )}`,
-      );
-    if (nfcs.length < 1) return;
-    for (const { message, encryptionPublicKey } of nfcs) {
-      if (encryptionPublicKey) {
-        if (typeof encryptionPublicKey !== 'string')
-          throw new TypeError(
-            `encryptionPublicKey must be Base64 encoded X.509 SubjectPublicKeyInfo structure containing a ECDH public key for group P256`,
-          );
-        // this will check the PEM
-        this.add(
-          message,
-          Buffer.from(encryptionPublicKey, 'base64').toString('utf8'),
-        );
-      } else this.add(message);
-    }
+    if (typeof nfc.encryptionPublicKey === 'string')
+      this.encryptionPublicKey = nfc.encryptionPublicKey;
   }
 
-  toJSON(): NFCDictionary[] | undefined {
-    if (this.length < 1) return undefined;
-    return Array.from(this, ({ message, publicKey }) => ({
-      message,
-      encryptionPublicKey: publicKey
-        ? // we need internal part of PEM message
-          Buffer.from(
-            (forge.pem
-              .decode(publicKey)
-              .find(({ type }) => type === 'PUBLIC KEY') as forge.pem.ObjectPEM)
-              .body,
-            'binary',
-          ).toString('base64')
-        : undefined,
-    }));
-  }
-
-  add(message: string, publicKey?: string): this {
-    if (typeof message !== 'string' || message.length > 64)
+  /**
+   * Sets public key from PEM-encoded key or forge.pki.PublicKey instance
+   *
+   * @param {forge.pki.PublicKey | string} key
+   * @returns {this}
+   */
+  setPublicKey(key: forge.pki.PublicKey | string): this {
+    const pemKey =
+      typeof key === 'string' ? key : forge.pki.publicKeyToPem(key);
+    // test PEM key type
+    // decode throws on invalid PEM message
+    const pem = forge.pem.decode(pemKey);
+    const publicKey = pem.find(({ type }) => type === 'PUBLIC KEY');
+    // ensure it have a public key
+    if (!publicKey)
       throw new TypeError(
-        `NFC message must be a string 64 characters or less, received "${message}"`,
+        `NFC publicKey must be a PEM encoded X.509 SubjectPublicKeyInfo string`,
       );
 
-    if (publicKey) {
-      if (typeof publicKey !== 'string')
-        throw new TypeError(
-          `Public key must be a PEM encoded ECDH public key for group P256`,
-        );
-      // this must be PEM encoded string, let's check it
-      const pem = forge.pem.decode(publicKey);
-      // ensure it have a public key
-      if (!pem || !pem.find(({ type }) => type === 'PUBLIC KEY'))
-        throw new TypeError(
-          `NFC publicKey must be a PEM encoded X.509 SubjectPublicKeyInfo string`,
-        );
-      const der = forge.pki.pemToDer(publicKey);
-      const oid = forge.asn1.derToOid(der);
-      /**
-       * Ensure it's ECDH
-       *
-       * @see {@link https://www.alvestrand.no/objectid/1.2.840.10045.2.1.html}
-       */
-      if (!oid.includes('840.10045.2.1'))
-        throw new TypeError(`Public key must be a ECDH public key`);
+    const der = forge.pki.pemToDer(pemKey);
+    const oid = forge.asn1.derToOid(der);
+    /**
+     * Ensure it's ECDH
+     *
+     * @see {@link https://www.alvestrand.no/objectid/1.2.840.10045.2.1.html}
+     */
+    if (!oid.includes('840.10045.2.1'))
+      throw new TypeError(`Public key must be a ECDH public key`);
 
-      this.push({ message, publicKey });
-    }
+    this.encryptionPublicKey = Buffer.from(publicKey.body, 'binary').toString(
+      'base64',
+    );
+
     return this;
   }
 
-  clear(): this {
-    this.length = 0;
-    return this;
+  toJSON(): NFCDictionary | undefined {
+    if (!this.message) return undefined;
+    const res: NFCDictionary = { message: this.message };
+    if (this.encryptionPublicKey)
+      res.encryptionPublicKey = this.encryptionPublicKey;
+    return res;
   }
 }

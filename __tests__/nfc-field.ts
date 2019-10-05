@@ -17,32 +17,33 @@ describe('NFCField', () => {
   });
 
   it('decodes public key', () => {
-    const nfc = new NFCField([
+    const nfc = new NFCField(
       {
         message: 'test message',
-        encryptionPublicKey: Buffer.from(TEST_PUBLIC_KEY, 'utf-8').toString(
-          'base64',
-        ),
+        encryptionPublicKey: TEST_PUBLIC_KEY.replace(/\n/g, '')
+          .replace('-----BEGIN PUBLIC KEY-----', '')
+          .replace('-----END PUBLIC KEY-----', ''),
       },
-    ]);
-    expect(nfc.toJSON()).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ message: expect.toBeString() }),
-      ]),
     );
+    expect(nfc.toJSON()).toEqual(
+        { 
+          message: nfc.message,
+          encryptionPublicKey: nfc.encryptionPublicKey
+        });
   });
 
   it('add Base64 encoded public key', () => {
     const nfc = new NFCField();
-    nfc.add('hello world', TEST_PUBLIC_KEY);
-    expect(nfc.toJSON()).toEqual([
+    nfc.message = 'hello world';
+    nfc.setPublicKey(TEST_PUBLIC_KEY);
+    expect(nfc.toJSON()).toEqual(
       {
         encryptionPublicKey: TEST_PUBLIC_KEY.replace(/\n/g, '')
           .replace('-----BEGIN PUBLIC KEY-----', '')
           .replace('-----END PUBLIC KEY-----', ''),
         message: 'hello world',
       },
-    ]);
+    );
   });
 
   it('throws on wrong algorithm public key or no public key', () => {
@@ -50,7 +51,7 @@ describe('NFCField', () => {
     const privatePem = forge.pki.privateKeyToPem(keypair.privateKey);
     const publicPem = forge.pki.publicKeyToPem(keypair.publicKey);
     const nfc = new NFCField();
-    expect(() => nfc.add('hello', privatePem)).toThrow(/SubjectPublicKeyInfo/);
-    expect(() => nfc.add('wrong', publicPem)).toThrow(/ECDH public key/);
+    expect(() => nfc.setPublicKey(privatePem)).toThrow(/SubjectPublicKeyInfo/);
+    expect(() => nfc.setPublicKey(publicPem)).toThrow(/ECDH public key/);
   });
 });

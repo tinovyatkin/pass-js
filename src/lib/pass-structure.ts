@@ -29,9 +29,7 @@ export class PassStructure {
           this.transitType = fields.boardingPass.transitType;
         } else if ('storeCard' in this.fields && 'nfc' in fields) {
           // check NFC fields
-          this.fields.nfc = new NFCField(
-            Array.isArray(fields.nfc) ? fields.nfc : undefined,
-          );
+          this.fields.nfc = new NFCField(fields.nfc);
         }
         const structure: PassCommonStructure = fields[this.style];
         for (const prop of STRUCTURE_FIELDS) {

@@ -22,7 +22,8 @@
     "importHelpers": true,
     "listEmittedFiles": true,
     "outDir": "./dist",
-    "sourceMap": true
+    "sourceMap": true,
+    "incremental": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "@types"]
