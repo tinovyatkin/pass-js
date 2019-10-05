@@ -1,6 +1,6 @@
 'use strict';
 
-import * as path from 'path';
+import path from 'path';
 
 import { PassImages, IMAGE_FILENAME_REGEX } from '../src/lib/images';
 

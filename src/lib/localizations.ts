@@ -7,7 +7,7 @@
 
 import { createReadStream, promises as fs } from 'fs';
 import { createInterface } from 'readline';
-import * as path from 'path';
+import path from 'path';
 import { EOL } from 'os';
 
 import { normalizeLocale } from './normalize-locale';
