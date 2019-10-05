@@ -22,7 +22,7 @@
   "devDependencies": {
     "@babel/preset-env": "7.6.2",
     "@babel/preset-typescript": "7.6.0",
-    "@destinationstransfers/eslint-plugin": "2.9.14",
+    "@destinationstransfers/eslint-plugin": "2.9.15",
     "@types/buffer-crc32": "0.2.0",
     "@types/color-name": "1.1.1",
     "@types/jest": "24.0.18",
