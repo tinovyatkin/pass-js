@@ -1,6 +1,6 @@
 'use strict';
 
-import * as forge from 'node-forge';
+import forge from 'node-forge';
 
 const APPLE_CA_CERTIFICATE = forge.pki.certificateFromPem(
   process.env.APPLE_WWDR_CERT_PEM ||

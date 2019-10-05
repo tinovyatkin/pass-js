@@ -3,7 +3,7 @@
 import { createHash, randomBytes } from 'crypto';
 import { unlinkSync, mkdtempSync, writeFileSync, readFileSync } from 'fs';
 import { tmpdir } from 'os';
-import * as path from 'path';
+import path from 'path';
 import { execFileSync } from 'child_process';
 
 import * as constants from '../src/constants';

@@ -5,10 +5,10 @@
 'use strict';
 
 import { promisify } from 'util';
-import * as path from 'path';
+import path from 'path';
 import { createReadStream, promises as fs } from 'fs';
 
-import * as imagesize from 'imagesize';
+import imagesize from 'imagesize';
 
 import { IMAGES, DENSITIES } from '../constants';
 
