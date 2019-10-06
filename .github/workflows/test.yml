@@ -1,0 +1,30 @@
+name: Test
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - run: npm ci
+      - run: npm test
+
+      - name: Upload coverage to Codecov
+        # https://github.com/codecov/codecov-bash/blob/1044b7a243e0ea0c05ed43c2acd8b7bb7cef340c/codecov#L158
+        run: bash <(curl -s https://codecov.io/bash)
+          -f ./coverage/coverage-final.json
+          -B ${{ github.head_ref }}
+          -C ${{ github.event.after }}
+          -P ${{ github.event.number }}
+          -Z || echo 'Codecov upload failed'
+        env:
+          CI: true
+          CODECOV_ENV: github-action
+          CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}
