@@ -14,7 +14,11 @@ jobs:
         with:
           node-version: 12
       - run: npm ci
-      - run: npm test
+      - run: node --expose-gc node_modules/jest/bin/jest --forceExit --logHeapUsage --runInBand --ci --reporters=default --reporters=jest-junit
+        env:
+          APPLE_PASS_PRIVATE_KEY: ${{secrets.APPLE_PASS_PRIVATE_KEY}}
+          APPLE_PASS_CERTIFICATE: ${{secrets.APPLE_PASS_CERTIFICATE}}
+          APPLE_PASS_KEY_PASSWORD: ${{secrets.APPLE_PASS_KEY_PASSWORD}}
 
   publish-npm:
     needs: build
