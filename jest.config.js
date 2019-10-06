@@ -3,6 +3,7 @@ module.exports = {
   verbose: true,
   coverageReporters: ['text', 'json', 'cobertura', 'lcov'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  preset: 'ts-jest',
   testEnvironment: 'node',
   setupFilesAfterEnv: ['jest-extended'],
   watchPathIgnorePatterns: [
@@ -12,8 +13,22 @@ module.exports = {
     '<rootDir>/coverage/',
     '<rootDir>/.vscode/'
   ],
-  transform: {
-    '^.+\\.ts$': 'babel-jest'
-  },
-  transformIgnorePatterns: ['node_modules/']
+  globals: {
+    'ts-jest': {
+      diagnostics: {
+        ignoreCodes: [
+          2571,
+          2532,
+          2488,
+          2322,
+          2339,
+          2345,
+          6031,
+          6133,
+          7006,
+          18003
+        ]
+      }
+    }
+  }
 };
