@@ -26,11 +26,11 @@ jobs:
       - task: SonarCloudPublish@1
         inputs:
           pollingTimeoutSec: '1000'
-      - task: Npm@1
-        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-        inputs:
-          command: publish
-          publishEndpoint: NPM
+      # - task: Npm@1
+      #   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+      #   inputs:
+      #     command: publish
+      #     publishEndpoint: NPM
 
   - job: Windows
     pool:

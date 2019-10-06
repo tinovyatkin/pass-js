@@ -1,4 +1,4 @@
-import forge from 'node-forge';
+import * as forge from 'node-forge';
 
 import { NFCField } from '../src/lib/nfc-fields';
 

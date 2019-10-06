@@ -4,19 +4,20 @@
 
 'use strict';
 
-import http2 from 'http2';
+import * as http2 from 'http2';
 import { join } from 'path';
 import { promises as fs } from 'fs';
 
-import forge from 'node-forge';
+import * as forge from 'node-forge';
 import { unsigned as crc32 } from 'buffer-crc32';
-import stripJsonComments from 'strip-json-comments';
 
 import { Pass } from './pass';
 import { PASS_STYLES } from './constants';
 import { PassStyle, ApplePass } from './interfaces';
 import { PassBase } from './lib/base-pass';
 import { unzipBuffer } from './lib/yazul-promisified';
+
+import stripJsonComments = require('strip-json-comments');
 
 const {
   HTTP2_HEADER_METHOD,

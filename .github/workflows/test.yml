@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+      - name: Install Node.js
+        uses: actions/setup-node@v1
+        with:
+          node: 12.x
+      - name: Install Packages
+        run: npm install
+      - name: Lint
+        run: npm run -s lint
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+  test:
+    name: Test
+
+    strategy:
+          matrix:
+            os: [ubuntu-latest, windows-latest, macOS-latest]
+            node: [12.x, 10.x]
+            exclude:
+            # On Windows, run tests with only the latest environments.
+            - os: windows-latest
+              node: 10.x
+            # On macOS, run tests with only the latest environments.
+            - os: macOS-latest
+              node: 10.x
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v1
+        with:
+            fetch-depth: 1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm ci
+      - run: node --expose-gc node_modules/jest/bin/jest --forceExit --logHeapUsage --runInBand --ci --reporters=default --reporters=jest-junit
+        env:
+          APPLE_PASS_PRIVATE_KEY: ${{secrets.APPLE_PASS_PRIVATE_KEY}}
+          APPLE_PASS_CERTIFICATE: ${{secrets.APPLE_PASS_CERTIFICATE}}
+          APPLE_PASS_KEY_PASSWORD: ${{secrets.APPLE_PASS_KEY_PASSWORD}}
+
+      - name: Upload coverage to Codecov
+        # https://github.com/codecov/codecov-bash/blob/1044b7a243e0ea0c05ed43c2acd8b7bb7cef340c/codecov#L158
+        run: npx codecov 
+          -f "./coverage/coverage-final.json" 
+          -y "./.codecov.yml"
+          -b ${{ github.head_ref }}
+          -c ${{ github.event.after }}
+        env:
+          CI: true
+          CODECOV_ENV: github-action
+          CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}

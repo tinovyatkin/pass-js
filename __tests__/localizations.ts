@@ -1,5 +1,5 @@
 /* eslint-disable no-shadow */
-import path from 'path';
+import * as path from 'path';
 import { TextDecoder } from 'util';
 import { execFileSync } from 'child_process';
 import { randomBytes } from 'crypto';

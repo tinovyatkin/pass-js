@@ -3,7 +3,7 @@
   // for the documentation about the jsconfig.json format
   "compilerOptions": {
     // Keep allowJs here to allow use this config with tsc command line
-    "target": "esnext",
+    "target": "es2019",
     "lib": ["esnext", "dom"],
     /* Additional Checks */
     "noUnusedLocals": true,
