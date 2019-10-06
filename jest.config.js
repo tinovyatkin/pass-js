@@ -11,5 +11,9 @@ module.exports = {
     '<rootDir>/dist/',
     '<rootDir>/coverage/',
     '<rootDir>/.vscode/'
-  ]
+  ],
+  transform: {
+    '^.+\\.ts$': 'babel-jest'
+  },
+  transformIgnorePatterns: ['node_modules/']
 };
