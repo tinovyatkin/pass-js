@@ -48,4 +48,4 @@ jobs:
       - run: npm ci
       - run: npm publish --access public
         env:
-          NODE_AUTH_TOKEN: ${{secrets.github_npm_token}}
+          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
