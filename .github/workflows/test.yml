@@ -15,6 +15,10 @@ jobs:
           node-version: 12
       - run: npm ci
       - run: npm test
+        env:
+          APPLE_PASS_PRIVATE_KEY: ${{secrets.APPLE_PASS_PRIVATE_KEY}}
+          APPLE_PASS_CERTIFICATE: ${{secrets.APPLE_PASS_CERTIFICATE}}
+          APPLE_PASS_KEY_PASSWORD: ${{secrets.APPLE_PASS_KEY_PASSWORD}}
 
       - name: Upload coverage to Codecov
         # https://github.com/codecov/codecov-bash/blob/1044b7a243e0ea0c05ed43c2acd8b7bb7cef340c/codecov#L158
