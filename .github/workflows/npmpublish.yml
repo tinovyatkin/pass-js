@@ -30,6 +30,7 @@ jobs:
           node-version: 12
           registry-url: https://registry.npmjs.org/
           scope: "@destinationstransfers"
+      - run: npm ci
       - run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
@@ -44,6 +45,7 @@ jobs:
           node-version: 12
           registry-url: https://npm.pkg.github.com/
           scope: "@destinationstransfers"
+      - run: npm ci
       - run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.github_npm_token}}
