@@ -8,7 +8,7 @@ import http2 from 'http2';
 import { join } from 'path';
 import { promises as fs } from 'fs';
 
-import forge from 'node-forge';
+import * as forge from 'node-forge';
 import { unsigned as crc32 } from 'buffer-crc32';
 import stripJsonComments from 'strip-json-comments';
 
