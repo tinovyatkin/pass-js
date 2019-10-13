@@ -29,7 +29,7 @@ jobs:
         with:
           node-version: 12
           registry-url: https://registry.npmjs.org/
-          scope: "@destinationstransfers"
+          scope: "@walletpass"
       - run: npm ci
       - run: npm publish --access public
         env:
@@ -44,7 +44,7 @@ jobs:
         with:
           node-version: 12
           registry-url: https://npm.pkg.github.com/
-          scope: "@destinationstransfers"
+          scope: "@walletpass"
       - run: npm ci
       - run: npm publish --access public
         env:
