@@ -1,11 +1,10 @@
-[![npm (scoped)](https://img.shields.io/npm/v/@destinationstransfers/passkit.svg)](https://www.npmjs.com/package/@destinationstransfers/passkit) [![codecov](https://codecov.io/gh/destinationstransfers/passkit/branch/master/graph/badge.svg)](https://codecov.io/gh/destinationstransfers/passkit)
-[![Build Status](https://dev.azure.com/destinationstransfers/passkit/_apis/build/status/destinationstransfers.passkit?branchName=master)](https://dev.azure.com/destinationstransfers/passkit/_build/latest?definitionId=2&branchName=master)
-[![Known Vulnerabilities](https://snyk.io/test/github/destinationstransfers/passkit/badge.svg?targetFile=package.json)](https://snyk.io/test/github/destinationstransfers/passkit?targetFile=package.json) [![DeepScan grade](https://deepscan.io/api/teams/2667/projects/4302/branches/35050/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=2667&pid=4302&bid=35050) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=destinationstransfers_passkit&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=destinationstransfers_passkit) [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=destinationstransfers_passkit&metric=ncloc)](https://sonarcloud.io/dashboard?id=destinationstransfers_passkit) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=destinationstransfers_passkit&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=destinationstransfers_passkit) [![tested with jest](https://img.shields.io/badge/tested_with-jest-99424f.svg)](https://github.com/facebook/jest) [![install size](https://packagephobia.now.sh/badge?p=@destinationstransfers/passkit)](https://packagephobia.now.sh/result?p=@destinationstransfers/passkit) [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/destinationstransfers/passkit.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/destinationstransfers/passkit/context:javascript)
+[![npm (scoped)](https://img.shields.io/npm/v/@walletpass/pass-js.svg)](https://www.npmjs.com/package/@walletpass/pass-js) [![codecov](https://codecov.io/gh/walletpass/pass-js/branch/master/graph/badge.svg)](https://codecov.io/gh/walletpass/pass-js)
+[![Known Vulnerabilities](https://snyk.io/test/github/walletpass/pass-js/badge.svg?targetFile=package.json)](https://snyk.io/test/github/walletpass/pass-js?targetFile=package.json) [![DeepScan grade](https://deepscan.io/api/teams/2667/projects/4302/branches/35050/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=2667&pid=4302&bid=35050) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=destinationstransfers_passkit&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=destinationstransfers_passkit) [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=destinationstransfers_passkit&metric=ncloc)](https://sonarcloud.io/dashboard?id=destinationstransfers_passkit) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=destinationstransfers_passkit&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=destinationstransfers_passkit) [![tested with jest](https://img.shields.io/badge/tested_with-jest-99424f.svg)](https://github.com/facebook/jest) [![install size](https://packagephobia.now.sh/badge?p=@walletpass/pass-js)](https://packagephobia.now.sh/result?p=@walletpass/pass-js) [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/walletpass/pass-js.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/walletpass/pass-js/context:javascript)
 
 
 <img src="https://docs-assets.developer.apple.com/published/c104c9bff0/841b02dd-b78c-4cad-8da4-700761d34e14.png" alt="Apple Wallet logo" width="216" height="216" align="left">
 
-# @destinationstransfers/passkit
+# @walletpass/pass-js
 
 <p align="center">A Node.js library for generating Apple Wallet passes with localizations, NFC and web service push updates support. Written in Typescript.</p>
 
@@ -16,9 +15,9 @@
 
 Install with `NPM` or `yarn`:
 ```sh
-npm install @destinationstransfers/passkit --save
+npm install @walletpass/pass-js --save
 
-yarn add @destinationstransfers/passkit
+yarn add @walletpass/pass-js
 ```
 
 
@@ -47,7 +46,7 @@ Start with a template. A template has all the common data fields that will be
 shared between your passes.
 
 ```js
-const { Template } = require("@destinationstransfers/passkit");
+const { Template } = require("@walletpass/pass-js");
 
 // Create a Template from local folder, see __test__/resources/passes for examples
 // .load will load all fields from pass.json,
@@ -271,7 +270,7 @@ If the pass file generates without errors but you aren't able to open your pass 
 # Credits
 
 This projects started as fork of [assaf/node-passbook](http://github.com/assaf/node-passbook).
-Since version 5.0 our module is not API compatible, please see [Releases](https://github.com/destinationstransfers/passkit/releases) for more information.
+Since version 5.0 our module is not API compatible, please see [Releases](https://github.com/walletpass/pass-js/releases) for more information.
 
 - Targeting Node >= 10 and rewritten in Typescript, removing deprecated calls (`new Buffer`, etc)
 - Replaces `openssl` spawning with native Javascript RSA implementation (via `node-forge`)
