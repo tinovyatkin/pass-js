@@ -35,7 +35,7 @@
     "jest-extended": "0.11.2",
     "jest-junit": "9.0.0",
     "ts-jest": "24.1.0",
-    "typescript": "3.6.4"
+    "typescript": "3.7.2"
   },
   "scripts": {
     "test": "node -r env-app-yaml/config --expose-gc node_modules/jest/bin/jest --detectOpenHandles --logHeapUsage --maxWorkers=1",
