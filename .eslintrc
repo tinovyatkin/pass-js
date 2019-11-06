@@ -1,14 +1,17 @@
 {
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": 2018,
+    "ecmaVersion": 2020,
     "project": "./tsconfig.json",
     "sourceType": "module"
   },
   "plugins": ["@destinationstransfers", "@typescript-eslint"],
   "extends": [
     "plugin:@destinationstransfers/recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "prettier",
     "prettier/@typescript-eslint"
   ],
   "env": {
@@ -16,6 +19,9 @@
     "browser": false
   },
   "rules": {
+    "no-undef": "off", // conflicts with optional bindings
+    "@typescript-eslint/no-use-before-define": "off", // conflicts with optonal binding
+    "prettier/prettier": "off",
     "@destinationstransfers/prefer-class-properties": "off",
     "node/no-unsupported-features/es-syntax": "off",
     "node/no-unsupported-features/node-builtins": [
@@ -33,7 +39,6 @@
     "@typescript-eslint/no-var-requires": "off",
     "@typescript-eslint/camelcase": "off",
     "@typescript-eslint/member-ordering": "error",
-    "@typescript-eslint/no-use-before-define": "error",
     "@typescript-eslint/type-annotation-spacing": "error",
     "@typescript-eslint/no-extraneous-class": "error",
     "@typescript-eslint/no-non-null-assertion": "error",
