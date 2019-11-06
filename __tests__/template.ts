@@ -93,5 +93,5 @@ describe('Template', () => {
         'apns-id': expect.any(String),
       }),
     );
-  }, 7000);
+  }, 40000);
 });
