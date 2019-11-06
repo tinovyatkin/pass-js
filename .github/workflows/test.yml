@@ -6,10 +6,10 @@ on:
       - master
 
 jobs:
-  env:
-    CI: true
   lint:
     name: Lint
+    env:
+      CI: true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,6 +29,8 @@ jobs:
 
   test:
     name: Test
+    env:
+      CI: true
 
     strategy:
       matrix:
