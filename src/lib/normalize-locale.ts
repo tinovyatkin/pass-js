@@ -6,7 +6,7 @@ export function normalizeLocale(locale: string): string {
   const match = /^(?<lang>[A-Za-z]{2,4})([-_](?<variant>[A-Za-z]{4}|\d{3}))?([-_](?<country>[A-Za-z]{2}|\d{3}))?$/.exec(
     locale,
   );
-  if (!match || !match.groups || !match.groups.lang)
+  if (!match?.groups?.lang)
     throw new TypeError(`Invalid locale string: ${locale}`);
   let result = match.groups.lang.toLowerCase();
   if (match.groups.variant)

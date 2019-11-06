@@ -382,7 +382,7 @@ export class PassBase extends PassStructure {
       delete this.fields.maxDistance;
       return;
     }
-    if (!Number.isInteger)
+    if (!Number.isInteger(v))
       throw new TypeError(
         'maxDistance must be a positive integer distance in meters!',
       );

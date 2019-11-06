@@ -8,6 +8,8 @@ on:
 jobs:
   lint:
     name: Lint
+    env:
+      CI: true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -27,29 +29,35 @@ jobs:
 
   test:
     name: Test
+    env:
+      CI: true
 
     strategy:
-          matrix:
-            os: [ubuntu-latest, windows-latest, macOS-latest]
-            node: [12.x, 10.x]
-            exclude:
-            # On Windows, run tests with only the latest environments.
-            - os: windows-latest
-              node: 10.x
-            # On macOS, run tests with only the latest environments.
-            - os: macOS-latest
-              node: 10.x
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+        node: [13.x, 12.x, 10.x]
+        exclude:
+          # On Windows, run tests with only the latest environments.
+          - os: windows-latest
+            node: 10.x
+          - os: windows-latest
+            node: 13.x
+          # On macOS, run tests with only the latest environments.
+          - os: macOS-latest
+            node: 10.x
+          - os: macOS-latest
+            node: 13.x
 
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v1
         with:
-            fetch-depth: 1
+          fetch-depth: 1
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
       - run: npm ci
-      - run: node --expose-gc node_modules/jest/bin/jest --forceExit --logHeapUsage --runInBand --ci --reporters=default --reporters=jest-junit
+      - run: node --expose-gc node_modules/jest/bin/jest --forceExit --colors --logHeapUsage --runInBand --ci --reporters=default --reporters=jest-junit
         env:
           APPLE_PASS_PRIVATE_KEY: ${{secrets.APPLE_PASS_PRIVATE_KEY}}
           APPLE_PASS_CERTIFICATE: ${{secrets.APPLE_PASS_CERTIFICATE}}
@@ -57,12 +65,11 @@ jobs:
 
       - name: Upload coverage to Codecov
         # https://github.com/codecov/codecov-bash/blob/1044b7a243e0ea0c05ed43c2acd8b7bb7cef340c/codecov#L158
-        run: npx codecov 
-          -f "./coverage/coverage-final.json" 
+        run: npx codecov
+          -f "./coverage/coverage-final.json"
           -y "./.codecov.yml"
           -b ${{ github.head_ref }}
           -c ${{ github.event.after }}
         env:
-          CI: true
           CODECOV_ENV: github-action
           CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}

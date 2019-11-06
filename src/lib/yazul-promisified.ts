@@ -23,6 +23,7 @@ Object.defineProperties(ZipFile.prototype, {
     enumerable: true,
     writable: false,
     configurable: false,
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     value: promisify(ZipFile.prototype.openReadStream),
   },
   getBuffer: {

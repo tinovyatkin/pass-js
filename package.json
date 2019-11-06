@@ -29,18 +29,21 @@
     "@types/yauzl": "2.9.1",
     "@typescript-eslint/eslint-plugin": "2.6.1",
     "@typescript-eslint/parser": "2.6.1",
+    "@typescript-eslint/typescript-estree": "2.6.1",
     "env-app-yaml": "1.0.0",
     "eslint": "6.6.0",
+    "husky": "3.0.9",
     "jest": "25.0.0",
     "jest-extended": "0.11.2",
     "jest-junit": "9.0.0",
+    "lint-staged": "9.4.2",
     "ts-jest": "24.1.0",
     "typescript": "3.7.2"
   },
   "scripts": {
     "test": "node -r env-app-yaml/config --expose-gc node_modules/jest/bin/jest --detectOpenHandles --logHeapUsage --maxWorkers=1",
     "lint": "eslint \"{src,__tests__}/**/*.ts\" --ignore-pattern \"*test*\" --ignore-path .gitignore",
-    "postversion": "git push origin master --tags",
+    "postversion": "git push origin master --atomic",
     "prepublishOnly": "tsc",
     "costs": "npx cost-of-modules --no-install"
   },
