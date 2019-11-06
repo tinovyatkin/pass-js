@@ -31,14 +31,18 @@ jobs:
     strategy:
           matrix:
             os: [ubuntu-latest, windows-latest, macOS-latest]
-            node: [12.x, 10.x]
+            node: [13.x, 12.x, 10.x]
             exclude:
             # On Windows, run tests with only the latest environments.
             - os: windows-latest
               node: 10.x
+            - os: windows-latest
+              node: 13.x
             # On macOS, run tests with only the latest environments.
             - os: macOS-latest
               node: 10.x
+            - os: macOS-latest
+              node: 13.x
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -49,7 +53,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - run: npm ci
-      - run: node --expose-gc node_modules/jest/bin/jest --forceExit --logHeapUsage --runInBand --ci --reporters=default --reporters=jest-junit
+      - run: node --expose-gc node_modules/jest/bin/jest --forceExit --colors --logHeapUsage --runInBand --ci --reporters=default --reporters=jest-junit
         env:
           APPLE_PASS_PRIVATE_KEY: ${{secrets.APPLE_PASS_PRIVATE_KEY}}
           APPLE_PASS_CERTIFICATE: ${{secrets.APPLE_PASS_CERTIFICATE}}
