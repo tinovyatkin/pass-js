@@ -84,7 +84,7 @@ export class PassImages extends Map<string, string | Buffer> {
       if (entry.isDirectory()) {
         // check if it's a localization folder
         const test = /(?<lang>[-A-Z_a-z]+)\.lproj/.exec(entry.name);
-        if (!test || !test.groups || !test.groups.lang) continue;
+        if (!test?.groups?.lang) continue;
         const { lang } = test.groups;
         // reading this directory
         const currentPath = path.join(dirPath, entry.name);
@@ -164,7 +164,7 @@ export class PassImages extends Map<string, string | Buffer> {
     | { imageType: ImageType; density?: ImageDensity; lang?: string }
     | undefined {
     const test = IMAGE_FILENAME_REGEX.exec(fileName);
-    if (!test || !test.groups) return undefined;
+    if (!test?.groups) return undefined;
     const res: {
       imageType: ImageType;
       density?: ImageDensity;

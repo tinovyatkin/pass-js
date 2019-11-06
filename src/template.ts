@@ -211,7 +211,7 @@ export class Template extends PassBase {
           const test = /(^|\/)(?<lang>[-_a-z]+)\.lproj\/pass\.strings$/i.exec(
             entry.fileName,
           );
-          if (test && test.groups && test.groups.lang) {
+          if (test?.groups?.lang) {
             // found a localization file
             const stream = await zip.openReadStreamAsync(entry);
             await template.localization.addFromStream(test.groups.lang, stream);
