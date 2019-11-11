@@ -1,6 +1,5 @@
 # These are supported funding model platforms
 
-github: [tinovyatkin, walletpass]
-open_collective: webpasskit
+open_collective: walletpass
 # issuehunt: # Replace with a single IssueHunt username
 custom: ["https://www.paypal.me/fortransfer"]
