@@ -347,6 +347,12 @@ export interface PassVisualAppearanceKeys {
    */
   labelColor?: PassColor | string;
   /**
+   * Color of the strip text, specified as a CSS-style RGB triple.
+   *
+   * @example rgb(255, 255, 255)
+   */
+  stripColor?: PassColor | string;
+  /**
    * Text displayed next to the logo on the pass.
    */
   logoText?: string;
