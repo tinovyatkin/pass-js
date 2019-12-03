@@ -43,7 +43,7 @@
   "scripts": {
     "test": "node -r env-app-yaml/config --expose-gc node_modules/jest/bin/jest --detectOpenHandles --logHeapUsage --maxWorkers=1",
     "lint": "eslint \"{src,__tests__}/**/*.ts\" --ignore-pattern \"*test*\" --ignore-path .gitignore",
-    "postversion": "git push origin master --atomic",
+    "postversion": "git push origin master --follow-tags",
     "prepublishOnly": "tsc",
     "costs": "npx cost-of-modules --no-install"
   },
