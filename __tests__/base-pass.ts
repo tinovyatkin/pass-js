@@ -53,6 +53,9 @@ describe('PassBase', () => {
     expect(() => {
       bp.foregroundColor = 'rgb(33, 0,287)';
     }).toThrow();
+    expect(() => {
+      bp.stripColor = 'rgb(0, 0, 0)';
+    }).not.toThrow();
     // should convert values to rgb
     bp.foregroundColor = 'white';
     expect(bp.foregroundColor).toEqual([255, 255, 255]);
@@ -65,6 +68,8 @@ describe('PassBase', () => {
     expect(bp.foregroundColor).toEqual([0, 0, 255]);
     bp.foregroundColor = 'rgb(0%, 0%, 100%)';
     expect(bp.foregroundColor).toEqual([0, 0, 255]);
+    bp.stripColor = 'black';
+    expect(bp.stripColor).toEqual([0, 0, 0]);
     // should throw on bad color
     expect(() => {
       bp.foregroundColor = 'byaka a ne color';

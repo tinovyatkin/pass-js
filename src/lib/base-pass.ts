@@ -371,6 +371,25 @@ export class PassBase extends PassStructure {
   }
 
   /**
+   * Color of the strip text, specified as a CSS-style RGB triple.
+   *
+   * @example rgb(255, 255, 255)
+   */
+  get stripColor(): [number, number, number] | string | undefined | PassColor {
+    if (!(this.fields.stripColor instanceof PassColor)) return undefined;
+    return this.fields.stripColor;
+  }
+  set stripColor(v: string | [number, number, number] | PassColor | undefined) {
+    if (!v) {
+      delete this.fields.stripColor;
+      return;
+    }
+    if (!(this.fields.stripColor instanceof PassColor))
+      this.fields.stripColor = new PassColor(v);
+    else this.fields.stripColor.set(v);
+  }
+
+  /**
    * Maximum distance in meters from a relevant latitude and longitude that the pass is relevant.
    * This number is compared to the pass’s default distance and the smaller value is used.
    */
