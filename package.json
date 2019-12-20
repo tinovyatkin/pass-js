@@ -38,7 +38,7 @@
     "jest-junit": "10.0.0",
     "lint-staged": "9.5.0",
     "ts-jest": "24.2.0",
-    "typescript": "3.7.3"
+    "typescript": "3.7.4"
   },
   "scripts": {
     "test": "node -r env-app-yaml/config --expose-gc node_modules/jest/bin/jest --detectOpenHandles --logHeapUsage --maxWorkers=1",
