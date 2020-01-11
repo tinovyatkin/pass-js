@@ -13,7 +13,7 @@ import { unsigned as crc32 } from 'buffer-crc32';
 
 import { Pass } from './pass';
 import { PASS_STYLES } from './constants';
-import { PassStyle, ApplePass } from './interfaces';
+import { PassStyle, ApplePass, Options } from './interfaces';
 import { PassBase } from './lib/base-pass';
 import { unzipBuffer } from './lib/yazul-promisified';
 
@@ -36,13 +36,15 @@ export class Template extends PassBase {
   certificate?: forge.pki.Certificate;
   private apn?: http2.ClientHttp2Session;
 
+  // eslint-disable-next-line max-params
   constructor(
     style?: PassStyle,
     fields: Partial<ApplePass> = {},
     images?: import('./lib/images').PassImages,
     localization?: import('./lib/localizations').Localizations,
+    options?: Options
   ) {
-    super(fields, images, localization);
+    super(fields, images, localization, options);
 
     if (style) {
       if (!PASS_STYLES.has(style))
@@ -52,19 +54,21 @@ export class Template extends PassBase {
   }
 
   /**
-   * Loads Template, images and key from a given path
-   *
-   * @static
-   * @param {string} folderPath
-   * @param {string} [keyPassword] - optional key password
-   * @returns {Promise.<Template>}
-   * @throws - if given folder doesn't contain pass.json or it is in invalid format
-   * @memberof Template
-   */
+ * Loads Template, images and key from a given path
+ *
+ * @static
+ * @param {string} folderPath
+ * @param {string} [keyPassword] - optional key password
+ * @param {Options} options - settings for the lib
+ * @returns {Promise.<Template>}
+ * @throws - if given folder doesn't contain pass.json or it is in invalid format
+ * @memberof Template
+ */
   // eslint-disable-next-line max-statements, sonarjs/cognitive-complexity
   static async load(
     folderPath: string,
     keyPassword?: string,
+    options?: Options
   ): Promise<Template> {
     // Check if the path is accessible directory actually
     const entries = await readdir(folderPath, { withFileTypes: true });
@@ -88,8 +92,8 @@ export class Template extends PassBase {
         }
       }
       if (!type) throw new TypeError('Unknown pass style!');
-      template = new Template(type, passJson);
-    } else template = new Template();
+      template = new Template(type, passJson, undefined, undefined, options);
+    } else template = createDefaultTemplate(options);
     const { passTypeIdentifier } = template;
     const keyName = passTypeIdentifier
       ? `${passTypeIdentifier.replace(/^pass\./, '')}.pem`
@@ -156,16 +160,17 @@ export class Template extends PassBase {
   }
 
   /**
-   * Load template from a given buffer with ZIPped pass/template content
-   *
-   * @param {Buffer} buffer
-   */
-  static async fromBuffer(buffer: Buffer): Promise<Template> {
+ * Load template from a given buffer with ZIPped pass/template content
+ *
+ * @param {Buffer} buffer
+ * @param {Options} options
+ */
+  static async fromBuffer(buffer: Buffer, options?: Options): Promise<Template> {
     const zip = await unzipBuffer(buffer);
     if (zip.entryCount < 1)
       throw new TypeError(`Provided ZIP buffer contains no entries`);
 
-    let template = new Template();
+    let template = createDefaultTemplate(options);
 
     for await (const entry of zip) {
       if (entry.fileName.endsWith('/')) continue;
@@ -188,6 +193,7 @@ export class Template extends PassBase {
           passJSON,
           template.images,
           template.localization,
+          options
         );
       } else {
         // test if it's an image
@@ -351,6 +357,11 @@ export class Template extends PassBase {
       { ...this.fields, ...fields },
       this.images,
       this.localization,
+      this.options
     );
   }
+}
+
+function createDefaultTemplate(options?: Options): Template{
+  return new Template(undefined, {}, undefined, undefined, options)
 }

@@ -40,6 +40,16 @@ describe('PassBase', () => {
     expect(() => {
       bp.webServiceURL = '/webservice';
     }).toThrow();
+
+    const bpWithAllowHttpFalse = new PassBase({},undefined, undefined, { allowHttp: false });
+    expect(() => {
+      bpWithAllowHttpFalse.webServiceURL = 'http://transfers.do/webservice';
+    }).toThrow();
+
+    const bpWithAllowHttpTrue = new PassBase({},undefined, undefined, { allowHttp: true });
+    expect(() => {
+      bpWithAllowHttpTrue.webServiceURL = 'http://transfers.do/webservice';
+    }).not.toThrow();
   });
 
   it('color values as RGB triplets', () => {

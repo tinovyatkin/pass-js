@@ -8,7 +8,7 @@ import { getBufferHash } from './lib/getBufferHash';
 import { PassImages } from './lib/images';
 import { signManifest } from './lib/signManifest-forge';
 import { PassBase } from './lib/base-pass';
-import { ApplePass } from './interfaces';
+import { ApplePass, Options } from './interfaces';
 
 // Create a new pass.
 //
@@ -16,13 +16,15 @@ import { ApplePass } from './interfaces';
 // fields    - Pass fields (description, serialNumber, logoText)
 export class Pass extends PassBase {
   private readonly template: import('./template').Template;
+  // eslint-disable-next-line max-params
   constructor(
     template: import('./template').Template,
     fields: Partial<ApplePass> = {},
     images?: PassImages,
     localization?: import('./lib/localizations').Localizations,
+    options?: Options
   ) {
-    super(fields, images, localization);
+    super(fields, images, localization, options);
     this.template = template;
 
     Object.preventExtensions(this);

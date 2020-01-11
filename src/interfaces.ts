@@ -367,8 +367,9 @@ export interface PassVisualAppearanceKeys {
 export interface PassWebServiceKeys {
   /**
    * The URL of a web service that conforms to the API described in PassKit Web Service Reference.
-   * The web service must use the HTTPS protocol; the leading https:// is included in the value of this key.
-   * On devices configured for development, there is UI in Settings to allow HTTP web services.
+   * The web service must use the HTTPS protocol in production; the leading https:// is included in the value of this key.
+   * On devices configured for development, there is UI in Settings to allow HTTP web services. You can use the options
+   * parameter to set allowHTTP to be able to use URLs that use the HTTP protocol.
    *
    * @see {@link https://developer.apple.com/library/archive/documentation/PassKit/Reference/PassKit_WebService/WebService.html#//apple_ref/doc/uid/TP40011988}
    */
@@ -446,3 +447,7 @@ export type ApplePass = PassStandardKeys &
   PassVisualAppearanceKeys &
   PassWebServiceKeys &
   PassStructureFields;
+
+  export interface Options {
+    allowHttp: boolean
+  }
