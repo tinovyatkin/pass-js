@@ -17,5 +17,8 @@
   "typescript.suggest.autoImports": false,
   "typescript.referencesCodeLens.enabled": true,
   "jest.runAllTestsFirst": false,
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  }
 }

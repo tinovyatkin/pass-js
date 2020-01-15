@@ -2,10 +2,10 @@
   "name": "@walletpass/pass-js",
   "description": "Apple Wallet Pass generating and pushing updates from Node.js",
   "homepage": "https://github.com/walletpass/pass-js",
-  "version": "6.7.1",
+  "version": "6.8.0",
   "license": "MIT",
   "engines": {
-    "node": ">=10.1"
+    "node": ">=10.10"
   },
   "bin": {
     "passkit-keys": "./bin/passkit-keys"
