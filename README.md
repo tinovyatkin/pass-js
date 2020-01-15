@@ -131,6 +131,18 @@ const template = await Template.load(
 );
 ```
 
+You can use the options parameter of the template factory functions to set the `allowHttp` property. This enables you to use a `webServiceUrl` in your `pass.json` that uses the HTTP protocol instead of HTTPS for development purposes:
+
+```js
+const template = await Template.load(
+  "./path/to/templateFolder",
+  "secretKeyPasswod",
+  {
+    allowHttp: true,
+  },
+);
+```
+
 # Create your pass
 
 To create a new pass from a template:

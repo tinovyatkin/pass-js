@@ -1,4 +1,4 @@
-import { ApplePass } from '../interfaces';
+import { ApplePass, Options } from '../interfaces';
 import { BARCODES_FORMAT, STRUCTURE_FIELDS } from '../constants';
 
 import { PassColor } from './pass-color';
@@ -13,13 +13,17 @@ const STRUCTURE_FIELDS_SET = new Set([...STRUCTURE_FIELDS, 'nfc']);
 export class PassBase extends PassStructure {
   readonly images: PassImages;
   readonly localization: Localizations;
+  readonly options: Options | undefined
 
   constructor(
     fields: Partial<ApplePass> = {},
     images?: PassImages,
     localizations?: Localizations,
+    options?: Options
   ) {
     super(fields);
+
+    this.options = options
 
     // restore via setters
     for (const [key, value] of Object.entries(fields)) {
@@ -256,8 +260,9 @@ export class PassBase extends PassStructure {
 
   /**
    * The URL of a web service that conforms to the API described in PassKit Web Service Reference.
-   * The web service must use the HTTPS protocol; the leading https:// is included in the value of this key.
-   * On devices configured for development, there is UI in Settings to allow HTTP web services.
+   * The web service must use the HTTPS protocol in production; the leading https:// is included in the value of this key.
+   * On devices configured for development, there is UI in Settings to allow HTTP web services. You can use the options
+   * parameter to set allowHTTP to be able to use URLs that use the HTTP protocol.
    *
    * @see {@link https://developer.apple.com/library/archive/documentation/PassKit/Reference/PassKit_WebService/WebService.html#//apple_ref/doc/uid/TP40011988}
    */
@@ -272,8 +277,10 @@ export class PassBase extends PassStructure {
 
     // validating URL, it will throw on bad value
     const url = v instanceof URL ? v : new URL(v);
-    if (url.protocol !== 'https:')
+    const allowHttp = this.options?.allowHttp ?? false
+    if (!allowHttp && url.protocol !== 'https:'){
       throw new TypeError(`webServiceURL must be on HTTPS!`);
+    }
     this.fields.webServiceURL = v;
   }
 
