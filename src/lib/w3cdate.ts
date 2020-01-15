@@ -9,7 +9,7 @@
 export function isValidW3CDateString(dateStr: string): boolean {
   if (typeof dateStr !== 'string') return false;
   // W3C date format with optional seconds
-  return /^20[1-9]{2}-[01]\d-[0-3]\dT[0-5]\d:[0-5]\d(:[0-5]\d)?(Z|([+-][01]\d:[03]0)$)/.test(
+  return /^20\d{2}-[01]\d-[0-3]\dT[0-5]\d:[0-5]\d(:[0-5]\d)?(Z|([+-][01]\d:[03]0)$)/.test(
     dateStr,
   );
 }
