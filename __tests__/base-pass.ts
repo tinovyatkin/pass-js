@@ -19,6 +19,17 @@ describe('PassBase', () => {
     ]);
   });
 
+  it('works with locations as setter', () => {
+    const bp = new PassBase();
+    expect(bp.locations).toBeUndefined();
+    bp.locations = [
+      { longitude: 123, latitude: 321, relevantText: 'Test text' },
+    ];
+    expect(bp.locations).toIncludeSameMembers([
+      { longitude: 123, latitude: 321, relevantText: 'Test text' },
+    ]);
+  });
+
   it('works with beacons', () => {
     const bp = new PassBase();
     bp.beacons = [{ proximityUUID: '1143243' }];
@@ -41,12 +52,16 @@ describe('PassBase', () => {
       bp.webServiceURL = '/webservice';
     }).toThrow();
 
-    const bpWithAllowHttpFalse = new PassBase({},undefined, undefined, { allowHttp: false });
+    const bpWithAllowHttpFalse = new PassBase({}, undefined, undefined, {
+      allowHttp: false,
+    });
     expect(() => {
       bpWithAllowHttpFalse.webServiceURL = 'http://transfers.do/webservice';
     }).toThrow();
 
-    const bpWithAllowHttpTrue = new PassBase({},undefined, undefined, { allowHttp: true });
+    const bpWithAllowHttpTrue = new PassBase({}, undefined, undefined, {
+      allowHttp: true,
+    });
     expect(() => {
       bpWithAllowHttpTrue.webServiceURL = 'http://transfers.do/webservice';
     }).not.toThrow();

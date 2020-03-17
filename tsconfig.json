@@ -24,6 +24,6 @@
     "outDir": "./dist",
     "sourceMap": true
   },
-  "include": ["src/index.ts", "./src/@types"],
+  // "include": ["src/index.ts", "./src/@types"],
   "exclude": ["node_modules", "@types"]
 }

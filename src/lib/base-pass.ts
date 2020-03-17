@@ -13,17 +13,17 @@ const STRUCTURE_FIELDS_SET = new Set([...STRUCTURE_FIELDS, 'nfc']);
 export class PassBase extends PassStructure {
   readonly images: PassImages;
   readonly localization: Localizations;
-  readonly options: Options | undefined
+  readonly options: Options | undefined;
 
   constructor(
     fields: Partial<ApplePass> = {},
     images?: PassImages,
     localizations?: Localizations,
-    options?: Options
+    options?: Options,
   ) {
     super(fields);
 
-    this.options = options
+    this.options = options;
 
     // restore via setters
     for (const [key, value] of Object.entries(fields)) {
@@ -277,8 +277,8 @@ export class PassBase extends PassStructure {
 
     // validating URL, it will throw on bad value
     const url = v instanceof URL ? v : new URL(v);
-    const allowHttp = this.options?.allowHttp ?? false
-    if (!allowHttp && url.protocol !== 'https:'){
+    const allowHttp = this.options?.allowHttp ?? false;
+    if (!allowHttp && url.protocol !== 'https:') {
       throw new TypeError(`webServiceURL must be on HTTPS!`);
     }
     this.fields.webServiceURL = v;
@@ -503,6 +503,8 @@ export class PassBase extends PassStructure {
     delete this.fields.locations;
     if (!v) return;
     if (!Array.isArray(v)) throw new TypeError(`locations must be an array`);
-    else for (const location of v) this.addLocation(location);
+    else
+      for (const location of v)
+        this.addLocation(location, location.relevantText);
   }
 }
