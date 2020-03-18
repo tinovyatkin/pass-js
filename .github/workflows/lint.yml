@@ -31,10 +31,7 @@ jobs:
 
       - name: Lint
         run: |
-          git branch -r
-          git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/master
-          git branch -a
-          CHANGED_TS=$(git --no-pager diff --name-only ..origin/master | grep '/.*\.ts$' | xargs ls -d 2>/dev/null | paste -sd " " -)
+          CHANGED_TS=$(git --no-pager diff --name-only ..remotes/origin/master | grep '/.*\.ts$' | xargs ls -d 2>/dev/null | paste -sd " " -)
           if [[ -z $(sed -e 's/[[:space:]]*$//' <<<${CHANGED_TS}) ]] || [[ "$CHANGED_TS" == "." ]];
             then
               npm run -s lint
