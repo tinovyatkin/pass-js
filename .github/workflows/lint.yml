@@ -20,8 +20,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Install Node.js
         uses: actions/setup-node@v1
@@ -31,14 +29,14 @@ jobs:
 
       - name: Lint
         run: |
-          git remote -v
-          CHANGED_TS=$(git --no-pager diff --name-only ..origin | grep '/.*\.ts$' | xargs ls -d 2>/dev/null | paste -sd " " -)
-          if [[ -z $(sed -e 's/[[:space:]]*$//' <<<${CHANGED_TS}) ]] || [[ "$CHANGED_TS" == "." ]];
-            then
+          # git remote -v
+          # CHANGED_TS=$(git --no-pager diff --name-only ..origin | grep '/.*\.ts$' | xargs ls -d 2>/dev/null | paste -sd " " -)
+          # if [[ -z $(sed -e 's/[[:space:]]*$//' <<<${CHANGED_TS}) ]] || [[ "$CHANGED_TS" == "." ]];
+          #   then
               npm run -s lint
-            else
-              node node_modules/eslint/bin/eslint $CHANGED_TS
-          fi
+          #   else
+          #     node node_modules/eslint/bin/eslint $CHANGED_TS
+          # fi
 
       - name: Typecheck
         run: npx tsc --noEmit
