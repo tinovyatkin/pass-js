@@ -1,9 +1,20 @@
 {
   "name": "@walletpass/pass-js",
   "description": "Apple Wallet Pass generating and pushing updates from Node.js",
-  "homepage": "https://github.com/walletpass/pass-js",
+  "author": "Konstantin Vyatkin <tino@vtkn.io>",
   "version": "6.9.0",
+  "homepage": "https://github.com/walletpass/pass-js",
   "license": "MIT",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/walletpass/pass-js/blob/master/MIT-LICENSE"
+    }
+  ],
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/walletpass"
+  },
   "engines": {
     "node": ">=10.10"
   },
@@ -63,17 +74,10 @@
   "bugs": {
     "url": "https://github.com/walletpass/pass-js/issues"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/walletpass/pass-js/blob/master/MIT-LICENSE"
-    }
-  ],
   "directories": {
     "lib": "src",
     "test": "__tests__"
   },
-  "author": "Konstantin Vyatkin <tino@vtkn.io>",
   "dependencies": {
     "buffer-crc32": "0.2.13",
     "color-name": "1.1.4",
