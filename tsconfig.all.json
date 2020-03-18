@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["__tests__/*.ts", "./node_modules/jest-extended"]
+}
