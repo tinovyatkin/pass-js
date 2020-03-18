@@ -28,15 +28,7 @@ jobs:
         run: npm ci
 
       - name: Lint
-        run: |
-          # git remote -v
-          # CHANGED_TS=$(git --no-pager diff --name-only ..origin | grep '/.*\.ts$' | xargs ls -d 2>/dev/null | paste -sd " " -)
-          # if [[ -z $(sed -e 's/[[:space:]]*$//' <<<${CHANGED_TS}) ]] || [[ "$CHANGED_TS" == "." ]];
-          #   then
-              npm run -s lint
-          #   else
-          #     node node_modules/eslint/bin/eslint $CHANGED_TS
-          # fi
+        run: npm run -s lint
 
       - name: Typecheck
         run: npx tsc --noEmit
