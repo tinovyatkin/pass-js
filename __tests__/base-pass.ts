@@ -1,5 +1,6 @@
 import { PassBase } from '../src/lib/base-pass';
 import { TOP_LEVEL_FIELDS } from '../src/constants';
+import 'jest-extended';
 
 describe('PassBase', () => {
   it('should have all required pass properties', () => {
@@ -16,6 +17,17 @@ describe('PassBase', () => {
     expect(bp.locations).toIncludeSameMembers([
       { latitude: 2, longitude: 1 },
       { latitude: 3, longitude: 4, relevantText: 'The point' },
+    ]);
+  });
+
+  it('works with locations as setter', () => {
+    const bp = new PassBase();
+    expect(bp.locations).toBeUndefined();
+    bp.locations = [
+      { longitude: 123, latitude: 321, relevantText: 'Test text' },
+    ];
+    expect(bp.locations).toIncludeSameMembers([
+      { longitude: 123, latitude: 321, relevantText: 'Test text' },
     ]);
   });
 
@@ -41,12 +53,16 @@ describe('PassBase', () => {
       bp.webServiceURL = '/webservice';
     }).toThrow();
 
-    const bpWithAllowHttpFalse = new PassBase({},undefined, undefined, { allowHttp: false });
+    const bpWithAllowHttpFalse = new PassBase({}, undefined, undefined, {
+      allowHttp: false,
+    });
     expect(() => {
       bpWithAllowHttpFalse.webServiceURL = 'http://transfers.do/webservice';
     }).toThrow();
 
-    const bpWithAllowHttpTrue = new PassBase({},undefined, undefined, { allowHttp: true });
+    const bpWithAllowHttpTrue = new PassBase({}, undefined, undefined, {
+      allowHttp: true,
+    });
     expect(() => {
       bpWithAllowHttpTrue.webServiceURL = 'http://transfers.do/webservice';
     }).not.toThrow();

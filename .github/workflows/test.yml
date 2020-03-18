@@ -2,35 +2,18 @@ name: CI
 
 on:
   pull_request:
-    branches:
-      - master
+    paths:
+      - '**.ts'
+      - 'package-lock.json'
+      - '.github/workflows/test.yml'
 
 jobs:
-  lint:
-    name: Lint
-    env:
-      CI: true
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v1
-        with:
-          fetch-depth: 1
-      - name: Install Node.js
-        uses: actions/setup-node@v1
-        with:
-          node: 12.x
-      - name: Install Packages
-        run: npm install
-      - name: Lint
-        run: npm run -s lint
-      - name: Typecheck
-        run: npx tsc --noEmit
-
   test:
     name: Test
     env:
       CI: true
+      HUSKY_SKIP_INSTALL: true
+      FORCE_COLOR: 2
 
     strategy:
       matrix:
@@ -50,13 +33,16 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
         with:
           fetch-depth: 1
+
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
+
       - run: npm ci
+
       - run: node --expose-gc node_modules/jest/bin/jest --forceExit --colors --logHeapUsage --runInBand --ci --reporters=default --reporters=jest-junit
         env:
           APPLE_PASS_PRIVATE_KEY: ${{secrets.APPLE_PASS_PRIVATE_KEY}}
@@ -65,11 +51,6 @@ jobs:
 
       - name: Upload coverage to Codecov
         # https://github.com/codecov/codecov-bash/blob/1044b7a243e0ea0c05ed43c2acd8b7bb7cef340c/codecov#L158
-        run: npx codecov
-          -f "./coverage/coverage-final.json"
-          -y "./.codecov.yml"
-          -b ${{ github.head_ref }}
-          -c ${{ github.event.after }}
+        run: npx codecov -f "./coverage/coverage-final.json"
         env:
-          CODECOV_ENV: github-action
           CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}
