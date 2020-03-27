@@ -36,7 +36,7 @@
     "@types/color-name": "1.1.1",
     "@types/jest": "25.1.4",
     "@types/node": "12.12.31",
-    "@types/node-forge": "0.9.2",
+    "@types/node-forge": "0.9.3",
     "@types/yauzl": "2.9.1",
     "@typescript-eslint/eslint-plugin": "2.25.0",
     "@typescript-eslint/parser": "2.25.0",
