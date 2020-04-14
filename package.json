@@ -43,7 +43,7 @@
     "@typescript-eslint/typescript-estree": "2.28.0",
     "env-app-yaml": "1.0.0",
     "eslint": "6.8.0",
-    "husky": "4.2.3",
+    "husky": "4.2.5",
     "jest": "25.3.0",
     "jest-extended": "0.11.5",
     "jest-junit": "10.0.0",
