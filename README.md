@@ -1,5 +1,5 @@
 [![npm (scoped)](https://img.shields.io/npm/v/@walletpass/pass-js.svg)](https://www.npmjs.com/package/@walletpass/pass-js) [![codecov](https://codecov.io/gh/walletpass/pass-js/branch/master/graph/badge.svg)](https://codecov.io/gh/walletpass/pass-js)
-[![Known Vulnerabilities](https://snyk.io/test/github/walletpass/pass-js/badge.svg?targetFile=package.json)](https://snyk.io/test/github/walletpass/pass-js?targetFile=package.json) [![DeepScan grade](https://deepscan.io/api/teams/2667/projects/4302/branches/35050/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=2667&pid=4302&bid=35050) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=walletpass_pass-js&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=walletpass_pass-js) [![tested with jest](https://img.shields.io/badge/tested_with-jest-99424f.svg)](https://github.com/facebook/jest) [![install size](https://packagephobia.now.sh/badge?p=@walletpass/pass-js)](https://packagephobia.now.sh/result?p=@walletpass/pass-js) [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/walletpass/pass-js.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/walletpass/pass-js/context:javascript)
+[![Known Vulnerabilities](https://snyk.io/test/github/walletpass/pass-js/badge.svg?targetFile=package.json)](https://snyk.io/test/github/walletpass/pass-js?targetFile=package.json) [![DeepScan grade](https://deepscan.io/api/teams/2667/projects/4302/branches/35050/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=2667&pid=4302&bid=35050) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=walletpass_pass-js&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=walletpass_pass-js) [![tested with jest](https://img.shields.io/badge/tested_with-jest-99424f.svg)](https://github.com/facebook/jest) [![install size](https://packagephobia.now.sh/badge?p=@walletpass/pass-js)](https://packagephobia.now.sh/result?p=@walletpass/pass-js)
 
 
 <img src="https://docs-assets.developer.apple.com/published/c104c9bff0/841b02dd-b78c-4cad-8da4-700761d34e14.png" alt="Apple Wallet logo" width="216" height="216" align="left">
@@ -279,21 +279,14 @@ app.use(async (ctx, next) => {
 
 If the pass file generates without errors but you aren't able to open your pass on an iPhone, plug the iPhone into a Mac with macOS 10.14+ and open the 'Console' application. On the left, you can select your iPhone. You will then be able to inspect any errors that occur while adding the pass.
 
-# Credits
+## Stay in touch
 
-This projects started as fork of [assaf/node-passbook](http://github.com/assaf/node-passbook).
-Since version 5.0 our module is not API compatible, please see [Releases](https://github.com/walletpass/pass-js/releases) for more information.
+* Author - [Konstantin Vyatkin](https://github.com/tinovyatkin)
+* Email - tino [at] vtkn.io
 
-- Targeting Node >= 10 and rewritten in Typescript, removing deprecated calls (`new Buffer`, etc)
-- Replaces `openssl` spawning with native Javascript RSA implementation (via `node-forge`)
-- Includes `Template.pushUpdates(pushToken)` that sends APN update request for a given pass type to a pushToken (get `pushToken` at your PassKit Web Service implementation)
-- Adds constants for dictionary fields string values
-- Migrated tests to Jest
-- Increased test coverage
-- Adds strict dictionary fields values validation (where possible) to prevent errors earlier
-- Adding support for geolocation fields and Beacon fields
-- Adding easy template and localization load from JSON file
-- We use it in production at [Transfers.do](https://transfers.do/)
+## License
+
+`@walletpass/pass-js` is [MIT licensed](LICENSE).
 
 # Financial Contributors
 
