@@ -1,4 +1,4 @@
-[![Financial Contributors on Open Collective](https://opencollective.com/walletpass/all/badge.svg?label=financial+contributors)](https://opencollective.com/walletpass) [![npm (scoped)](https://img.shields.io/npm/v/@walletpass/pass-js.svg)](https://www.npmjs.com/package/@walletpass/pass-js) [![codecov](https://codecov.io/gh/walletpass/pass-js/branch/master/graph/badge.svg)](https://codecov.io/gh/walletpass/pass-js)
+[![npm (scoped)](https://img.shields.io/npm/v/@walletpass/pass-js.svg)](https://www.npmjs.com/package/@walletpass/pass-js) [![codecov](https://codecov.io/gh/walletpass/pass-js/branch/master/graph/badge.svg)](https://codecov.io/gh/walletpass/pass-js)
 [![Known Vulnerabilities](https://snyk.io/test/github/walletpass/pass-js/badge.svg?targetFile=package.json)](https://snyk.io/test/github/walletpass/pass-js?targetFile=package.json) [![DeepScan grade](https://deepscan.io/api/teams/2667/projects/4302/branches/35050/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=2667&pid=4302&bid=35050) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=walletpass_pass-js&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=walletpass_pass-js) [![tested with jest](https://img.shields.io/badge/tested_with-jest-99424f.svg)](https://github.com/facebook/jest) [![install size](https://packagephobia.now.sh/badge?p=@walletpass/pass-js)](https://packagephobia.now.sh/result?p=@walletpass/pass-js) [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/walletpass/pass-js.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/walletpass/pass-js/context:javascript)
 
 
@@ -295,32 +295,7 @@ Since version 5.0 our module is not API compatible, please see [Releases](https:
 - Adding easy template and localization load from JSON file
 - We use it in production at [Transfers.do](https://transfers.do/)
 
-## Contributors
-
-### Code Contributors
-
-This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
-<a href="https://github.com/walletpass/pass-js/graphs/contributors"><img src="https://opencollective.com/walletpass/contributors.svg?width=890&button=false" /></a>
-
-### Financial Contributors
+# Financial Contributors
 
 Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/walletpass/contribute)]
 
-#### Individuals
-
-<a href="https://opencollective.com/walletpass"><img src="https://opencollective.com/walletpass/individuals.svg?width=890"></a>
-
-#### Organizations
-
-Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/walletpass/contribute)]
-
-<a href="https://opencollective.com/walletpass/organization/0/website"><img src="https://opencollective.com/walletpass/organization/0/avatar.svg"></a>
-<a href="https://opencollective.com/walletpass/organization/1/website"><img src="https://opencollective.com/walletpass/organization/1/avatar.svg"></a>
-<a href="https://opencollective.com/walletpass/organization/2/website"><img src="https://opencollective.com/walletpass/organization/2/avatar.svg"></a>
-<a href="https://opencollective.com/walletpass/organization/3/website"><img src="https://opencollective.com/walletpass/organization/3/avatar.svg"></a>
-<a href="https://opencollective.com/walletpass/organization/4/website"><img src="https://opencollective.com/walletpass/organization/4/avatar.svg"></a>
-<a href="https://opencollective.com/walletpass/organization/5/website"><img src="https://opencollective.com/walletpass/organization/5/avatar.svg"></a>
-<a href="https://opencollective.com/walletpass/organization/6/website"><img src="https://opencollective.com/walletpass/organization/6/avatar.svg"></a>
-<a href="https://opencollective.com/walletpass/organization/7/website"><img src="https://opencollective.com/walletpass/organization/7/avatar.svg"></a>
-<a href="https://opencollective.com/walletpass/organization/8/website"><img src="https://opencollective.com/walletpass/organization/8/avatar.svg"></a>
-<a href="https://opencollective.com/walletpass/organization/9/website"><img src="https://opencollective.com/walletpass/organization/9/avatar.svg"></a>
