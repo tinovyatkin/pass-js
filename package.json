@@ -47,7 +47,7 @@
     "jest": "25.5.3",
     "jest-extended": "0.11.5",
     "jest-junit": "10.0.0",
-    "lint-staged": "10.1.7",
+    "lint-staged": "10.2.2",
     "ts-jest": "25.4.0",
     "typescript": "3.8.3"
   },
