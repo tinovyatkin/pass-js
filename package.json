@@ -34,7 +34,7 @@
     "@destinationstransfers/eslint-plugin": "2.9.162",
     "@types/buffer-crc32": "0.2.0",
     "@types/color-name": "1.1.1",
-    "@types/jest": "25.2.3",
+    "@types/jest": "26.0.0",
     "@types/node": "12.12.47",
     "@types/node-forge": "0.9.4",
     "@types/yauzl": "2.9.1",
