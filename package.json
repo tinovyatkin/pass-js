@@ -46,7 +46,7 @@
     "husky": "4.2.5",
     "jest": "26.0.1",
     "jest-extended": "0.11.5",
-    "jest-junit": "10.0.0",
+    "jest-junit": "11.0.1",
     "lint-staged": "10.2.11",
     "ts-jest": "26.1.0",
     "typescript": "3.9.5"
