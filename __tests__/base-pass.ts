@@ -55,6 +55,7 @@ describe('PassBase', () => {
 
     const bpWithAllowHttpFalse = new PassBase({}, undefined, undefined, {
       allowHttp: false,
+      disableImageCheck: false,
     });
     expect(() => {
       bpWithAllowHttpFalse.webServiceURL = 'http://transfers.do/webservice';
@@ -62,6 +63,7 @@ describe('PassBase', () => {
 
     const bpWithAllowHttpTrue = new PassBase({}, undefined, undefined, {
       allowHttp: true,
+      disableImageCheck: false,
     });
     expect(() => {
       bpWithAllowHttpTrue.webServiceURL = 'http://transfers.do/webservice';
