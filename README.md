@@ -195,7 +195,7 @@ If you have [dates in your fields](https://developer.apple.com/library/archive/d
  For example:
 
 ```js
-const { constants } = require('@destinationstransfers/passkit');
+const { constants } = require('@walletpass/pass-js');
 
 pass.primaryFields.add({ key: "updated", label: "Updated at", value: new Date(), dateStyle: constants.dateTimeFormat.SHORT, timeStyle: constants.dateTimeFormat.SHORT });
 
