@@ -29,10 +29,14 @@ Portal](https://developer.apple.com/ios/manage/passtypeids/index.action). You
 need one certificate per Pass Type ID.
 
 After adding this certificate to your Keychain, you need to export it as a
-`.p12` file first, then convert that file into a `.pem` file using the `passkit-keys` command:
+`.p12` file first (go to Keychain Access, My Certificates and right-click to export), then convert that file into a `.pem` file using the `passkit-keys` command:
 
 ```sh
 ./bin/passkit-keys ./pathToKeysFolder
+```
+or openssl
+```sh
+openssl pkcs12 -in <exported_cert_and_private_key>.p12 -clcerts -out com.example.passbook.pem -passin pass:<private_key_password>
 ```
 
 and copy it into the keys directory.
@@ -226,7 +230,7 @@ await template.load(folderPath);
 
 // Strings
 
-pass.localizations
+pass.localization
   .add("en-GB", {
     GATE: "GATE",
     DEPART: "DEPART",
@@ -262,7 +266,7 @@ To generate a file:
 
 ```js
 const buf = await pass.asBuffer();
-await fs.writeFile("pathToPass.pass", buf);
+await fs.writeFile("pathToPass.pkpass", buf);
 ```
 
 You can send the buffer directly to an HTTP server response:
