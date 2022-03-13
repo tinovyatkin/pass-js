@@ -2,7 +2,7 @@
   "name": "@walletpass/pass-js",
   "description": "Apple Wallet Pass generating and pushing updates from Node.js",
   "author": "Konstantin Vyatkin <tino@vtkn.io>",
-  "version": "6.9.3",
+  "version": "6.9.4",
   "homepage": "https://github.com/walletpass/pass-js",
   "license": "MIT",
   "licenses": [
@@ -36,7 +36,7 @@
     "@types/color-name": "1.1.1",
     "@types/jest": "27.4.1",
     "@types/node": "12.20.29",
-    "@types/node-forge": "0.10.9",
+    "@types/node-forge": "1.0.1",
     "@types/yauzl": "2.9.2",
     "@typescript-eslint/eslint-plugin": "5.14.0",
     "@typescript-eslint/parser": "5.14.0",
@@ -84,7 +84,7 @@
     "do-not-zip": "1.0.0",
     "event-iterator": "2.0.0",
     "imagesize": "1.0.0",
-    "node-forge": "1.0.0",
+    "node-forge": "1.2.1",
     "strip-json-comments": "3.1.1",
     "yauzl": "2.10.0"
   }
