@@ -45,7 +45,7 @@
     "eslint": "8.0.1",
     "husky": "7.0.2",
     "jest": "27.5.1",
-    "jest-extended": "1.0.0",
+    "jest-extended": "2.0.0",
     "jest-junit": "13.0.0",
     "lint-staged": "12.3.5",
     "ts-jest": "27.1.3",
