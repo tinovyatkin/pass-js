@@ -130,6 +130,7 @@ export class Template extends PassBase {
                 join(currentPath, f.name),
                 img.density,
                 lang,
+                options?.disableImageCheck
               ),
             );
         }
@@ -150,6 +151,8 @@ export class Template extends PassBase {
               img.imageType,
               join(folderPath, entry.name),
               img.density,
+              undefined,
+              options?.disableImageCheck
             ),
           );
       }
@@ -211,6 +214,7 @@ export class Template extends PassBase {
             imgBuffer,
             img.density,
             img.lang,
+            options?.disableImageCheck,
           );
         } else {
           // the only option lest is 'pass.strings' file in localization folder
@@ -362,6 +366,6 @@ export class Template extends PassBase {
   }
 }
 
-function createDefaultTemplate(options?: Options): Template{
+function createDefaultTemplate(options?: Options): Template {
   return new Template(undefined, {}, undefined, undefined, options)
 }
