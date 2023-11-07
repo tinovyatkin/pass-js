@@ -32,7 +32,7 @@
   "main": "./dist/index.js",
   "devDependencies": {
     "@destinationstransfers/eslint-plugin": "2.9.190",
-    "@types/buffer-crc32": "0.2.0",
+    "@types/buffer-crc32": "0.2.4",
     "@types/color-name": "1.1.1",
     "@types/jest": "27.4.1",
     "@types/node": "12.20.29",
