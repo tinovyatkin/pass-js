@@ -16,6 +16,16 @@ test('FieldsMap Class', () => {
   expect(JSON.stringify({ zz: 'zz', theField: fields })).toBe(
     `{"zz":"zz","theField":[{"key":"testKey","label":"testLabel","value":"testValue"}]}`,
   );
+
+  fields.add({
+    key: 'semanticField',
+    label: 'semanticLabel',
+    value: 'semanticValue',
+    semantics: { airlineCode: 'AC', flightNumber: 1234 },
+  });
+  expect(JSON.stringify(fields)).toContain(
+    '"semantics":{"airlineCode":"AC","flightNumber":1234}',
+  );
   // setValue
   fields.setValue('testKey', 'newValue');
   expect(fields.get('testKey')).toMatchObject({
@@ -30,6 +40,7 @@ test('FieldsMap Class', () => {
   });
   // remove should remove the entry and whole key if it last one
   fields.delete('testKey');
+  fields.delete('semanticField');
   expect(JSON.stringify({ b: 2, fields })).toBe('{"b":2}');
 
   // setDateTime
