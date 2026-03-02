@@ -32,12 +32,21 @@ export type NumberStyle =
   | 'PKNumberStyleScientific'
   | 'PKNumberStyleSpellOut';
 
+export type SemanticTags = Record<string, unknown>;
+
 export type FieldDescriptor = {
   // Standard Field Dictionary Keys
   label?: string;
   attributedValue?: string | number;
   changeMessage?: string;
   dataDetectorTypes?: DataDetectors[];
+  /**
+   * Semantic metadata for Wallet to provide richer representations
+   * (for example in Siri, Maps, Calendar integrations).
+   *
+   * @see {@link https://developer.apple.com/documentation/walletpasses/passfieldcontent/semantics}
+   */
+  semantics?: SemanticTags;
 } & (
   | {
       value: string;
