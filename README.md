@@ -1,209 +1,196 @@
-[![npm (scoped)](https://img.shields.io/npm/v/@walletpass/pass-js.svg)](https://www.npmjs.com/package/@walletpass/pass-js) [![codecov](https://codecov.io/gh/walletpass/pass-js/branch/master/graph/badge.svg)](https://codecov.io/gh/walletpass/pass-js)
-[![Known Vulnerabilities](https://snyk.io/test/github/walletpass/pass-js/badge.svg?targetFile=package.json)](https://snyk.io/test/github/walletpass/pass-js?targetFile=package.json) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=walletpass_pass-js&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=walletpass_pass-js) [![tested with jest](https://img.shields.io/badge/tested_with-jest-99424f.svg)](https://github.com/facebook/jest) [![install size](https://packagephobia.now.sh/badge?p=@walletpass/pass-js)](https://packagephobia.now.sh/result?p=@walletpass/pass-js)
-
+[![npm (scoped)](https://img.shields.io/npm/v/@walletpass/pass-js.svg)](https://www.npmjs.com/package/@walletpass/pass-js)
+[![codecov](https://codecov.io/github/tinovyatkin/pass-js/graph/badge.svg)](https://codecov.io/github/tinovyatkin/pass-js)
 
 <img src="https://docs-assets.developer.apple.com/published/c104c9bff0/841b02dd-b78c-4cad-8da4-700761d34e14.png" alt="Apple Wallet logo" width="216" height="216" align="left">
 
 # @walletpass/pass-js
 
-<p align="center">A Node.js library for generating Apple Wallet passes with localizations, NFC and web service push updates support. Written in Typescript.</p>
+<p align="center">A Node.js library for generating Apple Wallet passes with localizations, NFC, and web-service push updates. Written in TypeScript.</p>
 
 <br><br><br>
 
+## Installation
 
-# Installation
-
-Install with `NPM` or `yarn`:
 ```sh
-npm install @walletpass/pass-js --save
-
+npm install @walletpass/pass-js
+# or
 yarn add @walletpass/pass-js
 ```
 
+## Get your certificates
 
+To start, you'll need a certificate issued by [the iOS Provisioning Portal](https://developer.apple.com/ios/manage/passtypeids/index.action). You need one certificate per Pass Type ID.
 
-# Get your certificates
-
-To start with, you'll need a certificate issued by [the iOS Provisioning
-Portal](https://developer.apple.com/ios/manage/passtypeids/index.action). You
-need one certificate per Pass Type ID.
-
-After adding this certificate to your Keychain, you need to export it as a
-`.p12` file first (go to Keychain Access, My Certificates and right-click to export), then convert that file into a `.pem` file using the `passkit-keys` command:
+After adding this certificate to your Keychain, export it as a `.p12` file (Keychain Access → My Certificates → right-click → Export), then convert it into a `.pem` file using the `passkit-keys` command:
 
 ```sh
 ./bin/passkit-keys ./pathToKeysFolder
 ```
-or openssl
+
+Or directly with `openssl`:
+
 ```sh
 openssl pkcs12 -in <exported_cert_and_private_key>.p12 -clcerts -out com.example.passbook.pem -passin pass:<private_key_password>
 ```
 
-and copy it into the keys directory.
+Then copy the `.pem` file into your keys directory.
 
-The [Apple Worldwide Developer Relations Certification
-Authority](https://www.apple.com/certificateauthority/) certificate is not needed anymore since it is already included in this package.
+The [Apple Worldwide Developer Relations Certification Authority](https://www.apple.com/certificateauthority/) certificate is bundled with this package — you don't need to supply it yourself.
 
-# Start with a template
+## Start with a template
 
-Start with a template. A template has all the common data fields that will be
-shared between your passes.
+A template carries the fields, images, and localizations shared between your passes. Use it to stamp out individual passes.
 
 ```js
-const { Template } = require("@walletpass/pass-js");
+import { Template } from '@walletpass/pass-js';
 
-// Create a Template from local folder, see __test__/resources/passes for examples
-// .load will load all fields from pass.json,
-// as well as all images and com.example.passbook.pem file as key
-// and localization string too
+// Create a Template from a local folder. `.load` reads all fields from
+// pass.json, all images, the com.example.passbook.pem private key, and
+// any .lproj localization folders.
 const template = await Template.load(
-  "./path/to/templateFolder",
-  "secretKeyPasswod"
+  './path/to/templateFolder',
+  'secretKeyPassword',
 );
 
-// or
-// create a Template from a Buffer with ZIP content
-const s3 = new AWS.S3({ apiVersion: "2006-03-01", region: "us-west-2" });
-const s3file = await s3
-  .getObject({
-    Bucket: "bucket",
-    Key: "pass-template.zip"
-  })
-  .promise();
-const template = await Template.fromBuffer(s3file.Body);
+// Or create a Template from a Buffer containing ZIP-compressed pass bundle
+// data (for example, a .pkpass fetched from S3):
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 
-// or create it manually
-const template = new Template("coupon", {
-  passTypeIdentifier: "pass.com.example.passbook",
-  teamIdentifier: "MXL",
-  backgroundColor: "red",
-  sharingProhibited: true
+const s3 = new S3Client({ region: 'us-west-2' });
+const s3file = await s3.send(
+  new GetObjectCommand({ Bucket: 'bucket', Key: 'pass-template.zip' }),
+);
+const buffer = Buffer.from(await s3file.Body.transformToByteArray());
+const template = await Template.fromBuffer(buffer);
+
+// Or construct one by hand:
+const template = new Template('coupon', {
+  passTypeIdentifier: 'pass.com.example.passbook',
+  teamIdentifier: 'MXL',
+  backgroundColor: 'red',
+  sharingProhibited: true,
 });
-await template.images.add("icon", iconPngFileBuffer)
-                     .add("logo", pathToLogoPNGfile)
+await template.images.add('icon', iconPngFileBuffer);
+await template.images.add('logo', pathToLogoPNGfile);
 ```
 
-The first argument is the pass style (`coupon`, `eventTicket`, etc), and the
-second optional argument has any fields you want to set on the template.
+The first argument to the `Template` constructor is the pass style (`coupon`, `eventTicket`, etc.); the second is an optional object with any fields you want to set on the template.
 
-You can access template fields directly, or from chained accessor methods, e.g:
+You can access template fields directly:
 
 ```js
-template.passTypeIdentifier = "pass.com.example.passbook";
-template.teamIdentifier = "MXL";
+template.passTypeIdentifier = 'pass.com.example.passbook';
+template.teamIdentifier = 'MXL';
 ```
 
-The following template fields are required:
+The following fields are required on every pass:
 
-- `passTypeIdentifier` - The Apple Pass Type ID, which has the prefix `pass.`
-- `teamIdentifier` - May contain an I
+- `passTypeIdentifier` — the Apple Pass Type ID (has the `pass.` prefix)
+- `teamIdentifier` — your Apple Developer team identifier
 
-You can set any available fields either on a template or pass instance, such as: `backgroundColor`,
-`foregroundColor`, `labelColor`, `logoText`, `organizationName`,
-`suppressStripShine` and `webServiceURL`.
+You can set any documented pass field on a template or pass instance — for example, `backgroundColor`, `foregroundColor`, `labelColor`, `logoText`, `organizationName`, `suppressStripShine`, and `webServiceURL`.
 
-In addition, you need to tell the template where to find the key file:
+Load the signing key into the template:
 
 ```js
 await template.loadCertificate(
-  "/etc/passbook/certificate_and_key.pem",
-  "secret"
+  '/etc/passbook/certificate_and_key.pem',
+  'secret',
 );
-// or set them as strings
+// …or set them directly from strings:
 template.setCertificate(pemEncodedPassCertificate);
 template.setPrivateKey(pemEncodedPrivateKey, optionalKeyPassword);
 ```
 
-If you have images that are common to all passes, you may want to specify them once in the template:
+If you have images common to every pass (logos, icons, background art), add them once on the template:
 
 ```js
-// specify a single image with specific density and localization
-await pass.images.add("icon", iconFilename, "2x", "ru");
-// load all appropriate images in all densities and localizations
-await template.images.load("./images");
+// Add a single image with a specific density and locale
+await template.images.add('icon', iconFilename, '2x', 'ru');
+// Or load all images in all densities and locales at once
+await template.images.load('./images');
 ```
 
-You can add the image itself or a `Buffer`. Image format is enforced to be **PNG**.
+Image input may be a file path or a `Buffer`. Format is enforced: only **PNG** is accepted.
 
-Alternatively, if you have one directory containing the template file `pass.json`, the key
-`com.example.passbook.pem` and all the needed images, you can just use this single command:
-
-```js
-const template = await Template.load(
-  "./path/to/templateFolder",
-  "secretKeyPasswod"
-);
-```
-
-You can use the options parameter of the template factory functions to set the `allowHttp` property. This enables you to use a `webServiceUrl` in your `pass.json` that uses the HTTP protocol instead of HTTPS for development purposes:
+If you have a single directory that contains `pass.json`, the key
+`com.example.passbook.pem`, and all the images you need, one call does everything:
 
 ```js
 const template = await Template.load(
-  "./path/to/templateFolder",
-  "secretKeyPasswod",
-  {
-    allowHttp: true,
-  },
+  './path/to/templateFolder',
+  'secretKeyPassword',
 );
 ```
 
-# Create your pass
+Use the optional third argument to enable `allowHttp` — useful for development when your `webServiceURL` points at an HTTP (not HTTPS) server:
+
+```js
+const template = await Template.load(
+  './path/to/templateFolder',
+  'secretKeyPassword',
+  { allowHttp: true },
+);
+```
+
+## Create your pass
 
 To create a new pass from a template:
 
 ```js
 const pass = template.createPass({
-  serialNumber: "123456",
-  description: "20% off"
+  serialNumber: '123456',
+  description: '20% off',
 });
 ```
 
-Just like the template, you can access pass fields directly, e.g:
+Just like a template, you can assign pass fields directly:
 
 ```js
-pass.serialNumber = "12345";
-pass.description = "20% off";
+pass.serialNumber = '12345';
+pass.description = '20% off';
 ```
 
-In the JSON specification, structure fields (primary fields, secondary fields,
-etc) are represented as arrays, but items must have distinct key properties. Le
-sigh.
-
-To make it easier, you can use methods of standard Map object or `add` that
-will do the logical thing. For example, to add a primary field:
+Apple's JSON schema represents structure fields (primary fields, secondary fields, etc.) as arrays whose items must have distinct `key` properties. To keep that ergonomic, this library exposes a `Map`-like API with an additional `add` method that does the logical thing:
 
 ```js
-pass.primaryFields.add({ key: "time", label: "Time", value: "10:00AM" });
+pass.primaryFields.add({ key: 'time', label: 'Time', value: '10:00AM' });
 ```
 
-To get one or all fields:
+Read one or all fields:
 
 ```js
-const dateField = pass.primaryFields.get("date");
+const dateField = pass.primaryFields.get('date');
 for (const [key, { value }] of pass.primaryFields.entries()) {
-  // ...
+  // …
 }
 ```
 
-To remove one or all fields:
+Remove one or all fields:
 
 ```js
-pass.primaryFields.delete("date");
+pass.primaryFields.delete('date');
 pass.primaryFields.clear();
 ```
 
-Adding images to a pass is the same as adding images to a template (see above).
+Adding images to a pass works exactly like adding them to a template (see above).
 
-# Working with Dates
-If you have [dates in your fields](https://developer.apple.com/library/archive/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/FieldDictionary.html#//apple_ref/doc/uid/TP40012026-CH4-SW6) make sure they are in ISO 8601 format with timezone or a `Date` instance. 
- For example:
+## Working with dates
+
+If your fields contain [dates](https://developer.apple.com/library/archive/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/FieldDictionary.html#//apple_ref/doc/uid/TP40012026-CH4-SW6), supply them as ISO 8601 strings with a timezone or as native `Date` instances:
 
 ```js
-const { constants } = require('@walletpass/pass-js');
+import { constants } from '@walletpass/pass-js';
 
-pass.primaryFields.add({ key: "updated", label: "Updated at", value: new Date(), dateStyle: constants.dateTimeFormat.SHORT, timeStyle: constants.dateTimeFormat.SHORT });
+pass.primaryFields.add({
+  key: 'updated',
+  label: 'Updated at',
+  value: new Date(),
+  dateStyle: constants.dateTimeFormat.SHORT,
+  timeStyle: constants.dateTimeFormat.SHORT,
+});
 
-// there is also a helper setDateTime method
+// The `setDateTime` helper wraps the common case:
 pass.auxiliaryFields.setDateTime(
   'serviceDate',
   'DATE',
@@ -214,85 +201,82 @@ pass.auxiliaryFields.setDateTime(
     changeMessage: 'Service date changed to %@.',
   },
 );
-// main fields also accept Date objects
-pass.relevantDate = new Date(2020, 1, 1, 10, 0);
-template.expirationDate = new Date(2020, 10, 10, 10, 10);
+
+// Top-level date fields also accept Date objects:
+pass.relevantDate = new Date(2026, 1, 1, 10, 0);
+template.expirationDate = new Date(2026, 10, 10, 10, 10);
 ```
 
-# Localizations
+## Localizations
 
-This library fully supports both [string localization](https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/PassKit_PG/Creating.html#//apple_ref/doc/uid/TP40012195-CH4-SW54) and/or [images localization](https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/PassKit_PG/Creating.html#//apple_ref/doc/uid/TP40012195-CH4-SW1):
+This library fully supports both [string localization](https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/PassKit_PG/Creating.html#//apple_ref/doc/uid/TP40012195-CH4-SW54) and [image localization](https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/PassKit_PG/Creating.html#//apple_ref/doc/uid/TP40012195-CH4-SW1):
 
 ```js
-// everything from template
-// will load all localized images and strings from folders like ru.lproj/ or fr-CA.lproj/
+// Everything at once, from a template folder.
+// Loads all localized images and strings from folders like `ru.lproj/`
+// or `fr-CA.lproj/`.
 await template.load(folderPath);
 
-// Strings
-
+// Strings only:
 pass.localization
-  .add("en-GB", {
-    GATE: "GATE",
-    DEPART: "DEPART",
-    ARRIVE: "ARRIVE",
-    SEAT: "SEAT",
-    PASSENGER: "PASSENGER",
-    FLIGHT: "FLIGHT"
+  .add('en-GB', {
+    GATE: 'GATE',
+    DEPART: 'DEPART',
+    ARRIVE: 'ARRIVE',
+    SEAT: 'SEAT',
+    PASSENGER: 'PASSENGER',
+    FLIGHT: 'FLIGHT',
   })
-  .add("ru", {
-    GATE: "ВЫХОД",
-    DEPART: "ВЫЛЕТ",
-    ARRIVE: "ПРИЛЁТ",
-    SEAT: "МЕСТО",
-    PASSENGER: "ПАССАЖИР",
-    FLIGHT: "РЕЙС"
+  .add('ru', {
+    GATE: 'ВЫХОД',
+    DEPART: 'ВЫЛЕТ',
+    ARRIVE: 'ПРИЛЁТ',
+    SEAT: 'МЕСТО',
+    PASSENGER: 'ПАССАЖИР',
+    FLIGHT: 'РЕЙС',
   });
 
-// Images
-
+// Images:
 await template.images.add(
-  "logo" | "icon" | etc,
+  'logo' /* or 'icon', etc. */,
   imageFilePathOrBufferWithPNGdata,
-  "1x" | "2x" | "3x" | undefined,
-  "ru"
+  '2x' /* density: '1x' | '2x' | '3x' | undefined */,
+  'ru' /* language code */,
 );
 ```
 
-Localization applies for all fields' `label` and `value`. There is a note about that in [documentation](https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/PassKit_PG/Creating.html).
+Localization applies to each field's `label` and `value`. See [the Apple docs](https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/PassKit_PG/Creating.html) for details.
 
-# Generate the file
+## Generate the `.pkpass` file
 
-To generate a file:
+To generate the pass as a Buffer:
 
 ```js
+import { writeFile } from 'node:fs/promises';
+
 const buf = await pass.asBuffer();
-await fs.writeFile("pathToPass.pkpass", buf);
+await writeFile('pathToPass.pkpass', buf);
 ```
 
-You can send the buffer directly to an HTTP server response:
+Or stream the Buffer directly as an HTTP response:
 
 ```js
 app.use(async (ctx, next) => {
   ctx.status = 200;
-  ctx.type = passkit.constants.PASS_MIME_TYPE;
+  ctx.type = constants.PASS_MIME_TYPE;
   ctx.body = await pass.asBuffer();
 });
 ```
 
-# Troubleshooting with Console app
+## Troubleshooting with the Console app
 
-If the pass file generates without errors but you aren't able to open your pass on an iPhone, plug the iPhone into a Mac with macOS 10.14+ and open the 'Console' application. On the left, you can select your iPhone. You will then be able to inspect any errors that occur while adding the pass.
+If the pass file generates without errors but you can't open it on an iPhone, connect the iPhone to a Mac running macOS 10.14 or later and open the **Console** application. Select your device on the left, then watch for errors emitted while the system tries to add the pass.
 
 ## Stay in touch
 
-* Author - [Konstantin Vyatkin](https://github.com/tinovyatkin)
-* Email - tino [at] vtkn.io
+- Author — [Konstantin Vyatkin](https://github.com/tinovyatkin)
+- Email — tino [at] vtkn.io
 
 ## License
 
 `@walletpass/pass-js` is [MIT licensed](LICENSE).
-
-# Financial Contributors
-
-Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/walletpass/contribute)]
-
