@@ -38,17 +38,18 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - name: esbuild bundle
+      - name: esbuild single-file bundle (Lambda-style)
         run: |
           npx esbuild dist/index.js \
             --bundle \
             --platform=node \
             --format=esm \
-            --packages=external \
             --outfile=/tmp/bundle.mjs
+          # Load the bundle from outside the repo so we prove it doesn't
+          # depend on node_modules being present at runtime.
           node --input-type=module -e \
-            "import('file:///tmp/bundle.mjs').then(m => { if (!m.Pass || !m.Template) process.exit(1); })"
-      - name: ncc single-file build
+            "import('file:///tmp/bundle.mjs').then(m => { if (!m.Pass || !m.Template) { console.error('missing exports'); process.exit(1); } })"
+      - name: ncc single-file bundle
         run: |
           npx @vercel/ncc build dist/index.js -o /tmp/ncc-out
-          node -e "const m = require('/tmp/ncc-out/index.js'); if (!m.Pass || !m.Template) process.exit(1);"
+          node -e "const m = require('/tmp/ncc-out/index.js'); if (!m.Pass || !m.Template) { console.error('missing exports'); process.exit(1); }"

@@ -11,6 +11,8 @@ permissions:
 jobs:
   mehen:
     runs-on: ubuntu-latest
+    # Metrics only; don't block the merge queue on tool failures.
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v5
         with:
@@ -18,3 +20,4 @@ jobs:
       - uses: ophidiarium/mehen@v0
         with:
           paths: src
+        continue-on-error: true
