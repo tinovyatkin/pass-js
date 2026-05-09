@@ -7,7 +7,7 @@ import { Localizations } from './localizations.js';
 import { getGeoPoint } from './get-geo-point.js';
 import { PassStructure } from './pass-structure.js';
 import { normalizeSemanticTags } from './semantic-tags.js';
-import { getW3CDateString, isValidW3CDateString } from './w3cdate.js';
+import { isValidW3CDateString, normalizeDatesDeep } from './w3cdate.js';
 
 const STRUCTURE_FIELDS_SET = new Set([...STRUCTURE_FIELDS, 'nfc']);
 
@@ -40,14 +40,21 @@ export class PassBase extends PassStructure {
     this.localization = new Localizations(localizations);
   }
 
-  // Returns the pass.json object (not a string).
+  // Returns the pass.json object (not a string). Any Date anywhere in the
+  // plain-object tree — top-level field, inside a RelevantDateEntry,
+  // inside a future nested schema — is converted to the library's W3C
+  // date string format (YYYY-MM-DDTHH:MM±HH:MM), never the JS default
+  // ISO 8601 with milliseconds and trailing `Z` that Date.prototype.toJSON
+  // would emit during JSON.stringify.
+  //
+  // Class instances (PassColor, FieldsMap, NFCField, …) have their own
+  // toJSON and pass through unchanged — the walker only descends into
+  // plain objects and arrays.
   toJSON(): Partial<ApplePass> {
-    const res: Partial<ApplePass> = { formatVersion: 1 };
-    for (const [field, value] of Object.entries(this.fields)) {
-      (res as Record<string, unknown>)[field] =
-        value instanceof Date ? getW3CDateString(value) : value;
-    }
-    return res;
+    return {
+      formatVersion: 1,
+      ...normalizeDatesDeep(this.fields),
+    } as Partial<ApplePass>;
   }
 
   get passTypeIdentifier(): string | undefined {

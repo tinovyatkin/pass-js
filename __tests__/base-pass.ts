@@ -132,6 +132,56 @@ describe('PassBase', () => {
     assert.equal(bp.preferredStyleSchemes, undefined);
   });
 
+  it('relevantDates Date entries are normalized to W3C strings', () => {
+    const bp = new PassBase({ eventTicket: {} });
+    bp.relevantDates = [
+      {
+        startDate: new Date(Date.UTC(2026, 5, 1, 12, 0, 0)),
+        endDate: new Date(Date.UTC(2026, 5, 1, 14, 0, 0)),
+      },
+    ];
+    const out = bp.toJSON() as {
+      relevantDates: { startDate: string; endDate: string }[];
+    };
+    // No milliseconds, no trailing Z — matches the format the rest of
+    // the library emits (getW3CDateString style: YYYY-MM-DDTHH:MM±HH:MM).
+    assert.ok(typeof out.relevantDates[0].startDate === 'string');
+    assert.doesNotMatch(out.relevantDates[0].startDate, /\.\d{3}Z$/);
+    assert.match(
+      out.relevantDates[0].startDate,
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:[+-]\d{2}:\d{2}|Z)$/,
+    );
+    // Pre-formatted strings pass through unchanged.
+    bp.relevantDates = [{ relevantDate: '2026-06-02T10:00-07:00' }];
+    const out2 = bp.toJSON() as {
+      relevantDates: { relevantDate: string }[];
+    };
+    assert.equal(out2.relevantDates[0].relevantDate, '2026-06-02T10:00-07:00');
+  });
+
+  it('semantics shared subtrees are not mistaken for cycles', () => {
+    const bp = new PassBase({ eventTicket: {} });
+    // The same location object used twice — acyclic, should serialize.
+    const venue = { latitude: 37.330886, longitude: -122.007427 };
+    bp.semantics = {
+      venueLocation: venue,
+      departureLocation: venue,
+    };
+    assert.deepEqual(bp.semantics, {
+      venueLocation: venue,
+      departureLocation: venue,
+    });
+  });
+
+  it('semantics actual cycles still throw', () => {
+    const bp = new PassBase({ eventTicket: {} });
+    const loop: Record<string, unknown> = {};
+    loop['self'] = loop;
+    assert.throws(() => {
+      bp.semantics = loop as Record<string, never>;
+    }, /cyclic references/);
+  });
+
   it('appLaunchURL get/set', () => {
     const bp = new PassBase();
     assert.equal(bp.appLaunchURL, undefined);

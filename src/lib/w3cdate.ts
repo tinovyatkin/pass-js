@@ -46,6 +46,33 @@ export function getW3CDateString(value: string | Date): string {
   return `${date.getFullYear()}-${month}-${day}T${hours}:${minutes}${offsetSign}${offsetHours}:${offsetMinutes}`;
 }
 
+/**
+ * Recursively walks a plain-object tree (arrays, objects, primitives) and
+ * replaces every `Date` with `getW3CDateString(date)`. Returns a new tree;
+ * the input is not mutated. Non-plain values (class instances other than
+ * `Date`, functions, symbols) pass through unchanged.
+ *
+ * Use this instead of trusting `JSON.stringify` for any object containing
+ * a pass field that may carry `Date` values. The default
+ * `Date.prototype.toJSON` emits ISO 8601 with milliseconds and trailing
+ * `Z`, which diverges from the W3C format Apple expects in pkpass
+ * `pass.json` entries.
+ */
+export function normalizeDatesDeep<T>(value: T): T {
+  if (value instanceof Date) {
+    return getW3CDateString(value) as unknown as T;
+  }
+  if (Array.isArray(value)) {
+    return value.map(v => normalizeDatesDeep(v)) as unknown as T;
+  }
+  if (value && typeof value === 'object' && value.constructor === Object) {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) out[k] = normalizeDatesDeep(v);
+    return out as T;
+  }
+  return value;
+}
+
 export function getDateFromW3CString(value: string): Date {
   if (!isValidW3CDateString(value))
     throw new TypeError(`Date string ${value} is not a valid W3C date string`);

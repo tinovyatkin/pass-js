@@ -4,7 +4,7 @@ import { getW3CDateString } from './w3cdate.js';
 
 function normalizeSemanticValue(
   value: SemanticTagValue,
-  seen: WeakSet<object>,
+  onPath: Set<object>,
 ): SemanticTagValue {
   if (value instanceof Date) {
     if (!Number.isFinite(value.getTime()))
@@ -13,26 +13,38 @@ function normalizeSemanticValue(
   }
 
   if (Array.isArray(value)) {
-    if (seen.has(value))
+    if (onPath.has(value))
       throw new TypeError(`Semantic tags must not contain cyclic references`);
-    seen.add(value);
-    return value.map(v => normalizeSemanticValue(v, seen));
+    onPath.add(value);
+    try {
+      return value.map(v => normalizeSemanticValue(v, onPath));
+    } finally {
+      onPath.delete(value);
+    }
   }
 
   // The truthiness check excludes null, because typeof null is 'object'.
   if (value && typeof value === 'object') {
-    if (seen.has(value))
+    if (onPath.has(value))
       throw new TypeError(`Semantic tags must not contain cyclic references`);
-    seen.add(value);
-    const result: { [key: string]: SemanticTagValue } = {};
-    for (const [key, nestedValue] of Object.entries(value))
-      result[key] = normalizeSemanticValue(nestedValue, seen);
-    return result;
+    onPath.add(value);
+    try {
+      const result: { [key: string]: SemanticTagValue } = {};
+      for (const [key, nestedValue] of Object.entries(value))
+        result[key] = normalizeSemanticValue(nestedValue, onPath);
+      return result;
+    } finally {
+      onPath.delete(value);
+    }
   }
 
   return value;
 }
 
+// Deep-copies semantic tag dictionaries, converting Date values to W3C date
+// strings and throwing on cyclic input. Only values currently on the active
+// recursion path count as a cycle — shared subtrees used in multiple
+// branches are acyclic and serialize normally.
 export function normalizeSemanticTags(tags: SemanticTags): SemanticTags {
-  return normalizeSemanticValue(tags, new WeakSet()) as SemanticTags;
+  return normalizeSemanticValue(tags, new Set<object>()) as SemanticTags;
 }
