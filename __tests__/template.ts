@@ -1,5 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { generateKeyPairSync } from 'node:crypto';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
@@ -15,6 +16,18 @@ describe('Template', () => {
       () => new Template('discount'),
       /Unsupported pass style/,
     );
+  });
+
+  it('rejects non-RSA private keys', () => {
+    const { privateKey } = generateKeyPairSync('ec', {
+      namedCurve: 'prime256v1',
+    });
+    const pem = privateKey.export({
+      type: 'pkcs8',
+      format: 'pem',
+    }) as string;
+    const templ = new Template();
+    assert.throws(() => templ.setPrivateKey(pem), /must be RSA/);
   });
 
   it('does not mutate input fields', () => {

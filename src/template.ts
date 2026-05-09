@@ -193,19 +193,27 @@ export class Template extends PassBase {
 
   // Accepts a PEM-encoded RSA private key. If the key is encrypted, supply
   // a password. Stored as a node:crypto KeyObject for use at sign time.
+  //
+  // Apple Pass Type ID certificates are always issued as RSA; `signManifest`
+  // hard-codes rsaEncryption as the CMS signature algorithm. Reject other
+  // key types here so the failure is loud at load time instead of producing
+  // a signature that Wallet silently rejects.
   setPrivateKey(pem: string, password?: string): void {
+    let key: KeyObject;
     try {
-      this.key = createPrivateKey({
-        key: pem,
-        format: 'pem',
-        passphrase: password,
-      });
+      key = createPrivateKey({ key: pem, format: 'pem', passphrase: password });
     } catch (err) {
       throw new Error(
         'Failed to decode provided private key. Invalid password?',
         { cause: err },
       );
     }
+    if (key.asymmetricKeyType !== 'rsa') {
+      throw new TypeError(
+        `Pass Type ID key must be RSA, got ${key.asymmetricKeyType ?? 'unknown'}`,
+      );
+    }
+    this.key = key;
   }
 
   // Accepts a PEM that contains the signing certificate, and optionally
