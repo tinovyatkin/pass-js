@@ -5,6 +5,8 @@ to npm as `@walletpass/pass-js`. Repo lives at
 `github.com/tinovyatkin/pass-js`; the owner is the same person for npm
 and GitHub.
 
+For human contributors, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+
 ## Commands you'll use
 
 | Task | Command |
@@ -15,21 +17,26 @@ and GitHub.
 | Auto-format | `npm run format` |
 | Test | `npm test` (builds, then `node --enable-source-maps --test "__tests__/*.ts"`) |
 | Coverage | `node --enable-source-maps --test --experimental-test-coverage --test-reporter=spec "__tests__/*.ts"` |
+| Single test | `npm run build && node --enable-source-maps --test __tests__/pass.ts` |
+| Pre-push check | `hk run pre-push` (or just push — hk fires automatically if installed) |
 
 All three "quality gates" (build, lint, test) must stay green.
 
 ## Architecture at a glance
 
+Items marked **🔓 public** are re-exported from `index.ts` — changes to
+their signatures are breaking (need `feat!:` commit).
+
 ```
 src/
-  index.ts          — public API (Template, Pass, constants, SemanticTags types)
-  constants.ts      — TOP_LEVEL_FIELDS map + barcode/transit/density enums
-  interfaces.ts     — all TypeScript types for the Apple PassKit schema
-  pass.ts           — Pass class; serializes a pass to a .pkpass Buffer
-  template.ts       — Template class; loads from folder / buffer, owns cert+key
-  types.d.ts        — ambient declarations for color-name + imagesize
-  lib/
-    base-pass.ts    — Shared getter/setter layer (visual, dates, semantics)
+  index.ts          — 🔓 public API surface: Template, Pass, constants, SemanticTag* types
+  constants.ts      — 🔓 TOP_LEVEL_FIELDS map + barcode/transit/density enums
+  interfaces.ts     — 🔓 all TypeScript types for the Apple PassKit schema
+  pass.ts           — 🔓 Pass class; serializes a pass to a .pkpass Buffer
+  template.ts       — 🔓 Template class; loads from folder / buffer, owns cert+key
+  types.d.ts        — ambient declarations for color-name + imagesize (internal)
+  lib/              — all internal; nothing below is re-exported
+    base-pass.ts    — shared getter/setter layer (visual, dates, semantics)
     pass-structure.ts — headerFields / primaryFields / ... per-style containers
     fieldsMap.ts    — ordered Map<string, FieldDescriptor>
     images.ts       — image validation + localized variants
@@ -44,15 +51,37 @@ src/
 
 ## Non-obvious things
 
-- **The WWDR cert is inlined as a base64 string** in `src/lib/sign-manifest.ts`,
-  not read from `keys/wwdr.pem` at runtime. That file is documentation only.
-  To rotate: download the new G-series cert from
-  `https://www.apple.com/certificateauthority/`, extract the base64 between
-  `-----BEGIN CERTIFICATE-----` and `-----END CERTIFICATE-----`, replace the
-  `APPLE_WWDR_G4_PEM` constant, update the comment banner, run
-  `openssl x509 -in keys/wwdr.pem -noout -dates` against the updated
-  `keys/wwdr.pem` to sanity-check. The `APPLE_WWDR_CERT_PEM` env var
-  overrides at runtime for dev/test.
+- **The WWDR cert is inlined as a PEM string** in `src/lib/sign-manifest.ts`,
+  not read from `keys/wwdr.pem` at runtime. That file is documentation
+  only. To rotate (Apple rotates this roughly every decade):
+  1. Download the new G-series cert from
+     <https://www.apple.com/certificateauthority/> (verify the
+     generation is for Pass Type ID signing — G4 currently, per Apple's
+     own "features supported" table).
+  2. Convert DER → PEM: `openssl x509 -inform DER -in AppleWWDRCAGN.cer -out keys/wwdr.pem`.
+  3. In `sign-manifest.ts`, replace the whole `APPLE_WWDR_G4_PEM`
+     constant (rename if the generation number changed), update the
+     comment banner (valid-from / valid-to / SHA-256 fingerprint — get
+     the fingerprint with `openssl x509 -in keys/wwdr.pem -noout -fingerprint -sha256`),
+     and update the `parsePkiCertificate(APPLE_WWDR_G4_PEM)` call.
+  4. Run `npm test` — the sign round-trip and image-hash tests catch
+     most classes of breakage.
+  - The `APPLE_WWDR_CERT_PEM` env var overrides at runtime for dev/test.
+  - The library emits a `WALLETPASS_WWDR_EXPIRING` process warning when
+    the bundled cert is within 90 days of expiry, and
+    `WALLETPASS_WWDR_EXPIRED` once it's past. If a user reports either,
+    the fix is to rotate via the steps above and cut a release.
+
+- **Apple Pass Type ID cert (the SIGNING cert, different from WWDR)
+  expires every 12 months.** You regenerate it, not me. Steps:
+  1. Log into the [Apple Developer Portal](https://developer.apple.com/account/resources/identifiers/list/passTypeId)
+     → Certificates → `+` → "Pass Type ID Certificate" → pick your
+     Pass Type ID → upload a fresh CSR → download the issued `.cer`.
+  2. Convert to PEM: `openssl x509 -inform DER -in pass.cer -out pass.pem`.
+  3. For CI: `gh secret set APPLE_PASS_CERTIFICATE < pass.pem` and
+     `gh secret set APPLE_PASS_PRIVATE_KEY < passkey.pem`. (The CI
+     secrets that were in the repo since 2019 have been expired since
+     2020; currently tests self-generate throwaway certs — see below.)
 
 - **Apple's manifest hash is SHA-1.** `src/lib/get-buffer-hash.ts` is
   deliberately SHA-1; Apple's pkpass spec requires it. Don't bump to
@@ -71,8 +100,14 @@ src/
   `setCertificate(pem)` + `images.add('icon', buffer)`.
 
 - **`tsgo` is preview.** If emit ever fails on a d.ts edge case, fall
-  back to classic `typescript`: `npm i -D typescript && npx tsc -p tsconfig.json`.
+  back to classic `typescript`: `npm i -D typescript && npx tsc`.
   All current source compiles cleanly under both.
+
+- **Line endings are pinned LF by `.gitattributes`.** Windows
+  contributors whose editor auto-CRLFs will see files get LF-normalized
+  on commit. This is deliberate — `oxfmt` and the localization tests
+  both depend on LF-only line endings; see the fix in commit
+  `f68a795` for the pre-existing cross-platform bug it plugged.
 
 - **Test signing uses self-generated certs.** The `APPLE_PASS_*` env
   vars that were in CI since 2019 have been expired for years.
@@ -100,13 +135,41 @@ Contributors without `hk` can still commit/push; CI is the enforcement.
 
 Use Conventional Commits. `release-please` observes pushes to `master`
 and opens a PR bumping the version + CHANGELOG based on commit types:
-`feat:` → minor, `fix:`/`perf:` → patch, `feat!:`/`BREAKING CHANGE:` → major,
+`feat:` → minor, `fix:`/`perf:` → patch, `feat!:` / `BREAKING CHANGE:` → major,
 `chore:`/`docs:`/`refactor:`/`test:`/`ci:` → no release.
 
-Merging that PR creates a GitHub Release, which triggers `publish.yml`
-to publish via npm trusted publishing (OIDC, no token secret). One-time
-setup on npmjs.com: `@walletpass/pass-js` → Settings → Trusted
-Publisher → add the GitHub repo + workflow filename `publish.yml`.
+Breaking-change syntax is load-bearing. Two accepted forms:
+
+```
+feat!: drop Node < 24 support         # `!` before the colon
+                                       # or
+
+feat: drop Node < 24 support
+
+BREAKING CHANGE: engines.node is now >=24.12.0.
+```
+
+Nothing else triggers a major bump — putting "breaking change" in
+prose without the footer is silently ignored by release-please.
+
+Merging the release PR creates a GitHub Release, which triggers
+`publish.yml` to publish via npm trusted publishing (OIDC, no token
+secret). One-time setup on npmjs.com: `@walletpass/pass-js` → Settings
+→ Trusted Publisher → add the GitHub repo + workflow filename
+`publish.yml`.
+
+## Debugging a red CI build
+
+- `gh run list --branch <branch> --limit 3` shows recent runs.
+- `gh run view <id> --json jobs --jq '.jobs[] | "\(.name): \(.conclusion // .status)"'`
+  gives per-shard pass/fail at a glance.
+- `gh run view <id> --log-failed | tail -50` pulls the failed step tail.
+- For bundle-smoke, Codecov, and mehen failures: those jobs run once
+  each, so the only "shard" is Ubuntu.
+- Coverage report: <https://app.codecov.io/github/tinovyatkin/pass-js>.
+  The lcov reporter uses `src/*.ts` paths via `--enable-source-maps`;
+  if Codecov complains about "path mismatch", that flag is the first
+  thing to check.
 
 ## Manual QA that CI can't do
 
