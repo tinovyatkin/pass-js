@@ -8,14 +8,20 @@
 import { createReadStream, promises as fs } from 'fs';
 import { createInterface } from 'readline';
 import * as path from 'path';
-import { EOL } from 'os';
 
 import { normalizeLocale } from './normalize-locale.js';
 
 /**
- * Just as in C, some characters must be prefixed with a backslash before you can include them in the string.
- * These characters include double quotation marks, the backslash character itself,
- * and special control characters such as linefeed (\n) and carriage returns (\r).
+ * Just as in C, some characters must be prefixed with a backslash before you
+ * can include them in the string. These characters include double quotation
+ * marks, the backslash character itself, and special control characters such
+ * as linefeed (\n) and carriage returns (\r).
+ *
+ * Apple's spec uses literal LF (
+) for `\n` regardless of host OS — the
+ * previous implementation substituted `os.EOL` (CRLF on Windows) and silently
+ * produced different output across platforms, breaking cross-platform
+ * reproducibility of pass bundles.
  *
  * @see {@link https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/LoadingResources/Strings/Strings.html#//apple_ref/doc/uid/10000051i-CH6-SW13}
  */
@@ -23,14 +29,13 @@ import { normalizeLocale } from './normalize-locale.js';
 export function escapeString(str: string): string {
   return str
     .replace(/["\\]/g, '\\$&') // quote and backslash
-    .split(EOL)
-    .join('\\n'); // escape new lines
+    .replace(/\r\n|\r|\n/g, '\\n'); // all line-ending styles → escaped LF
 }
 
 export function unescapeString(str: string): string {
   return str
     .split('\\n') // new line
-    .join(EOL)
+    .join('\n')
     .replace(/\\(["\\])/g, '$1'); // quote and backslash
 }
 
