@@ -13,8 +13,8 @@ and GitHub.
 | Build | `npm run build` (runs `tsgo --project tsconfig.json`) |
 | Lint | `npm run lint` (runs `oxlint --type-aware && oxfmt --check`) |
 | Auto-format | `npm run format` |
-| Test | `npm test` (builds, then `node --test '__tests__/*.ts'`) |
-| Coverage | `node --test --experimental-test-coverage --test-reporter=spec '__tests__/*.ts'` |
+| Test | `npm test` (builds, then `node --test "__tests__/*.ts"`) |
+| Coverage | `node --test --experimental-test-coverage --test-reporter=spec "__tests__/*.ts"` |
 
 All three "quality gates" (build, lint, test) must stay green.
 

@@ -43,33 +43,39 @@ export function getW3CDateString(value: string | Date): string {
 
 export function getDateFromW3CString(value: string): Date {
   if (!isValidW3CDateString(value))
-    throw new TypeError(`Date string ${value} is now a valid W3C date string`);
+    throw new TypeError(`Date string ${value} is not a valid W3C date string`);
+  // Accept everything the validator accepts: optional seconds, and either
+  // `Z` or `±HH:MM` timezone.
   const res =
-    /^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})T(?<hours>\d{2}):(?<mins>\d{2})(?<tzSign>[+-])(?<tzHour>\d{2}):(?<tzMin>\d{2})/.exec(
+    /^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})T(?<hours>\d{2}):(?<mins>\d{2})(?::(?<secs>\d{2}))?(?:Z|(?<tzSign>[+-])(?<tzHour>\d{2}):(?<tzMin>\d{2}))$/.exec(
       value,
     );
   if (!res)
-    throw new TypeError(`Date string ${value} is now a valid W3C date string`);
-  const { year, month, day, hours, mins, tzSign, tzHour, tzMin } =
+    throw new TypeError(`Date string ${value} is not a valid W3C date string`);
+  const { year, month, day, hours, mins, secs, tzSign, tzHour, tzMin } =
     res.groups as {
       year: string;
       month: string;
       day: string;
       hours: string;
       mins: string;
-      tzSign: '+' | '-';
-      tzHour: string;
-      tzMin: string;
+      secs?: string;
+      tzSign?: '+' | '-';
+      tzHour?: string;
+      tzMin?: string;
     };
   let utcdate = Date.UTC(
     parseInt(year, 10),
-    parseInt(month, 10) - 1, // months are zero-offset (!)
+    parseInt(month, 10) - 1, // months are zero-offset
     parseInt(day, 10),
     parseInt(hours, 10),
-    parseInt(mins, 10), // hh:mm
-  ); // optional fraction
-  // utcdate is milliseconds since the epoch
-  const offsetMinutes = parseInt(tzHour, 10) * 60 + parseInt(tzMin, 10);
-  utcdate += (tzSign === '+' ? -1 : 1) * offsetMinutes * 60000;
+    parseInt(mins, 10),
+    secs ? parseInt(secs, 10) : 0,
+  );
+  // Apply non-UTC timezone offset if present. `Z` means already UTC.
+  if (tzSign && tzHour && tzMin) {
+    const offsetMinutes = parseInt(tzHour, 10) * 60 + parseInt(tzMin, 10);
+    utcdate += (tzSign === '+' ? -1 : 1) * offsetMinutes * 60000;
+  }
   return new Date(utcdate);
 }

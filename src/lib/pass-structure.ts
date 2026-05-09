@@ -83,6 +83,9 @@ export class PassStructure {
   set style(v: PassStyle | undefined) {
     for (const style of PASS_STYLES)
       if (style !== v) delete this.fields[style as keyof ApplePass];
+    // NFC is a storeCard-only field; drop any carry-over when switching away.
+    if (v !== 'storeCard')
+      delete (this.fields as Partial<{ nfc: unknown }>).nfc;
     if (!v) return;
     if (!PASS_STYLES.has(v)) throw new TypeError(`Invalid Pass type "${v}"`);
     if (!(v in this.fields))

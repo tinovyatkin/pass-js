@@ -208,7 +208,7 @@ export class PassImages extends Map<string, string | Buffer> {
       case 'logo':
         if (width > 160 * densityMulti)
           throw new TypeError(
-            `logo image must have width no large than ${
+            `logo image must have width no larger than ${
               160 * densityMulti
             }px for ${densityMulti}x density`,
           );
@@ -258,14 +258,14 @@ export class PassImages extends Map<string, string | Buffer> {
       case 'thumbnail':
         if (width > 120 * densityMulti)
           throw new TypeError(
-            `thumbnail image must have width no large than ${
-              90 * densityMulti
+            `thumbnail image must have width no larger than ${
+              120 * densityMulti
             }px for ${densityMulti}x density, received ${width}`,
           );
         if (height > 150 * densityMulti)
           throw new TypeError(
-            `thumbnail image must have height ${
-              90 * densityMulti
+            `thumbnail image must have height no larger than ${
+              150 * densityMulti
             }px for ${densityMulti}x density, received ${height}`,
           );
         break;

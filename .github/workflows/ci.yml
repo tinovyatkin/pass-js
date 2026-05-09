@@ -25,7 +25,7 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run lint
-      - run: node --test --experimental-test-coverage --test-reporter=spec '__tests__/*.ts'
+      - run: node --test --experimental-test-coverage --test-reporter=spec "__tests__/*.ts"
 
   bundle-smoke:
     runs-on: ubuntu-latest

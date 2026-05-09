@@ -36,7 +36,7 @@ describe('W3C dates strings', () => {
     assert.equal(date1.getDay(), date.getDay());
     assert.equal(date1.getHours(), date.getHours());
     assert.equal(date1.getMinutes(), date.getMinutes());
-    assert.equal(date.getTimezoneOffset(), date.getTimezoneOffset());
+    assert.equal(date1.getTimezoneOffset(), date.getTimezoneOffset());
   });
 
   it('throws on invalid argument type', () => {
@@ -46,10 +46,19 @@ describe('W3C dates strings', () => {
     );
   });
 
-  it('circle conversion', { skip: true }, () => {
-    assert.equal(
-      getW3CDateString(getDateFromW3CString('2011-12-08T13:00-04:00')),
-      '2011-12-08T13:00-04:00',
-    );
+  it('parses Z timezone and seconds', () => {
+    const d = getDateFromW3CString('2026-06-01T12:34:56Z');
+    assert.equal(d.toISOString(), '2026-06-01T12:34:56.000Z');
+  });
+
+  it('parses ±HH:MM offset without seconds', () => {
+    const d = getDateFromW3CString('2011-12-08T13:00-04:00');
+    // 13:00 at -04:00 → 17:00 UTC
+    assert.equal(d.toISOString(), '2011-12-08T17:00:00.000Z');
+  });
+
+  it('rejects inputs the validator rejects', () => {
+    assert.throws(() => getDateFromW3CString('2012-07-22'));
+    assert.throws(() => getDateFromW3CString('not a date'));
   });
 });

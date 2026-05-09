@@ -24,6 +24,12 @@ export interface ZipWriteEntry {
   readonly data: Buffer | string;
 }
 
+// Rejects entry paths that the reader would treat as unsafe (leading slash,
+// backslash, or a `..` segment). Keeps writeZip/readZip in lockstep so we
+// can't produce a bundle we'd then refuse to read, and prevents downstream
+// consumers from using the library to emit zip-slip archives.
+const UNSAFE_PATH_RE = /^\/|\\|(^|\/)\.\.(\/|$)/;
+
 // Writes a STORE-only (no compression) ZIP bundle suitable for .pkpass files.
 // pkpass payloads are small JSON + small PNGs; compression is counterproductive.
 export function writeZip(files: readonly ZipWriteEntry[]): Buffer {
@@ -32,6 +38,11 @@ export function writeZip(files: readonly ZipWriteEntry[]): Buffer {
   let localOffset = 0;
 
   for (const { path, data } of files) {
+    if (UNSAFE_PATH_RE.test(path)) {
+      throw new Error(
+        `Entry "${path}" has an unsafe path (leading slash, backslash, or '..' segment)`,
+      );
+    }
     const body = typeof data === 'string' ? Buffer.from(data) : data;
     const name = Buffer.from(path, 'utf8');
     const checksum = crc32(body);
@@ -99,6 +110,7 @@ export function writeZip(files: readonly ZipWriteEntry[]): Buffer {
 export interface ZipReadEntry {
   readonly filename: string;
   readonly crc32: number;
+  readonly compressedSize: number;
   readonly uncompressedSize: number;
   readonly method: 0 | 8;
   readonly localHeaderOffset: number;
@@ -164,6 +176,7 @@ export function readZip(buf: Buffer): UnzippedBuffer {
     }
     const method = buf.readUInt16LE(p + 10);
     const entryCrc = buf.readUInt32LE(p + 16);
+    const compressedSize = buf.readUInt32LE(p + 20);
     const uncompressedSize = buf.readUInt32LE(p + 24);
     const nameLen = buf.readUInt16LE(p + 28);
     const extraLen = buf.readUInt16LE(p + 30);
@@ -188,7 +201,7 @@ export function readZip(buf: Buffer): UnzippedBuffer {
         `Entry "${filename}" exceeds max size (${uncompressedSize} > ${MAX_ENTRY_SIZE})`,
       );
     }
-    if (/^\/|\\|(^|\/)\.\.(\/|$)/.test(filename)) {
+    if (UNSAFE_PATH_RE.test(filename)) {
       throw new Error(
         `Entry "${filename}" has an unsafe path (leading slash, backslash, or '..' segment)`,
       );
@@ -199,9 +212,16 @@ export function readZip(buf: Buffer): UnzippedBuffer {
       );
     }
 
+    if (compressedSize > MAX_ENTRY_SIZE) {
+      throw new Error(
+        `Entry "${filename}" compressed size exceeds max (${compressedSize} > ${MAX_ENTRY_SIZE})`,
+      );
+    }
+
     entries.push({
       filename,
       crc32: entryCrc >>> 0,
+      compressedSize,
       uncompressedSize,
       method: method as 0 | 8,
       localHeaderOffset,
@@ -212,7 +232,12 @@ export function readZip(buf: Buffer): UnzippedBuffer {
   return {
     entries,
     getBuffer(entry: ZipReadEntry): Buffer {
-      // Re-read the local file header to know the real data start offset.
+      // Re-read the local file header for name/extra lengths only.
+      //
+      // The compressed size must come from the central directory: streaming
+      // writers (general-purpose bit 3 set) leave local-header size fields
+      // as zero and only populate them in the central directory. pkpass
+      // bundles produced this way are valid and the standard mandates this.
       const h = entry.localHeaderOffset;
       if (h + 30 > buf.length) {
         throw new Error(
@@ -226,9 +251,8 @@ export function readZip(buf: Buffer): UnzippedBuffer {
       }
       const localNameLen = buf.readUInt16LE(h + 26);
       const localExtraLen = buf.readUInt16LE(h + 28);
-      const compressedSize = buf.readUInt32LE(h + 18);
       const dataStart = h + 30 + localNameLen + localExtraLen;
-      const dataEnd = dataStart + compressedSize;
+      const dataEnd = dataStart + entry.compressedSize;
       if (dataEnd > buf.length || dataStart < h + 30) {
         throw new Error(
           `Invalid ZIP: entry "${entry.filename}" data out of bounds`,

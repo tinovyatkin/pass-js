@@ -80,6 +80,7 @@ describe('Template', () => {
     {
       skip:
         !process.env['APPLE_PASS_CERTIFICATE'] ||
+        !process.env['APPLE_PASS_PRIVATE_KEY'] ||
         !process.env['APPLE_PUSH_TOKEN'],
     },
     async () => {

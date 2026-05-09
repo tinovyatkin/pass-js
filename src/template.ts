@@ -142,15 +142,17 @@ export class Template extends PassBase {
       throw new TypeError(`Provided ZIP buffer contains no entries`);
 
     let template = createDefaultTemplate(options);
+    let foundPassJson = false;
 
     for (const entry of zip.entries) {
       if (entry.filename.endsWith('/')) continue;
 
       if (/\/?pass\.json$/i.test(entry.filename)) {
-        if (template.style)
+        if (foundPassJson)
           throw new TypeError(
             `Archive contains more than one pass.json - found ${entry.filename}`,
           );
+        foundPassJson = true;
         const buf = zip.getBuffer(entry);
         const passJSON = JSON.parse(
           stripJsonComments(buf.toString('utf8')),
@@ -184,6 +186,8 @@ export class Template extends PassBase {
         }
       }
     }
+    if (!foundPassJson)
+      throw new TypeError(`Archive does not contain a pass.json`);
     return template;
   }
 
@@ -261,8 +265,10 @@ export class Template extends PassBase {
           })
           .once('error', reject)
           .once('connect', () => {
-            if (apn.destroyed)
-              throw new Error('APN was destroyed before connecting');
+            if (apn.destroyed) {
+              reject(new Error('APN was destroyed before connecting'));
+              return;
+            }
             this.apn = apn;
             resolve();
           });
