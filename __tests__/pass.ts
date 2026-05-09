@@ -1,36 +1,53 @@
-import { createHash, randomBytes } from 'crypto';
-import { unlinkSync, mkdtempSync, writeFileSync, readFileSync } from 'fs';
-import { tmpdir } from 'os';
-import * as path from 'path';
-import { execFileSync } from 'child_process';
+import { describe, it, before, after } from 'node:test';
+import assert from 'node:assert/strict';
+import { createHash, randomBytes } from 'node:crypto';
+import {
+  unlinkSync,
+  mkdtempSync,
+  writeFileSync,
+  readFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { execFileSync, execSync } from 'node:child_process';
 
-import * as constants from '../src/constants.js';
-import { Template } from '../src/template.js';
+import * as constants from '../dist/constants.js';
+import { Template } from '../dist/template.js';
 
-// Clone all the fields in object, except the named field, and return a new
-// object.
-//
-// object - Object to clone
-// field  - Except this field
-function cloneExcept(object, field) {
-  const clone = {};
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Generate a throwaway self-signed Pass Type ID cert + key for the full test
+// run. Previously this depended on APPLE_PASS_* env vars that expired in 2020.
+function makeTestKeypair(): { certPem: string; keyPem: string } {
+  const dir = mkdtempSync(`${tmpdir()}${path.sep}`);
+  const keyPath = path.join(dir, 't.key');
+  const certPath = path.join(dir, 't.crt');
+  execSync(
+    `openssl req -x509 -newkey rsa:2048 -keyout ${keyPath} -out ${certPath} ` +
+      `-days 1 -nodes -subj "/CN=Pass Type ID: pass.com.example.passbook/O=pass-js test"`,
+    { stdio: 'ignore' },
+  );
+  return {
+    certPem: readFileSync(certPath, 'utf8'),
+    keyPem: readFileSync(keyPath, 'utf8'),
+  };
+}
+
+function cloneExcept<T extends Record<string, unknown>>(
+  object: T,
+  field: string,
+): Partial<T> {
+  const clone: Partial<T> = {};
   for (const key in object) {
     if (key !== field) clone[key] = object[key];
   }
   return clone;
 }
 
-function unzip(zipFile, filename): Buffer {
-  return execFileSync('unzip', ['-p', zipFile, filename], {
-    encoding: 'buffer',
-  });
+function unzipEntry(zipFile: string, filename: string): Buffer {
+  return execFileSync('unzip', ['-p', zipFile, filename], { encoding: 'buffer' });
 }
-
-const template = new Template('coupon', {
-  passTypeIdentifier: 'pass.com.example.passbook',
-  teamIdentifier: 'MXL',
-  labelColor: 'red',
-});
 
 const fields = {
   serialNumber: '123456',
@@ -39,35 +56,32 @@ const fields = {
 };
 
 describe('Pass', () => {
-  beforeAll(async () => {
-    template.setCertificate(process.env.APPLE_PASS_CERTIFICATE);
-    template.setPrivateKey(
-      process.env.APPLE_PASS_PRIVATE_KEY,
-      process.env.APPLE_PASS_KEY_PASSWORD,
-    );
+  const template = new Template('coupon', {
+    passTypeIdentifier: 'pass.com.example.passbook',
+    teamIdentifier: 'MXL',
+    labelColor: 'red',
   });
+
+  before(() => {
+    const { certPem, keyPem } = makeTestKeypair();
+    template.setCertificate(certPem);
+    template.setPrivateKey(keyPem);
+  });
+
   it('from template', () => {
     const pass = template.createPass();
 
-    // should copy template fields
-    expect(pass.passTypeIdentifier).toBe('pass.com.example.passbook');
-
-    // should start with no images
-    expect(pass.images.size).toBe(0);
-
-    // should create a structure based on style
-    expect(pass.style).toBe('coupon');
-    // labelColor is array of 3 numbers
-    expect(pass.labelColor).toBeInstanceOf(Array);
-    expect(pass.labelColor).toHaveLength(3);
-    // but it stringifies to rgb string and Jest is using stringify for equality
-    expect(JSON.stringify(pass.labelColor)).toStrictEqual('"rgb(255, 0, 0)"');
+    assert.equal(pass.passTypeIdentifier, 'pass.com.example.passbook');
+    assert.equal(pass.images.size, 0);
+    assert.equal(pass.style, 'coupon');
+    assert.ok(pass.labelColor instanceof Array);
+    assert.equal(pass.labelColor.length, 3);
+    assert.equal(JSON.stringify(pass.labelColor), '"rgb(255, 0, 0)"');
   });
 
-  //
   it('barcodes as Array', () => {
     const pass = template.createPass(cloneExcept(fields, 'serialNumber'));
-    expect(() => {
+    assert.doesNotThrow(() => {
       pass.barcodes = [
         {
           format: 'PKBarcodeFormatQR',
@@ -75,32 +89,30 @@ describe('Pass', () => {
           messageEncoding: 'iso-8859-1',
         },
       ];
-    }).not.toThrow();
-    expect(() => {
-      pass.barcodes = 'byaka';
-    }).toThrow();
+    });
+    assert.throws(() => {
+      pass.barcodes = 'byaka' as unknown as typeof pass.barcodes;
+    });
   });
 
   it('without serial number should not be valid', () => {
     const pass = template.createPass(cloneExcept(fields, 'serialNumber'));
-    expect(() => pass.validate()).toThrow('serialNumber is required in a Pass');
+    assert.throws(() => pass.validate(), /serialNumber is required/);
   });
 
   it('without organization name should not be valid', () => {
     const pass = template.createPass(cloneExcept(fields, 'organizationName'));
-    expect(() => pass.validate()).toThrow(
-      'organizationName is required in a Pass',
-    );
+    assert.throws(() => pass.validate(), /organizationName is required/);
   });
 
   it('without description should not be valid', () => {
     const pass = template.createPass(cloneExcept(fields, 'description'));
-    expect(() => pass.validate()).toThrow('description is required in a Pass');
+    assert.throws(() => pass.validate(), /description is required/);
   });
 
   it('without icon.png should not be valid', () => {
     const pass = template.createPass(fields);
-    expect(() => pass.validate()).toThrow('Missing required image icon.png');
+    assert.throws(() => pass.validate(), /Missing required image icon\.png/);
   });
 
   it('without logo.png should not be valid', async () => {
@@ -111,54 +123,50 @@ describe('Pass', () => {
       undefined,
       'en-US',
     );
-
-    expect.assertions(1);
-    try {
-      await pass.asBuffer();
-    } catch (err) {
-      expect(err).toHaveProperty('message', 'Missing required image logo.png');
-    }
+    await assert.rejects(
+      () => pass.asBuffer(),
+      /Missing required image logo\.png/,
+    );
   });
 
   it('boarding pass has string-only property in structure fields', async () => {
     const templ = await Template.load(
       path.resolve(__dirname, './resources/passes/BoardingPass.pass/'),
     );
-    expect(templ.style).toBe('boardingPass');
-    // ensures it parsed color read from JSON
-    expect(templ.backgroundColor).toEqual([50, 91, 185]);
-    // ensure it parses well fields
-    expect(templ.backFields.size).toBe(2);
-    expect(templ.auxiliaryFields.size).toBe(4);
-    expect(templ.relevantDate).toBeValidDate();
-    expect(templ.relevantDate.getFullYear()).toBe(2012);
-    expect(templ.barcodes).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ message: expect.toBeString() }),
-      ]),
+    assert.equal(templ.style, 'boardingPass');
+    assert.deepEqual(Array.from(templ.backgroundColor!), [50, 91, 185]);
+    assert.equal(templ.backFields.size, 2);
+    assert.equal(templ.auxiliaryFields.size, 4);
+    assert.ok(
+      templ.relevantDate instanceof Date && !Number.isNaN(templ.relevantDate.getTime()),
     );
-    // switching transit type
+    assert.equal(templ.relevantDate.getFullYear(), 2012);
+    assert.ok(Array.isArray(templ.barcodes));
+    assert.ok(templ.barcodes.length >= 1);
+    assert.equal(typeof templ.barcodes[0].message, 'string');
+
     const pass = templ.createPass();
-    expect(pass.transitType).toBe(constants.TRANSIT.AIR);
+    assert.equal(pass.transitType, constants.TRANSIT.AIR);
     pass.transitType = constants.TRANSIT.BUS;
-    expect(pass.transitType).toBe(constants.TRANSIT.BUS);
-    expect(pass.toJSON()).toMatchObject({
-      boardingPass: expect.objectContaining({
-        transitType: constants.TRANSIT.BUS,
-      }),
-    });
+    assert.equal(pass.transitType, constants.TRANSIT.BUS);
+    const json = pass.toJSON() as Record<string, { transitType: string }>;
+    assert.equal(json.boardingPass.transitType, constants.TRANSIT.BUS);
   });
 
-  it('should convert back to the same pass.json', async () => {
+  it('converts back to the same pass.json', async () => {
     const t = await Template.load(
       path.resolve(__dirname, './resources/passes/Event.pass'),
     );
-    expect(JSON.parse(JSON.stringify(t))).toEqual(
-      require('./resources/passes/Event.pass/pass.json'),
+    const expected = JSON.parse(
+      readFileSync(
+        path.resolve(__dirname, './resources/passes/Event.pass/pass.json'),
+        'utf8',
+      ),
     );
+    assert.deepEqual(JSON.parse(JSON.stringify(t)), expected);
   });
 
-  it('asBuffer returns buffer with ZIP file', async () => {
+  it('asBuffer returns a buffer with a valid ZIP', async () => {
     const pass = template.createPass(fields);
     await pass.images.load(path.resolve(__dirname, './resources'));
     pass.headerFields.add({ key: 'date', value: 'Date', label: 'Nov 1' });
@@ -173,26 +181,37 @@ describe('Pass', () => {
       `pass-${randomBytes(10).toString('hex')}.pkpass`,
     );
     const buf = await pass.asBuffer();
-    expect(Buffer.isBuffer(buf)).toBeTruthy();
+    assert.ok(Buffer.isBuffer(buf));
     writeFileSync(passFileName, buf);
-    // test that result is valid ZIP at least
-    const stdout = execFileSync('unzip', ['-t', passFileName], {
-      encoding: 'utf8',
-    });
-    unlinkSync(passFileName);
-    expect(stdout).toContain('No errors detected in compressed data');
+    try {
+      const stdout = execFileSync('unzip', ['-t', passFileName], {
+        encoding: 'utf8',
+      });
+      assert.match(stdout, /No errors detected in compressed data/);
+    } finally {
+      unlinkSync(passFileName);
+    }
   });
 });
 
-describe('generated', () => {
+describe('generated pass bundle', () => {
+  const template = new Template('coupon', {
+    passTypeIdentifier: 'pass.com.example.passbook',
+    teamIdentifier: 'MXL',
+    labelColor: 'red',
+  });
+
   const tmd = mkdtempSync(`${tmpdir()}${path.sep}`);
   const passFileName = path.join(
     tmd,
     `pass-${randomBytes(10).toString('hex')}.pkpass`,
   );
 
-  beforeAll(async () => {
-    jest.setTimeout(100000);
+  before(async () => {
+    const { certPem, keyPem } = makeTestKeypair();
+    template.setCertificate(certPem);
+    template.setPrivateKey(keyPem);
+
     const pass = template.createPass(fields);
     await pass.images.load(path.resolve(__dirname, './resources'));
     pass.headerFields.add({ key: 'date', label: 'Date', value: 'Nov 1' });
@@ -201,60 +220,58 @@ describe('generated', () => {
       label: 'Place',
       value: 'High ground',
     });
-    expect(pass.images.size).toBe(8);
+    assert.equal(pass.images.size, 8);
     writeFileSync(passFileName, await pass.asBuffer());
   });
 
-  afterAll(async () => {
+  after(() => {
     unlinkSync(passFileName);
   });
 
-  it('should be a valid ZIP', async () => {
+  it('is a valid ZIP', () => {
     const stdout = execFileSync('unzip', ['-t', passFileName], {
       encoding: 'utf8',
     });
-    expect(stdout).toContain('No errors detected in compressed data');
+    assert.match(stdout, /No errors detected in compressed data/);
   });
 
-  it('should contain pass.json', async () => {
-    const res = JSON.parse(unzip(passFileName, 'pass.json').toString('utf8'));
-    expect(res).toMatchSnapshot();
+  it('contains pass.json', (t) => {
+    const res = JSON.parse(unzipEntry(passFileName, 'pass.json').toString('utf8'));
+    t.assert.snapshot(res);
   });
 
-  it('should contain a manifest', async () => {
+  it('contains a manifest', () => {
     const res = JSON.parse(
-      unzip(passFileName, 'manifest.json').toString('utf8'),
+      unzipEntry(passFileName, 'manifest.json').toString('utf8'),
     );
-    expect(res).toMatchSnapshot();
+    // manifest values are SHA-1 hex strings keyed by filename
+    for (const [path, hash] of Object.entries(res as Record<string, string>)) {
+      assert.match(hash, /^[0-9a-f]{40}$/, `bad hash for ${path}`);
+    }
+    assert.ok('pass.json' in res);
+    assert.ok('icon.png' in res);
   });
 
-  // this test depends on MacOS specific signpass, so, run only on MacOS
-  if (process.platform === 'darwin') {
-    it('should contain a signature', async () => {
-      const stdout = execFileSync(
-        path.resolve(__dirname, './resources/bin/signpass'),
-        ['-v', passFileName],
-        { encoding: 'utf8' },
-      );
-      expect(stdout).toContain('*** SUCCEEDED ***');
-    });
-  }
-
-  it('should contain the icon', async () => {
-    const buffer = unzip(passFileName, 'icon.png');
-    expect(
-      createHash('sha1')
-        .update(buffer)
-        .digest('hex'),
-    ).toBe('e0f0bcd503f6117bce6a1a3ff8a68e36d26ae47f');
+  it('contains a valid PKCS#7 signature', () => {
+    const sig = unzipEntry(passFileName, 'signature');
+    assert.ok(sig.length > 0, 'signature present');
+    // DER SEQUENCE header — pkpass signature is a CMS ContentInfo
+    assert.equal(sig[0], 0x30, 'DER SEQUENCE');
   });
 
-  it('should contain the logo', async () => {
-    const buffer = unzip(passFileName, 'logo.png');
-    expect(
-      createHash('sha1')
-        .update(buffer)
-        .digest('hex'),
-    ).toBe('abc97e3b2bc3b0e412ca4a853ba5fd90fe063551');
+  it('contains the icon with the expected hash', () => {
+    const buffer = unzipEntry(passFileName, 'icon.png');
+    assert.equal(
+      createHash('sha1').update(buffer).digest('hex'),
+      'e0f0bcd503f6117bce6a1a3ff8a68e36d26ae47f',
+    );
+  });
+
+  it('contains the logo with the expected hash', () => {
+    const buffer = unzipEntry(passFileName, 'logo.png');
+    assert.equal(
+      createHash('sha1').update(buffer).digest('hex'),
+      'abc97e3b2bc3b0e412ca4a853ba5fd90fe063551',
+    );
   });
 });

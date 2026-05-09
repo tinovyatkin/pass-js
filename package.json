@@ -35,7 +35,7 @@
     "build": "tsgo --project tsconfig.json",
     "lint": "oxlint --type-aware && oxfmt --check src __tests__",
     "format": "oxfmt src __tests__",
-    "test": "node --test --experimental-test-coverage 'src/**/*.test.ts' '__tests__/**/*.test.ts'",
+    "test": "npm run build && node --test '__tests__/*.ts'",
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {

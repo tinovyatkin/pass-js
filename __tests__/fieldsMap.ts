@@ -1,41 +1,46 @@
-import { FieldsMap } from '../src/lib/fieldsMap.js';
-import { getW3CDateString } from '../src/lib/w3cdate.js';
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+
+import { FieldsMap } from '../dist/lib/fieldsMap.js';
+import { getW3CDateString } from '../dist/lib/w3cdate.js';
 
 test('FieldsMap Class', () => {
   const fields = new FieldsMap();
   // should not add empty arrays if not needed
-  expect(JSON.stringify({ a: 1, fields })).toBe('{"a":1}');
-  // add
+  assert.equal(JSON.stringify({ a: 1, fields }), '{"a":1}');
+
   fields.add({ key: 'testKey', label: 'testLabel', value: 'testValue' });
-  expect(fields.get('testKey')).toMatchObject({
+  assert.partialDeepStrictEqual(fields.get('testKey'), {
     label: 'testLabel',
     value: 'testValue',
   });
-  expect(JSON.stringify({ zz: 'zz', theField: fields })).toBe(
+  assert.equal(
+    JSON.stringify({ zz: 'zz', theField: fields }),
     `{"zz":"zz","theField":[{"key":"testKey","label":"testLabel","value":"testValue"}]}`,
   );
-  // setValue
+
   fields.setValue('testKey', 'newValue');
-  expect(fields.get('testKey')).toMatchObject({
+  assert.partialDeepStrictEqual(fields.get('testKey'), {
     label: 'testLabel',
     value: 'newValue',
   });
+
   // Add should replace the same key
   fields.add({ key: 'testKey', label: 'testLabel2', value: 'testValue2' });
-  expect(fields.get('testKey')).toMatchObject({
+  assert.partialDeepStrictEqual(fields.get('testKey'), {
     label: 'testLabel2',
     value: 'testValue2',
   });
-  // remove should remove the entry and whole key if it last one
+
+  // delete should remove the entry
   fields.delete('testKey');
-  expect(JSON.stringify({ b: 2, fields })).toBe('{"b":2}');
+  assert.equal(JSON.stringify({ b: 2, fields }), '{"b":2}');
 
   // setDateTime
   const date = new Date();
   fields.setDateTime('testDate', 'labelDate', date);
-  expect(JSON.stringify(fields)).toBe(
-    `[{"key":"testDate","label":"labelDate","value":"${getW3CDateString(
-      date,
-    )}"}]`,
+  assert.equal(
+    JSON.stringify(fields),
+    `[{"key":"testDate","label":"labelDate","value":"${getW3CDateString(date)}"}]`,
   );
 });

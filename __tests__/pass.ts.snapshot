@@ -1,0 +1,27 @@
+exports[`generated pass bundle > contains pass.json 1`] = `
+{
+  "formatVersion": 1,
+  "coupon": {
+    "headerFields": [
+      {
+        "key": "date",
+        "label": "Date",
+        "value": "Nov 1"
+      }
+    ],
+    "primaryFields": [
+      {
+        "key": "location",
+        "label": "Place",
+        "value": "High ground"
+      }
+    ]
+  },
+  "passTypeIdentifier": "pass.com.example.passbook",
+  "teamIdentifier": "MXL",
+  "labelColor": "rgb(255, 0, 0)",
+  "serialNumber": "123456",
+  "organizationName": "Acme flowers",
+  "description": "20% of black roses"
+}
+`;

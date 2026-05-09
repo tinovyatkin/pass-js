@@ -1,0 +1,9 @@
+exports[`PassImages > reads localized images 1`] = `
+[
+  "icon.png",
+  "ru.lproj/logo.png",
+  "ru.lproj/logo@2x.png",
+  "zh-CN.lproj/logo.png",
+  "zh-CN.lproj/logo@2x.png"
+]
+`;

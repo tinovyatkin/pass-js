@@ -1,20 +1,24 @@
-import { PassBase } from '../src/lib/base-pass.js';
-import { TOP_LEVEL_FIELDS } from '../src/constants.js';
-import 'jest-extended';
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+
+import { PassBase } from '../dist/lib/base-pass.js';
+import { TOP_LEVEL_FIELDS } from '../dist/constants.js';
 
 describe('PassBase', () => {
   it('should have all required pass properties', () => {
     // to be able to check NFC property it must be storeCard
     const bp = new PassBase({ storeCard: {} });
-    for (const field in TOP_LEVEL_FIELDS) expect(bp).toHaveProperty(field);
+    for (const field in TOP_LEVEL_FIELDS) {
+      assert.ok(field in bp, `missing property ${field}`);
+    }
   });
 
   it('works with locations', () => {
     const bp = new PassBase();
-    expect(bp.locations).toBeUndefined();
+    assert.equal(bp.locations, undefined);
     bp.addLocation([1, 2]);
     bp.addLocation({ lat: 3, lng: 4 }, 'The point');
-    expect(bp.locations).toIncludeSameMembers([
+    assert.deepEqual(bp.locations, [
       { latitude: 2, longitude: 1 },
       { latitude: 3, longitude: 4, relevantText: 'The point' },
     ]);
@@ -22,11 +26,11 @@ describe('PassBase', () => {
 
   it('works with locations as setter', () => {
     const bp = new PassBase();
-    expect(bp.locations).toBeUndefined();
+    assert.equal(bp.locations, undefined);
     bp.locations = [
       { longitude: 123, latitude: 321, relevantText: 'Test text' },
     ];
-    expect(bp.locations).toIncludeSameMembers([
+    assert.deepEqual(bp.locations, [
       { longitude: 123, latitude: 321, relevantText: 'Test text' },
     ]);
   });
@@ -34,71 +38,71 @@ describe('PassBase', () => {
   it('works with beacons', () => {
     const bp = new PassBase();
     bp.beacons = [{ proximityUUID: '1143243' }];
-    expect(bp.beacons).toHaveLength(1);
-    expect(() => {
-      bp.beacons = [{ byaka: 'buka' }];
-    }).toThrow(TypeError);
+    assert.equal(bp.beacons?.length, 1);
+    assert.throws(() => {
+      bp.beacons = [{ byaka: 'buka' } as unknown as { proximityUUID: string }];
+    }, TypeError);
   });
 
   it('webServiceURL', () => {
     const bp = new PassBase();
-    expect(() => {
+    assert.doesNotThrow(() => {
       bp.webServiceURL = 'https://transfers.do/webservice';
-    }).not.toThrow();
-    expect(JSON.stringify(bp)).toMatchInlineSnapshot(
-      `"{\\"formatVersion\\":1,\\"webServiceURL\\":\\"https://transfers.do/webservice\\"}"`,
+    });
+    assert.equal(
+      JSON.stringify(bp),
+      '{"formatVersion":1,"webServiceURL":"https://transfers.do/webservice"}',
     );
     // should throw on bad url
-    expect(() => {
+    assert.throws(() => {
       bp.webServiceURL = '/webservice';
-    }).toThrow();
+    });
 
     const bpWithAllowHttpFalse = new PassBase({}, undefined, undefined, {
       allowHttp: false,
     });
-    expect(() => {
+    assert.throws(() => {
       bpWithAllowHttpFalse.webServiceURL = 'http://transfers.do/webservice';
-    }).toThrow();
+    });
 
     const bpWithAllowHttpTrue = new PassBase({}, undefined, undefined, {
       allowHttp: true,
     });
-    expect(() => {
+    assert.doesNotThrow(() => {
       bpWithAllowHttpTrue.webServiceURL = 'http://transfers.do/webservice';
-    }).not.toThrow();
+    });
   });
 
   it('color values as RGB triplets', () => {
     const bp = new PassBase();
-    expect(() => {
+    assert.doesNotThrow(() => {
       bp.backgroundColor = 'rgb(125, 125,0)';
-    }).not.toThrow();
-    expect(() => {
+    });
+    assert.throws(() => {
       bp.labelColor = 'rgba(33, 344,3)';
-    }).toThrow();
-    expect(() => {
+    });
+    assert.throws(() => {
       bp.foregroundColor = 'rgb(33, 0,287)';
-    }).toThrow();
-    expect(() => {
+    });
+    assert.doesNotThrow(() => {
       bp.stripColor = 'rgb(0, 0, 0)';
-    }).not.toThrow();
+    });
     // should convert values to rgb
     bp.foregroundColor = 'white';
-    expect(bp.foregroundColor).toEqual([255, 255, 255]);
-    // should convert values to rgb
+    assert.deepEqual(Array.from(bp.foregroundColor!), [255, 255, 255]);
     bp.foregroundColor = 'rgb(254, 254, 254)';
-    expect(bp.foregroundColor).toEqual([254, 254, 254]);
+    assert.deepEqual(Array.from(bp.foregroundColor!), [254, 254, 254]);
     bp.foregroundColor = '#FFF';
-    expect(bp.foregroundColor).toEqual([255, 255, 255]);
+    assert.deepEqual(Array.from(bp.foregroundColor!), [255, 255, 255]);
     bp.foregroundColor = 'rgba(0, 0, 255, 0.4)';
-    expect(bp.foregroundColor).toEqual([0, 0, 255]);
+    assert.deepEqual(Array.from(bp.foregroundColor!), [0, 0, 255]);
     bp.foregroundColor = 'rgb(0%, 0%, 100%)';
-    expect(bp.foregroundColor).toEqual([0, 0, 255]);
+    assert.deepEqual(Array.from(bp.foregroundColor!), [0, 0, 255]);
     bp.stripColor = 'black';
-    expect(bp.stripColor).toEqual([0, 0, 0]);
+    assert.deepEqual(Array.from(bp.stripColor!), [0, 0, 0]);
     // should throw on bad color
-    expect(() => {
+    assert.throws(() => {
       bp.foregroundColor = 'byaka a ne color';
-    }).toThrow('Invalid color value');
+    }, /Invalid color value/);
   });
 });

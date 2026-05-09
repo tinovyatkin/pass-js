@@ -1,23 +1,27 @@
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+
 import {
   getW3CDateString,
   isValidW3CDateString,
   getDateFromW3CString,
-} from '../src/lib/w3cdate.js';
+} from '../dist/lib/w3cdate.js';
 
-describe('W3C dates strings ', () => {
+describe('W3C dates strings', () => {
   it('isValidW3CDateString', () => {
-    expect(isValidW3CDateString('2012-07-22T14:25-08:00')).toBeTruthy();
+    assert.ok(isValidW3CDateString('2012-07-22T14:25-08:00'));
     // allow seconds too
-    expect(isValidW3CDateString('2018-07-16T19:20:30+01:00')).toBeTruthy();
-    expect(isValidW3CDateString('2012-07-22')).toBeFalsy();
+    assert.ok(isValidW3CDateString('2018-07-16T19:20:30+01:00'));
+    assert.ok(!isValidW3CDateString('2012-07-22'));
   });
 
   it('getW3CDateString', () => {
     const date = new Date();
     const res = getW3CDateString(date);
-    expect(isValidW3CDateString(res)).toBeTruthy();
-    // must not cust seconds if supplied as string
-    expect(getW3CDateString('2018-07-16T19:20:30+01:00')).toBe(
+    assert.ok(isValidW3CDateString(res));
+    // must not cut seconds if supplied as string
+    assert.equal(
+      getW3CDateString('2018-07-16T19:20:30+01:00'),
       '2018-07-16T19:20:30+01:00',
     );
   });
@@ -26,23 +30,26 @@ describe('W3C dates strings ', () => {
     const date = new Date();
     const str = getW3CDateString(date);
     const date1 = new Date(str);
-    // it's up to minutes, so, check everything apart
-    expect(isFinite(date1.getDate())).toBeTruthy();
-    expect(date1.getFullYear()).toBe(date.getFullYear());
-    expect(date1.getMonth()).toBe(date.getMonth());
-    expect(date1.getDay()).toBe(date.getDay());
-    expect(date1.getHours()).toBe(date.getHours());
-    expect(date1.getMinutes()).toBe(date.getMinutes());
-    expect(date.getTimezoneOffset()).toBe(date.getTimezoneOffset());
+    assert.ok(Number.isFinite(date1.getDate()));
+    assert.equal(date1.getFullYear(), date.getFullYear());
+    assert.equal(date1.getMonth(), date.getMonth());
+    assert.equal(date1.getDay(), date.getDay());
+    assert.equal(date1.getHours(), date.getHours());
+    assert.equal(date1.getMinutes(), date.getMinutes());
+    assert.equal(date.getTimezoneOffset(), date.getTimezoneOffset());
   });
 
   it('throws on invalid argument type', () => {
-    expect(() => getW3CDateString({ byaka: 'buka' })).toThrow(TypeError);
+    assert.throws(
+      () => getW3CDateString({ byaka: 'buka' } as unknown as Date),
+      TypeError,
+    );
   });
 
-  it.skip('circle conversion', () => {
-    expect(
+  it('circle conversion', { skip: true }, () => {
+    assert.equal(
       getW3CDateString(getDateFromW3CString('2011-12-08T13:00-04:00')),
-    ).toBe('2011-12-08T13:00-04:00');
+      '2011-12-08T13:00-04:00',
+    );
   });
 });
