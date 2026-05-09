@@ -137,6 +137,7 @@ export class PassImages extends Map<string, string | Buffer> {
         } catch (err) {
           throw new TypeError(
             `Image for "${imageType}" at ${pathOrBuffer} is not a valid PNG: ${(err as Error).message}`,
+            { cause: err },
           );
         }
       } else if (Buffer.isBuffer(pathOrBuffer)) {
@@ -145,6 +146,7 @@ export class PassImages extends Map<string, string | Buffer> {
         } catch (err) {
           throw new TypeError(
             `Supplied buffer for "${imageType}" is not a valid PNG: ${(err as Error).message}`,
+            { cause: err },
           );
         }
       } else {
