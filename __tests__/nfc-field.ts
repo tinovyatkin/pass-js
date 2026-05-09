@@ -47,8 +47,14 @@ describe('NFCField', () => {
     const { publicKey, privateKey } = generateKeyPairSync('rsa', {
       modulusLength: 2048,
     });
-    const publicPem = publicKey.export({ type: 'spki', format: 'pem' }) as string;
-    const privatePem = privateKey.export({ type: 'pkcs8', format: 'pem' }) as string;
+    const publicPem = publicKey.export({
+      type: 'spki',
+      format: 'pem',
+    }) as string;
+    const privatePem = privateKey.export({
+      type: 'pkcs8',
+      format: 'pem',
+    }) as string;
 
     const nfc = new NFCField();
     // Private key: node:crypto's createPublicKey rejects non-public keys

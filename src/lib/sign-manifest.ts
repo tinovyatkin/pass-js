@@ -1,4 +1,9 @@
-import { createHash, createSign, createPrivateKey, X509Certificate } from 'node:crypto';
+import {
+  createHash,
+  createSign,
+  createPrivateKey,
+  X509Certificate,
+} from 'node:crypto';
 import type { KeyObject } from 'node:crypto';
 
 import * as asn1js from 'asn1js';
@@ -58,7 +63,8 @@ pU8RBWk6z/Kf
 -----END CERTIFICATE-----`;
 
 // Override via env for dev/test only.
-const APPLE_WWDR_CA_PEM = process.env['APPLE_WWDR_CERT_PEM'] || APPLE_WWDR_G4_PEM;
+const APPLE_WWDR_CA_PEM =
+  process.env['APPLE_WWDR_CERT_PEM'] || APPLE_WWDR_G4_PEM;
 
 // OIDs Apple requires in the PKCS#7 SignedData.
 const OID_CONTENT_TYPE = '1.2.840.113549.1.9.3';

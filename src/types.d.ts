@@ -7,7 +7,9 @@ declare module 'color-name' {
 
 declare module 'imagesize' {
   type ImageInfo = {
-    format: 'PNG' | 'JPEG' | 'GIF' | 'WEBP' | string;
+    // Any image format string the underlying parser recognizes
+    // (e.g. 'PNG', 'JPEG', 'GIF', 'WEBP').
+    format: string;
     width: number;
     height: number;
   };

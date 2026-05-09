@@ -34,7 +34,9 @@ export class PassStructure {
       } else if ('storeCard' in this.fields && 'nfc' in fields) {
         this.fields.nfc = new NFCField(fields.nfc);
       }
-      const structure = fields[style as keyof ApplePass] as PassCommonStructure | undefined;
+      const structure = fields[style as keyof ApplePass] as
+        | PassCommonStructure
+        | undefined;
       if (!structure) continue;
       for (const prop of STRUCTURE_FIELDS) {
         if (!(prop in structure)) continue;
@@ -43,7 +45,8 @@ export class PassStructure {
         if (Array.isArray(currentProperty))
           for (const field of currentProperty) target.add(field);
         else if (currentProperty instanceof FieldsMap)
-          for (const [key, data] of currentProperty) target.add({ key, ...data });
+          for (const [key, data] of currentProperty)
+            target.add({ key, ...data });
       }
     }
   }
@@ -78,7 +81,8 @@ export class PassStructure {
   }
 
   set style(v: PassStyle | undefined) {
-    for (const style of PASS_STYLES) if (style !== v) delete this.fields[style as keyof ApplePass];
+    for (const style of PASS_STYLES)
+      if (style !== v) delete this.fields[style as keyof ApplePass];
     if (!v) return;
     if (!PASS_STYLES.has(v)) throw new TypeError(`Invalid Pass type "${v}"`);
     if (!(v in this.fields))
@@ -111,7 +115,8 @@ export class PassStructure {
 
     if (!v) {
       if (this.fields.boardingPass)
-        delete (this.fields.boardingPass as { transitType?: TransitType }).transitType;
+        delete (this.fields.boardingPass as { transitType?: TransitType })
+          .transitType;
     } else {
       if (Object.values(TRANSIT).includes(v)) {
         if (this.fields.boardingPass) this.fields.boardingPass.transitType = v;
@@ -128,9 +133,19 @@ export class PassStructure {
     return this.fields.nfc as NFCField;
   }
 
-  get headerFields(): FieldsMap { return this.fieldMap('headerFields'); }
-  get auxiliaryFields(): FieldsMap { return this.fieldMap('auxiliaryFields'); }
-  get backFields(): FieldsMap { return this.fieldMap('backFields'); }
-  get primaryFields(): FieldsMap { return this.fieldMap('primaryFields'); }
-  get secondaryFields(): FieldsMap { return this.fieldMap('secondaryFields'); }
+  get headerFields(): FieldsMap {
+    return this.fieldMap('headerFields');
+  }
+  get auxiliaryFields(): FieldsMap {
+    return this.fieldMap('auxiliaryFields');
+  }
+  get backFields(): FieldsMap {
+    return this.fieldMap('backFields');
+  }
+  get primaryFields(): FieldsMap {
+    return this.fieldMap('primaryFields');
+  }
+  get secondaryFields(): FieldsMap {
+    return this.fieldMap('secondaryFields');
+  }
 }

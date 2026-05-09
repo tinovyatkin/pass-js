@@ -77,7 +77,11 @@ describe('Template', () => {
   // cert and a live device token. Skipped in CI; opt-in via env var.
   it(
     'push updates',
-    { skip: !process.env['APPLE_PASS_CERTIFICATE'] || !process.env['APPLE_PUSH_TOKEN'] },
+    {
+      skip:
+        !process.env['APPLE_PASS_CERTIFICATE'] ||
+        !process.env['APPLE_PUSH_TOKEN'],
+    },
     async () => {
       const template = new Template('coupon', {
         passTypeIdentifier: 'pass.com.example.passbook',

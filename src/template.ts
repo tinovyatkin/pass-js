@@ -52,7 +52,7 @@ export class Template extends PassBase {
     const entries = await readdir(folderPath, { withFileTypes: true });
     let template: Template;
 
-    if (entries.find((entry) => entry.isFile() && entry.name === 'pass.json')) {
+    if (entries.find(entry => entry.isFile() && entry.name === 'pass.json')) {
       const jsonContent = await readFile(join(folderPath, 'pass.json'), 'utf8');
       const passJson = JSON.parse(
         stripJsonComments(jsonContent),
@@ -86,7 +86,7 @@ export class Template extends PassBase {
         const localizations = await readdir(currentPath, {
           withFileTypes: true,
         });
-        if (localizations.find((f) => f.isFile() && f.name === 'pass.strings'))
+        if (localizations.find(f => f.isFile() && f.name === 'pass.strings'))
           entriesLoader.push(
             template.localization.addFile(
               lang,
@@ -130,7 +130,10 @@ export class Template extends PassBase {
   // Reconstruct a Template from a pre-zipped buffer (e.g. a .pkpass fetched
   // from S3). Reads pass.json, images, and localization strings out of the
   // bundle.
-  static async fromBuffer(buffer: Buffer, options?: Options): Promise<Template> {
+  static async fromBuffer(
+    buffer: Buffer,
+    options?: Options,
+  ): Promise<Template> {
     const zip = readZip(buffer);
     if (zip.entries.length < 1)
       throw new TypeError(`Provided ZIP buffer contains no entries`);
@@ -172,10 +175,7 @@ export class Template extends PassBase {
           );
           if (test?.groups?.['lang']) {
             const buf = zip.getBuffer(entry);
-            await template.localization.addFromBuffer(
-              test.groups['lang'],
-              buf,
-            );
+            await template.localization.addFromBuffer(test.groups['lang'], buf);
           }
         }
       }
@@ -187,7 +187,11 @@ export class Template extends PassBase {
   // a password. Stored as a node:crypto KeyObject for use at sign time.
   setPrivateKey(pem: string, password?: string): void {
     try {
-      this.key = createPrivateKey({ key: pem, format: 'pem', passphrase: password });
+      this.key = createPrivateKey({
+        key: pem,
+        format: 'pem',
+        passphrase: password,
+      });
     } catch (err) {
       throw new Error(
         'Failed to decode provided private key. Invalid password?',
@@ -205,7 +209,9 @@ export class Template extends PassBase {
       /-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/,
     );
     if (!certMatch)
-      throw new Error('Failed to decode provided certificate: no PEM cert block found');
+      throw new Error(
+        'Failed to decode provided certificate: no PEM cert block found',
+      );
 
     // Validate by parsing — throws if malformed.
     // eslint-disable-next-line no-new

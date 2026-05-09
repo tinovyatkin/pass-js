@@ -12,9 +12,15 @@ describe('getGeoPoint', () => {
   });
 
   it('throws on bad input', () => {
-    assert.throws(() => getGeoPoint([14.235, 'brrrr' as unknown as number, 23.4444]));
+    assert.throws(() =>
+      getGeoPoint([14.235, 'brrrr' as unknown as number, 23.4444]),
+    );
     assert.throws(
-      () => getGeoPoint({ lat: 1, log: 3 } as unknown as { lat: number; lng: number }),
+      () =>
+        getGeoPoint({ lat: 1, log: 3 } as unknown as {
+          lat: number;
+          lng: number;
+        }),
       /Unknown geo point format/,
     );
   });

@@ -10,7 +10,23 @@
     "typescript/no-misused-promises": "error",
     "typescript/await-thenable": "error",
     "typescript/no-for-in-array": "error",
-    "no-unused-vars": "error"
+    "no-unused-vars": "error",
+    "typescript/no-unnecessary-type-assertion": "off",
+    "typescript/no-unsafe-type-assertion": "off",
+    "typescript/no-unsafe-assignment": "off",
+    "unicorn/prefer-array-flat": "off"
   },
+  "overrides": [
+    {
+      "files": ["__tests__/**/*.ts"],
+      "rules": {
+        "typescript/unbound-method": "off",
+        "unicorn/no-useless-undefined": "off",
+        "unicorn/prefer-node-protocol": "off",
+        "unicorn/no-abusive-eslint-disable": "off",
+        "no-underscore-dangle": "off"
+      }
+    }
+  ],
   "ignorePatterns": ["dist/", "coverage/", "node_modules/"]
 }

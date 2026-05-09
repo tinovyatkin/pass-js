@@ -137,7 +137,9 @@ export function readZip(buf: Buffer): UnzippedBuffer {
   const centralOffset = buf.readUInt32LE(eocdOffset + 16);
 
   if (entryCount > MAX_ENTRIES) {
-    throw new Error(`ZIP has too many entries (${entryCount} > ${MAX_ENTRIES})`);
+    throw new Error(
+      `ZIP has too many entries (${entryCount} > ${MAX_ENTRIES})`,
+    );
   }
   if (
     centralOffset + centralSize > eocdOffset ||
@@ -153,7 +155,9 @@ export function readZip(buf: Buffer): UnzippedBuffer {
   let p = centralOffset;
   for (let i = 0; i < entryCount; i++) {
     if (p + 46 > centralEnd) {
-      throw new Error('Malformed ZIP central directory: entry header truncated');
+      throw new Error(
+        'Malformed ZIP central directory: entry header truncated',
+      );
     }
     if (buf.readUInt32LE(p) !== 0x02014b50) {
       throw new Error('Invalid ZIP: bad central directory entry signature');

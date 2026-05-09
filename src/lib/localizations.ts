@@ -104,7 +104,7 @@ export class Localizations extends Map<string, Map<string, string>> {
     // copy localizations if provided
     super(
       v instanceof Localizations
-        ? [...v].map(([lang, map]) => [lang, new Map([...map])])
+        ? [...v].map(([lang, map]) => [lang, new Map(map)])
         : undefined,
     );
   }

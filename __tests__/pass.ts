@@ -1,12 +1,7 @@
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash, randomBytes } from 'node:crypto';
-import {
-  unlinkSync,
-  mkdtempSync,
-  writeFileSync,
-  readFileSync,
-} from 'node:fs';
+import { unlinkSync, mkdtempSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -46,7 +41,9 @@ function cloneExcept<T extends Record<string, unknown>>(
 }
 
 function unzipEntry(zipFile: string, filename: string): Buffer {
-  return execFileSync('unzip', ['-p', zipFile, filename], { encoding: 'buffer' });
+  return execFileSync('unzip', ['-p', zipFile, filename], {
+    encoding: 'buffer',
+  });
 }
 
 const fields = {
@@ -74,7 +71,7 @@ describe('Pass', () => {
     assert.equal(pass.passTypeIdentifier, 'pass.com.example.passbook');
     assert.equal(pass.images.size, 0);
     assert.equal(pass.style, 'coupon');
-    assert.ok(pass.labelColor instanceof Array);
+    assert.ok(Array.isArray(pass.labelColor));
     assert.equal(pass.labelColor.length, 3);
     assert.equal(JSON.stringify(pass.labelColor), '"rgb(255, 0, 0)"');
   });
@@ -138,7 +135,8 @@ describe('Pass', () => {
     assert.equal(templ.backFields.size, 2);
     assert.equal(templ.auxiliaryFields.size, 4);
     assert.ok(
-      templ.relevantDate instanceof Date && !Number.isNaN(templ.relevantDate.getTime()),
+      templ.relevantDate instanceof Date &&
+        !Number.isNaN(templ.relevantDate.getTime()),
     );
     assert.equal(templ.relevantDate.getFullYear(), 2012);
     assert.ok(Array.isArray(templ.barcodes));
@@ -235,8 +233,10 @@ describe('generated pass bundle', () => {
     assert.match(stdout, /No errors detected in compressed data/);
   });
 
-  it('contains pass.json', (t) => {
-    const res = JSON.parse(unzipEntry(passFileName, 'pass.json').toString('utf8'));
+  it('contains pass.json', t => {
+    const res = JSON.parse(
+      unzipEntry(passFileName, 'pass.json').toString('utf8'),
+    );
     t.assert.snapshot(res);
   });
 
@@ -245,8 +245,10 @@ describe('generated pass bundle', () => {
       unzipEntry(passFileName, 'manifest.json').toString('utf8'),
     );
     // manifest values are SHA-1 hex strings keyed by filename
-    for (const [path, hash] of Object.entries(res as Record<string, string>)) {
-      assert.match(hash, /^[0-9a-f]{40}$/, `bad hash for ${path}`);
+    for (const [entryPath, hash] of Object.entries(
+      res as Record<string, string>,
+    )) {
+      assert.match(hash, /^[0-9a-f]{40}$/, `bad hash for ${entryPath}`);
     }
     assert.ok('pass.json' in res);
     assert.ok('icon.png' in res);

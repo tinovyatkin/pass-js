@@ -56,7 +56,8 @@ export type FieldDescriptor = {
       // Number Style Keys
       currencyCode?: string;
       numberStyle?: NumberStyle;
-    });
+    }
+);
 
 export type Field = {
   // Standard Field Dictionary Keys
@@ -448,6 +449,6 @@ export type ApplePass = PassStandardKeys &
   PassWebServiceKeys &
   PassStructureFields;
 
-  export interface Options {
-    allowHttp: boolean
-  }
+export interface Options {
+  allowHttp: boolean;
+}

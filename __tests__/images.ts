@@ -42,7 +42,7 @@ describe('PassImages', () => {
     assert.equal(img.size, 18);
   });
 
-  it('reads localized images', async (t) => {
+  it('reads localized images', async t => {
     const img = new PassImages();
     const imgDir = path.resolve(__dirname, './resources/passes/Generic');
     await img.load(imgDir);
@@ -50,7 +50,7 @@ describe('PassImages', () => {
     const arr = await img.toArray();
     assert.ok(Array.isArray(arr));
     t.assert.snapshot(
-      arr.map((f) => f.path).sort((a, b) => a.localeCompare(b)),
+      arr.map(f => f.path).toSorted((a, b) => a.localeCompare(b)),
     );
   });
 });

@@ -22,32 +22,44 @@ const ZH_STRINGS_FILE = path.resolve(
 
 const IS_MACOS = process.platform === 'darwin';
 
+const byLang = (a: [string, string], b: [string, string]): number =>
+  a[0].localeCompare(b[0]);
+
 describe('Localizations files helpers', () => {
   it('escapeString -> unescape', () => {
     const str = `This is "multiline" string',
       with some rare character like \\ and \\\\ 😜 inside it`;
-    assert.equal(Localization.unescapeString(Localization.escapeString(str)), str);
-  });
-
-  it('string fixtures files must pass plutil -lint', { skip: !IS_MACOS }, () => {
-    const stdout = execFileSync(
-      'plutil',
-      ['-lint', RU_STRINGS_FILE, ZH_STRINGS_FILE],
-      { encoding: 'utf8' },
+    assert.equal(
+      Localization.unescapeString(Localization.escapeString(str)),
+      str,
     );
-    for (const line of stdout.trim().split(/\n/)) {
-      assert.ok(line.endsWith(': OK'), `unexpected plutil output: ${line}`);
-    }
   });
 
-  it('should read pass.strings file', async (t) => {
+  it(
+    'string fixtures files must pass plutil -lint',
+    { skip: !IS_MACOS },
+    () => {
+      const stdout = execFileSync(
+        'plutil',
+        ['-lint', RU_STRINGS_FILE, ZH_STRINGS_FILE],
+        {
+          encoding: 'utf8',
+        },
+      );
+      for (const line of stdout.trim().split(/\n/)) {
+        assert.ok(line.endsWith(': OK'), `unexpected plutil output: ${line}`);
+      }
+    },
+  );
+
+  it('should read pass.strings file', async t => {
     const resRu = await Localization.readLprojStrings(RU_STRINGS_FILE);
     t.assert.snapshot([...resRu]);
     const resZh = await Localization.readLprojStrings(ZH_STRINGS_FILE);
     t.assert.snapshot([...resZh]);
   });
 
-  it('returns string as utf-16 .lproj buffer', async (t) => {
+  it('returns string as utf-16 .lproj buffer', async t => {
     const resRu = await Localization.readLprojStrings(RU_STRINGS_FILE);
     const buf = Localization.getLprojBuffer(resRu);
     assert.ok(Buffer.isBuffer(buf));
@@ -101,18 +113,16 @@ describe('Localizations files helpers', () => {
         assert.ok(stdout.trim().endsWith(': OK'));
       }
       // Order-independent equality: compare by sorted entries.
-      const cmp = (a: [string, string], b: [string, string]): number =>
-        a[0].localeCompare(b[0]);
       assert.deepEqual(
-        new Map([...resRu].sort(cmp)),
-        new Map([...resRu2].sort(cmp)),
+        new Map([...resRu].toSorted(byLang)),
+        new Map([...resRu2].toSorted(byLang)),
       );
     } finally {
       unlinkSync(stringsFileName);
     }
   });
 
-  it('should clone other instance if provided for constructor', (t) => {
+  it('should clone other instance if provided for constructor', t => {
     const loc1 = new Localization.Localizations();
     loc1
       .add('ru', { key1: 'test key 1', key2: 'test key 2' })

@@ -119,7 +119,7 @@ export class PassBase extends PassStructure {
       if (v instanceof Date) {
         if (!Number.isFinite(v.getTime()))
           throw new TypeError(
-            `Value for expirationDate must be a valid Date, received ${v}`,
+            `Value for expirationDate must be a valid Date, received ${v.toString()}`,
           );
         this.fields.expirationDate = v;
       } else if (typeof v === 'string') {
@@ -154,7 +154,7 @@ export class PassBase extends PassStructure {
       if (v instanceof Date) {
         if (!Number.isFinite(v.getTime()))
           throw new TypeError(
-            `Value for relevantDate must be a valid Date, received ${v}`,
+            `Value for relevantDate must be a valid Date, received ${v.toString()}`,
           );
         this.fields.relevantDate = v;
       } else if (typeof v === 'string') {
