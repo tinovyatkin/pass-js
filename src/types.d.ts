@@ -12,7 +12,9 @@ declare module 'imagesize' {
     height: number;
   };
   interface ImagesizeParser {
-    parse(chunk: Buffer): number | 'done' | 'invalid';
+    // Returns one of the numeric constants on the parser factory:
+    // Parser.DONE, Parser.INVALID, Parser.EAGAIN.
+    parse(chunk: Buffer): number;
     getResult(): ImageInfo;
   }
   interface ParserFactory {

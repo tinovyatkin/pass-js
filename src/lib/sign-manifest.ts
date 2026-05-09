@@ -87,7 +87,6 @@ export function signManifest(
   manifestJson: string,
 ): Buffer {
   const signerCert = parsePkiCertificate(certificatePem);
-  const x509 = new X509Certificate(certificatePem);
 
   const keyObject =
     typeof privateKey === 'string' ? createPrivateKey(privateKey) : privateKey;
@@ -150,10 +149,6 @@ export function signManifest(
     certificates: [signerCert, APPLE_WWDR_CA],
     signerInfos: [signerInfo],
   });
-
-  // Verify the certificate chain will work: ensure Apple WWDR chain will be
-  // present. (Cosmetic — not part of the output.)
-  void x509;
 
   // Wrap in ContentInfo.
   const contentInfo = new ContentInfo({

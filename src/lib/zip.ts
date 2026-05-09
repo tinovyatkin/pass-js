@@ -146,10 +146,15 @@ export function readZip(buf: Buffer): UnzippedBuffer {
     throw new Error('Invalid ZIP: central directory out of bounds');
   }
 
-  // 2. Parse central directory.
+  // 2. Parse central directory with strict bounds checks against both the
+  // declared central directory region and the buffer itself.
+  const centralEnd = centralOffset + centralSize;
   const entries: ZipReadEntry[] = [];
   let p = centralOffset;
   for (let i = 0; i < entryCount; i++) {
+    if (p + 46 > centralEnd) {
+      throw new Error('Malformed ZIP central directory: entry header truncated');
+    }
     if (buf.readUInt32LE(p) !== 0x02014b50) {
       throw new Error('Invalid ZIP: bad central directory entry signature');
     }
@@ -160,6 +165,13 @@ export function readZip(buf: Buffer): UnzippedBuffer {
     const extraLen = buf.readUInt16LE(p + 30);
     const commentLen = buf.readUInt16LE(p + 32);
     const localHeaderOffset = buf.readUInt32LE(p + 42);
+
+    const entryBlockEnd = p + 46 + nameLen + extraLen + commentLen;
+    if (entryBlockEnd > centralEnd) {
+      throw new Error(
+        'Malformed ZIP central directory: entry extends past central directory bounds',
+      );
+    }
     const filename = buf.toString('utf8', p + 46, p + 46 + nameLen);
 
     if (method !== 0 && method !== 8) {
@@ -177,6 +189,11 @@ export function readZip(buf: Buffer): UnzippedBuffer {
         `Entry "${filename}" has an unsafe path (leading slash, backslash, or '..' segment)`,
       );
     }
+    if (localHeaderOffset + 30 > centralOffset) {
+      throw new Error(
+        `Invalid ZIP: entry "${filename}" local header offset out of bounds`,
+      );
+    }
 
     entries.push({
       filename,
@@ -185,7 +202,7 @@ export function readZip(buf: Buffer): UnzippedBuffer {
       method: method as 0 | 8,
       localHeaderOffset,
     });
-    p += 46 + nameLen + extraLen + commentLen;
+    p = entryBlockEnd;
   }
 
   return {
@@ -193,6 +210,11 @@ export function readZip(buf: Buffer): UnzippedBuffer {
     getBuffer(entry: ZipReadEntry): Buffer {
       // Re-read the local file header to know the real data start offset.
       const h = entry.localHeaderOffset;
+      if (h + 30 > buf.length) {
+        throw new Error(
+          `Invalid ZIP: local header for "${entry.filename}" out of bounds`,
+        );
+      }
       if (buf.readUInt32LE(h) !== 0x04034b50) {
         throw new Error(
           `Invalid ZIP: bad local header for entry "${entry.filename}"`,
@@ -203,7 +225,7 @@ export function readZip(buf: Buffer): UnzippedBuffer {
       const compressedSize = buf.readUInt32LE(h + 18);
       const dataStart = h + 30 + localNameLen + localExtraLen;
       const dataEnd = dataStart + compressedSize;
-      if (dataEnd > buf.length) {
+      if (dataEnd > buf.length || dataStart < h + 30) {
         throw new Error(
           `Invalid ZIP: entry "${entry.filename}" data out of bounds`,
         );

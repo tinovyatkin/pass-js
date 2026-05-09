@@ -84,7 +84,8 @@ export class PassStructure {
     if (!(v in this.fields))
       (this.fields as Record<PassStyle, PassCommonStructure>)[v] =
         {} as PassCommonStructure;
-    if ('storeCard' in this.fields) this.fields.nfc = new NFCField();
+    if ('storeCard' in this.fields && !this.fields.nfc)
+      this.fields.nfc = new NFCField();
   }
 
   get transitType(): TransitType | undefined {

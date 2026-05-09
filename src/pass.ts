@@ -53,7 +53,7 @@ export class Pass extends PassBase {
         );
     } else if ('authenticationToken' in this.fields) {
       throw new TypeError(
-        'authenticationToken is presented in Pass data while webServiceURL is missing!',
+        'authenticationToken is present in Pass data while webServiceURL is missing!',
       );
     }
 
