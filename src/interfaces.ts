@@ -4,8 +4,8 @@
  * @see {@link https://developer.apple.com/library/archive/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/FieldDictionary.html}
  */
 
-import { PassColor } from './lib/pass-color';
-import { FieldsMap } from './lib/fieldsMap';
+import { PassColor } from './lib/pass-color.js';
+import { FieldsMap } from './lib/fieldsMap.js';
 
 export type DataDetectors =
   | 'PKDataDetectorTypePhoneNumber'
@@ -392,7 +392,7 @@ export interface NFCDictionary {
    * The public encryption key used by the Value Added Services protocol.
    * Use a Base64 encoded X.509 SubjectPublicKeyInfo structure containing a ECDH public key for group P256.
    */
-  encryptionPublicKey?: string | import('node-forge').pki.PublicKey;
+  encryptionPublicKey?: string;
 }
 
 /**

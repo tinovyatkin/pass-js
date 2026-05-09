@@ -1,9 +1,7 @@
-'use strict';
-
 import { randomBytes } from 'crypto';
 
-import { signManifest } from '../src/lib/signManifest-forge';
-import { Template } from '../src/template';
+import { signManifest } from '../src/lib/signManifest-forge.js';
+import { Template } from '../src/template.js';
 
 const TEST_STRING = randomBytes(1024).toString('base64');
 

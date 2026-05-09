@@ -1,4 +1,4 @@
-import { normalizeLocale } from '../src/lib/normalize-locale';
+import { normalizeLocale } from '../src/lib/normalize-locale.js';
 
 describe('normalizeLocale', () => {
   it('normalizes everything good', () => {

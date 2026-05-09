@@ -10,7 +10,7 @@ import { createInterface } from 'readline';
 import * as path from 'path';
 import { EOL } from 'os';
 
-import { normalizeLocale } from './normalize-locale';
+import { normalizeLocale } from './normalize-locale.js';
 
 /**
  * Just as in C, some characters must be prefixed with a backslash before you can include them in the string.
@@ -140,6 +140,11 @@ export class Localizations extends Map<string, Map<string, string>> {
     stream: import('stream').Readable,
   ): Promise<void> {
     this.set(normalizeLocale(language), await readStringsFromStream(stream));
+  }
+
+  async addFromBuffer(language: string, buffer: Buffer): Promise<void> {
+    const { Readable } = await import('node:stream');
+    await this.addFromStream(language, Readable.from(buffer));
   }
 
   /**

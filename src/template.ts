@@ -1,23 +1,19 @@
-/**
- * Passbook are created from templates
- */
+// Passbook templates
 
-'use strict';
+import * as http2 from 'node:http2';
+import { createPrivateKey, type KeyObject, X509Certificate } from 'node:crypto';
+import { join } from 'node:path';
+import { readFile, readdir } from 'node:fs/promises';
 
-import * as http2 from 'http2';
-import { join } from 'path';
-import { promises as fs } from 'fs';
+import stripJsonComments from 'strip-json-comments';
 
-import * as forge from 'node-forge';
-import { unsigned as crc32 } from 'buffer-crc32';
-
-import { Pass } from './pass';
-import { PASS_STYLES } from './constants';
-import { PassStyle, ApplePass, Options } from './interfaces';
-import { PassBase } from './lib/base-pass';
-import { unzipBuffer } from './lib/yazul-promisified';
-
-import stripJsonComments = require('strip-json-comments');
+import { Pass } from './pass.js';
+import { PASS_STYLES } from './constants.js';
+import type { PassStyle, ApplePass, Options } from './interfaces.js';
+import { PassBase } from './lib/base-pass.js';
+import { readZip } from './lib/zip.js';
+import type { PassImages } from './lib/images.js';
+import type { Localizations } from './lib/localizations.js';
 
 const {
   HTTP2_HEADER_METHOD,
@@ -25,24 +21,18 @@ const {
   NGHTTP2_CANCEL,
   HTTP2_METHOD_POST,
 } = http2.constants;
-const { readFile, readdir } = fs;
 
-// Create a new template.
-//
-// style  - Pass style (coupon, eventTicket, etc)
-// fields - Pass fields (passTypeIdentifier, teamIdentifier, etc)
 export class Template extends PassBase {
-  key?: forge.pki.PrivateKey;
-  certificate?: forge.pki.Certificate;
+  key?: KeyObject;
+  certificate?: string;
   private apn?: http2.ClientHttp2Session;
 
-  // eslint-disable-next-line max-params
   constructor(
     style?: PassStyle,
     fields: Partial<ApplePass> = {},
-    images?: import('./lib/images').PassImages,
-    localization?: import('./lib/localizations').Localizations,
-    options?: Options
+    images?: PassImages,
+    localization?: Localizations,
+    options?: Options,
   ) {
     super(fields, images, localization, options);
 
@@ -53,37 +43,21 @@ export class Template extends PassBase {
     }
   }
 
-  /**
- * Loads Template, images and key from a given path
- *
- * @static
- * @param {string} folderPath
- * @param {string} [keyPassword] - optional key password
- * @param {Options} options - settings for the lib
- * @returns {Promise.<Template>}
- * @throws - if given folder doesn't contain pass.json or it is in invalid format
- * @memberof Template
- */
-  // eslint-disable-next-line max-statements, sonarjs/cognitive-complexity
+  // Load a Template, images, and key from a directory on disk.
   static async load(
     folderPath: string,
     keyPassword?: string,
-    options?: Options
+    options?: Options,
   ): Promise<Template> {
-    // Check if the path is accessible directory actually
     const entries = await readdir(folderPath, { withFileTypes: true });
-    // getting main JSON file
-    let template: Template | undefined;
+    let template: Template;
 
-    // read pass.json first to create template instance
-    if (entries.find(entry => entry.isFile() && entry.name === 'pass.json')) {
-      // loading main JSON file
+    if (entries.find((entry) => entry.isFile() && entry.name === 'pass.json')) {
       const jsonContent = await readFile(join(folderPath, 'pass.json'), 'utf8');
-      const passJson = JSON.parse(stripJsonComments(jsonContent)) as Partial<
-        ApplePass
-      >;
+      const passJson = JSON.parse(
+        stripJsonComments(jsonContent),
+      ) as Partial<ApplePass>;
 
-      // Trying to detect the type of pass
       let type: PassStyle | undefined;
       for (const t of PASS_STYLES) {
         if (t in passJson) {
@@ -93,34 +67,32 @@ export class Template extends PassBase {
       }
       if (!type) throw new TypeError('Unknown pass style!');
       template = new Template(type, passJson, undefined, undefined, options);
-    } else template = createDefaultTemplate(options);
+    } else {
+      template = createDefaultTemplate(options);
+    }
+
     const { passTypeIdentifier } = template;
     const keyName = passTypeIdentifier
       ? `${passTypeIdentifier.replace(/^pass\./, '')}.pem`
       : undefined;
 
-    // checking rest of files
     const entriesLoader: Promise<void>[] = [];
     for (const entry of entries) {
       if (entry.isDirectory()) {
-        // check if it's a localization folder
         const test = /(?<lang>[-A-Z_a-z]+)\.lproj/.exec(entry.name);
-        if (!test || !test.groups || !test.groups.lang) continue;
-        const { lang } = test.groups;
-        // reading this directory
+        if (!test?.groups?.['lang']) continue;
+        const lang = test.groups['lang'];
         const currentPath = join(folderPath, entry.name);
         const localizations = await readdir(currentPath, {
           withFileTypes: true,
         });
-        // check if it has strings and load
-        if (localizations.find(f => f.isFile() && f.name === 'pass.strings'))
+        if (localizations.find((f) => f.isFile() && f.name === 'pass.strings'))
           entriesLoader.push(
             template.localization.addFile(
               lang,
               join(currentPath, 'pass.strings'),
             ),
           );
-        // check if we have any localized images
         for (const f of localizations) {
           const img = template.images.parseFilename(f.name);
           if (img)
@@ -134,15 +106,12 @@ export class Template extends PassBase {
             );
         }
       } else {
-        // check if it's a certificate/key
         if (entry.name === keyName) {
-          // following will throw if file doesn't exists or can't be read
           entriesLoader.push(
             template.loadCertificate(join(folderPath, keyName), keyPassword),
           );
           continue;
         }
-        // check it it's an image
         const img = template.images.parseFilename(entry.name);
         if (img)
           entriesLoader.push(
@@ -155,57 +124,42 @@ export class Template extends PassBase {
       }
     }
     await Promise.all(entriesLoader);
-    // done
     return template;
   }
 
-  /**
- * Load template from a given buffer with ZIPped pass/template content
- *
- * @param {Buffer} buffer
- * @param {Options} options
- */
+  // Reconstruct a Template from a pre-zipped buffer (e.g. a .pkpass fetched
+  // from S3). Reads pass.json, images, and localization strings out of the
+  // bundle.
   static async fromBuffer(buffer: Buffer, options?: Options): Promise<Template> {
-    const zip = await unzipBuffer(buffer);
-    if (zip.entryCount < 1)
+    const zip = readZip(buffer);
+    if (zip.entries.length < 1)
       throw new TypeError(`Provided ZIP buffer contains no entries`);
 
     let template = createDefaultTemplate(options);
 
-    for await (const entry of zip) {
-      if (entry.fileName.endsWith('/')) continue;
+    for (const entry of zip.entries) {
+      if (entry.filename.endsWith('/')) continue;
 
-      if (/\/?pass\.json$/i.test(entry.fileName)) {
+      if (/\/?pass\.json$/i.test(entry.filename)) {
         if (template.style)
           throw new TypeError(
-            `Archive contains more than one pass.json - found ${entry.fileName}`,
+            `Archive contains more than one pass.json - found ${entry.filename}`,
           );
-        const buf = await zip.getBuffer(entry);
-        if (crc32(buf) !== entry.crc32)
-          throw new Error(
-            `CRC32 does not match for ${entry.fileName}, expected ${
-              entry.crc32
-            }, got ${crc32(buf)}`,
-          );
-        const passJSON = JSON.parse(stripJsonComments(buf.toString('utf8')));
+        const buf = zip.getBuffer(entry);
+        const passJSON = JSON.parse(
+          stripJsonComments(buf.toString('utf8')),
+        ) as Partial<ApplePass>;
         template = new Template(
           undefined,
           passJSON,
           template.images,
           template.localization,
-          options
+          options,
         );
       } else {
-        // test if it's an image
-        const img = template.images.parseFilename(entry.fileName);
+        const img = template.images.parseFilename(entry.filename);
         if (img) {
-          const imgBuffer = await zip.getBuffer(entry);
-          if (crc32(imgBuffer) !== entry.crc32)
-            throw new Error(
-              `CRC32 does not match for ${entry.fileName}, expected ${
-                entry.crc32
-              }, got ${crc32(imgBuffer)}`,
-            );
+          const imgBuffer = zip.getBuffer(entry);
           await template.images.add(
             img.imageType,
             imgBuffer,
@@ -213,14 +167,15 @@ export class Template extends PassBase {
             img.lang,
           );
         } else {
-          // the only option lest is 'pass.strings' file in localization folder
           const test = /(^|\/)(?<lang>[-_a-z]+)\.lproj\/pass\.strings$/i.exec(
-            entry.fileName,
+            entry.filename,
           );
-          if (test?.groups?.lang) {
-            // found a localization file
-            const stream = await zip.openReadStreamAsync(entry);
-            await template.localization.addFromStream(test.groups.lang, stream);
+          if (test?.groups?.['lang']) {
+            const buf = zip.getBuffer(entry);
+            await template.localization.addFromBuffer(
+              test.groups['lang'],
+              buf,
+            );
           }
         }
       }
@@ -228,65 +183,55 @@ export class Template extends PassBase {
     return template;
   }
 
-  /**
-   *
-   * @param {string} signerKeyMessage
-   * @param {string} [password]
-   */
-  setPrivateKey(signerKeyMessage: string, password?: string): void {
-    this.key = forge.pki.decryptRsaPrivateKey(signerKeyMessage, password);
-    if (!this.key)
+  // Accepts a PEM-encoded RSA private key. If the key is encrypted, supply
+  // a password. Stored as a node:crypto KeyObject for use at sign time.
+  setPrivateKey(pem: string, password?: string): void {
+    try {
+      this.key = createPrivateKey({ key: pem, format: 'pem', passphrase: password });
+    } catch (err) {
       throw new Error(
         'Failed to decode provided private key. Invalid password?',
+        { cause: err },
       );
+    }
   }
 
-  /**
-   *
-   * @param {string} signerCertData - certificate and optional private key as PEM encoded string
-   * @param {string} [password] - optional password to decode private key
-   */
-  setCertificate(signerCertData: string, password?: string): void {
-    // the PEM file from P12 contains both, certificate and private key
-    // getting signer certificate
-    this.certificate = forge.pki.certificateFromPem(signerCertData);
-    if (!this.certificate)
-      throw new Error('Failed to decode provided certificate');
-
-    // check if signerCertData also contains private key and use it
-    const pemMessages = forge.pem.decode(signerCertData);
-
-    // getting signer private key
-    const signerKeyMessage = pemMessages.find(message =>
-      message.type.includes('KEY'),
+  // Accepts a PEM that contains the signing certificate, and optionally
+  // a private key (as exported from `openssl pkcs12 -in ... -out ... -nodes`
+  // or similar). Private-key extraction mirrors the previous node-forge
+  // behaviour: any "-----BEGIN …KEY-----" block is used.
+  setCertificate(pem: string, password?: string): void {
+    const certMatch = pem.match(
+      /-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/,
     );
-    if (signerKeyMessage)
-      this.setPrivateKey(forge.pem.encode(signerKeyMessage), password);
+    if (!certMatch)
+      throw new Error('Failed to decode provided certificate: no PEM cert block found');
+
+    // Validate by parsing — throws if malformed.
+    // eslint-disable-next-line no-new
+    new X509Certificate(certMatch[0]);
+
+    this.certificate = certMatch[0];
+
+    const keyMatch = pem.match(
+      /-----BEGIN (?:ENCRYPTED |RSA |EC )?PRIVATE KEY-----[\s\S]+?-----END (?:ENCRYPTED |RSA |EC )?PRIVATE KEY-----/,
+    );
+    if (keyMatch) this.setPrivateKey(keyMatch[0], password);
   }
 
-  /**
-   *
-   * @param {string} signerPemFile - path to PEM file with certificate and private key
-   * @param {string} password - private key decoding password
-   */
   async loadCertificate(
     signerPemFile: string,
     password?: string,
   ): Promise<void> {
-    // reading and parsing certificates
     const signerCertData = await readFile(signerPemFile, 'utf8');
     this.setCertificate(signerCertData, password);
   }
 
-  /**
-   *
-   * @param {string} pushToken
-   */
+  // Push an update notification to a device via Apple's APN service.
+  // See Apple docs: Updating a Pass.
   async pushUpdates(pushToken: string): Promise<http2.IncomingHttpHeaders> {
-    // https://developer.apple.com/library/content/documentation/UserExperience/Conceptual/PassKit_PG/Updating.html
     if (!this.apn || this.apn.destroyed) {
-      // creating APN Provider
-      await new Promise((resolve, reject) => {
+      await new Promise<void>((resolve, reject) => {
         if (!this.key)
           throw new ReferenceError(
             `Set private key before trying to push pass updates`,
@@ -296,12 +241,10 @@ export class Template extends PassBase {
             `Set pass certificate before trying to push pass updates`,
           );
         const apn = http2.connect('https://api.push.apple.com:443', {
-          key: forge.pki.privateKeyToPem(this.key),
-          cert: forge.pki.certificateToPem(this.certificate),
+          key: this.key.export({ type: 'pkcs8', format: 'pem' }),
+          cert: this.certificate,
         });
-        // Calling unref() on a socket will allow the program to exit if this is the only active socket in the event system
         apn.unref();
-        // Events
         apn
           .once('goaway', () => {
             if (this.apn && !this.apn.destroyed) this.apn.destroy();
@@ -316,8 +259,7 @@ export class Template extends PassBase {
       });
     }
 
-    // sending to APN
-    return new Promise((resolve, reject) => {
+    return new Promise<http2.IncomingHttpHeaders>((resolve, reject) => {
       if (!this.apn || this.apn.destroyed)
         throw new Error('APN was destroyed before connecting');
       const req = this.apn.request({
@@ -325,43 +267,29 @@ export class Template extends PassBase {
         [HTTP2_HEADER_PATH]: `/3/device/${encodeURIComponent(pushToken)}`,
       });
 
-      // Cancel request after timeout
       req.setTimeout(5000, () => {
         req.close(NGHTTP2_CANCEL, () =>
           reject(new Error(`http2: timeout connecting to api.push.apple.com`)),
         );
       });
 
-      // Error handling
       req.once('error', reject);
-
-      // Wait for response before resolving
       req.once('response', resolve);
-
-      // Post payload (always empty in our case)
       req.end('{}');
     });
   }
 
-  /**
-   * Create a new pass from a template.
-   *
-   * @param {object} fields
-   * @returns {Pass}
-   * @memberof Template
-   */
   createPass(fields: Partial<ApplePass> = {}): Pass {
-    // Combine template and pass fields
     return new Pass(
       this,
       { ...this.fields, ...fields },
       this.images,
       this.localization,
-      this.options
+      this.options,
     );
   }
 }
 
-function createDefaultTemplate(options?: Options): Template{
-  return new Template(undefined, {}, undefined, undefined, options)
+function createDefaultTemplate(options?: Options): Template {
+  return new Template(undefined, {}, undefined, undefined, options);
 }

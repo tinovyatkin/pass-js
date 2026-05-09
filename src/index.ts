@@ -1,5 +1,5 @@
-import * as constants from './constants';
+import * as constants from './constants.js';
 
 export { constants };
-export { Template } from './template';
-export { Pass } from './pass';
+export { Template } from './template.js';
+export { Pass } from './pass.js';

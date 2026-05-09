@@ -1,6 +1,6 @@
 import * as forge from 'node-forge';
 
-import { NFCField } from '../src/lib/nfc-fields';
+import { NFCField } from '../src/lib/nfc-fields.js';
 
 /**
  * @see {@link https://stackoverflow.com/questions/48438753/apple-wallet-nfc-encryptionpublickey}

@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * Checks if given string is a valid W3C date representation
  *

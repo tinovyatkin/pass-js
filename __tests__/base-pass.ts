@@ -1,5 +1,5 @@
-import { PassBase } from '../src/lib/base-pass';
-import { TOP_LEVEL_FIELDS } from '../src/constants';
+import { PassBase } from '../src/lib/base-pass.js';
+import { TOP_LEVEL_FIELDS } from '../src/constants.js';
 import 'jest-extended';
 
 describe('PassBase', () => {

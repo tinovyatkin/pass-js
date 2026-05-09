@@ -4,9 +4,7 @@
  *
  */
 
-'use strict';
-
-import {
+import type {
   PassStyle,
   TransitType,
   TextAlignment,
@@ -16,8 +14,8 @@ import {
   DataDetectors,
   PassCommonStructure,
   ApplePass,
-} from './interfaces';
-import { ImageType, ImageDensity } from './lib/images';
+} from './interfaces.js';
+import type { ImageType, ImageDensity } from './lib/images.js';
 
 export const PASS_MIME_TYPE = 'application/vnd.apple.pkpass';
 

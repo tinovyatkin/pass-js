@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { readFileSync } from 'fs';
 
-import { Template } from '../src/template';
+import { Template } from '../src/template.js';
 
 const originalFields = {
   passTypeIdentifier: 'com.example.passbook',

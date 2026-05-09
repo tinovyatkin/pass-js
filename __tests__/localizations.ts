@@ -6,7 +6,7 @@ import { randomBytes } from 'crypto';
 import { unlinkSync, mkdtempSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 
-import * as Localization from '../src/lib/localizations';
+import * as Localization from '../src/lib/localizations.js';
 
 const RU_STRINGS_FILE = path.resolve(
   __dirname,

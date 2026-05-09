@@ -1,7 +1,5 @@
-'use strict';
-
-import { FieldsMap } from '../src/lib/fieldsMap';
-import { getW3CDateString } from '../src/lib/w3cdate';
+import { FieldsMap } from '../src/lib/fieldsMap.js';
+import { getW3CDateString } from '../src/lib/w3cdate.js';
 
 test('FieldsMap Class', () => {
   const fields = new FieldsMap();

@@ -1,4 +1,4 @@
-import * as colorNames from 'color-name';
+import colorNames from 'color-name';
 
 const ABBR_RE = /^#([\da-f])([\da-f])([\da-f])([\da-f])?$/i;
 const HEX_RE = /^#([\da-f]{2})([\da-f]{2})([\da-f]{2})([\da-f]{2})?$/i;
@@ -18,7 +18,8 @@ function is0to255(num: number): boolean {
 function getRgb(colorString: string): [number, number, number] {
   // short paths
   const string = colorString.trim();
-  if (string in colorNames) return colorNames[string];
+  const named = colorNames[string];
+  if (named) return named;
   if (/transparent/i.test(string)) return [0, 0, 0];
 
   // we don't need to recheck values because they are enforced by regexes
@@ -76,8 +77,9 @@ export class PassColor extends Array<number> {
           `RGB colors array must have length 3 or 4, received ${v.length}`,
         );
       // copying first 3 numbers to our array
-      for (let i = 0, n = v[i]; i < 3; n = v[++i]) {
-        if (!is0to255(n))
+      for (let i = 0; i < 3; i++) {
+        const n = v[i];
+        if (n === undefined || !is0to255(n))
           throw new TypeError(
             `RGB colors array must consist only integers between 0 and 255, received ${JSON.stringify(
               v,

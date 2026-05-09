@@ -1,10 +1,8 @@
-'use strict';
-
 import {
   getW3CDateString,
   isValidW3CDateString,
   getDateFromW3CString,
-} from '../src/lib/w3cdate';
+} from '../src/lib/w3cdate.js';
 
 describe('W3C dates strings ', () => {
   it('isValidW3CDateString', () => {

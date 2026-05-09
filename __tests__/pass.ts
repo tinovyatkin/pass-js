@@ -1,13 +1,11 @@
-'use strict';
-
 import { createHash, randomBytes } from 'crypto';
 import { unlinkSync, mkdtempSync, writeFileSync, readFileSync } from 'fs';
 import { tmpdir } from 'os';
 import * as path from 'path';
 import { execFileSync } from 'child_process';
 
-import * as constants from '../src/constants';
-import { Template } from '../src/template';
+import * as constants from '../src/constants.js';
+import { Template } from '../src/template.js';
 
 // Clone all the fields in object, except the named field, and return a new
 // object.

@@ -1,73 +1,38 @@
-import * as forge from 'node-forge';
+import { createPublicKey } from 'node:crypto';
 
-import { NFCDictionary } from '../interfaces';
+import type { NFCDictionary } from '../interfaces.js';
 
-/**
- * node-forge doesn't support ECDH used by Apple in NFC,
- * so we will store keys as PEM encoded strings
- *
- * @see {@link https://github.com/digitalbazaar/forge/issues/116}
- * @see {@link https://stackoverflow.com/questions/48438753/apple-wallet-nfc-encryptionpublickey}
- * @see {@link https://github.com/digitalbazaar/forge/issues/237}
- */
-
+// For NFC encryption, Apple requires an ECDH public key on curve P-256,
+// base64-encoded as an X.509 SubjectPublicKeyInfo structure.
+// See:
+// - https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/PassKit_PG/LowerLevel.html
+// - https://stackoverflow.com/questions/48438753/apple-wallet-nfc-encryptionpublickey
 export class NFCField implements NFCDictionary {
   message = '';
   encryptionPublicKey?: string;
 
-  /**
-   *
-   */
-
   constructor(nfc?: NFCDictionary) {
     if (!nfc) return;
-
-    // this will check the PEM
     this.message = nfc.message;
-
-    /**
-         * The public encryption key used by the Value Added Services protocol.
-         * Use a Base64 encoded X.509 SubjectPublicKeyInfo structure containing a ECDH public key for group P256.
-          
-         encryptionPublicKey ?: string;
-      */
     if (typeof nfc.encryptionPublicKey === 'string')
       this.encryptionPublicKey = nfc.encryptionPublicKey;
   }
 
-  /**
-   * Sets public key from PEM-encoded key or forge.pki.PublicKey instance
-   *
-   * @param {forge.pki.PublicKey | string} key
-   * @returns {this}
-   */
-  setPublicKey(key: forge.pki.PublicKey | string): this {
-    const pemKey =
-      typeof key === 'string' ? key : forge.pki.publicKeyToPem(key);
-    // test PEM key type
-    // decode throws on invalid PEM message
-    const pem = forge.pem.decode(pemKey);
-    const publicKey = pem.find(({ type }) => type === 'PUBLIC KEY');
-    // ensure it have a public key
-    if (!publicKey)
+  // Accepts a PEM-encoded SubjectPublicKeyInfo (SPKI) containing an EC public
+  // key on curve P-256 (prime256v1 / secp256r1). Stores it as base64-encoded
+  // SPKI DER as Apple expects.
+  setPublicKey(pem: string): this {
+    const keyObj = createPublicKey({ key: pem, format: 'pem' });
+    if (keyObj.asymmetricKeyType !== 'ec') {
+      throw new TypeError('NFC public key must be an EC key');
+    }
+    if (keyObj.asymmetricKeyDetails?.namedCurve !== 'prime256v1') {
       throw new TypeError(
-        `NFC publicKey must be a PEM encoded X.509 SubjectPublicKeyInfo string`,
+        'NFC public key must use the P-256 (prime256v1) curve',
       );
-
-    const der = forge.pki.pemToDer(pemKey);
-    const oid = forge.asn1.derToOid(der);
-    /**
-     * Ensure it's ECDH
-     *
-     * @see {@link https://www.alvestrand.no/objectid/1.2.840.10045.2.1.html}
-     */
-    if (!oid.includes('840.10045.2.1'))
-      throw new TypeError(`Public key must be a ECDH public key`);
-
-    this.encryptionPublicKey = Buffer.from(publicKey.body, 'binary').toString(
-      'base64',
-    );
-
+    }
+    const spkiDer = keyObj.export({ type: 'spki', format: 'der' });
+    this.encryptionPublicKey = spkiDer.toString('base64');
     return this;
   }
 

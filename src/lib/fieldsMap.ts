@@ -1,8 +1,6 @@
-'use strict';
+import type { Field, FieldDescriptor, DataStyleFormat } from '../interfaces.js';
 
-import { Field, FieldDescriptor, DataStyleFormat } from '../interfaces';
-
-import { getW3CDateString } from './w3cdate';
+import { getW3CDateString } from './w3cdate.js';
 
 export class FieldsMap extends Map<string, FieldDescriptor> {
   /**

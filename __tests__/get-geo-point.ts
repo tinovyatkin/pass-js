@@ -1,4 +1,4 @@
-import { getGeoPoint } from '../src/lib/get-geo-point';
+import { getGeoPoint } from '../src/lib/get-geo-point.js';
 
 describe('getGeoPoint', () => {
   it('works with 4 numbers array', () => {

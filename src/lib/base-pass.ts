@@ -1,12 +1,12 @@
-import { ApplePass, Options } from '../interfaces';
-import { BARCODES_FORMAT, STRUCTURE_FIELDS } from '../constants';
+import type { ApplePass, Options } from '../interfaces.js';
+import { BARCODES_FORMAT, STRUCTURE_FIELDS } from '../constants.js';
 
-import { PassColor } from './pass-color';
-import { PassImages } from './images';
-import { Localizations } from './localizations';
-import { getGeoPoint } from './get-geo-point';
-import { PassStructure } from './pass-structure';
-import { getW3CDateString, isValidW3CDateString } from './w3cdate';
+import { PassColor } from './pass-color.js';
+import { PassImages } from './images.js';
+import { Localizations } from './localizations.js';
+import { getGeoPoint } from './get-geo-point.js';
+import { PassStructure } from './pass-structure.js';
+import { getW3CDateString, isValidW3CDateString } from './w3cdate.js';
 
 const STRUCTURE_FIELDS_SET = new Set([...STRUCTURE_FIELDS, 'nfc']);
 
@@ -28,7 +28,7 @@ export class PassBase extends PassStructure {
     // restore via setters
     for (const [key, value] of Object.entries(fields)) {
       if (!STRUCTURE_FIELDS_SET.has(key) && key in this) {
-        this[key] = value;
+        (this as Record<string, unknown>)[key] = value;
       }
     }
 
@@ -43,7 +43,8 @@ export class PassBase extends PassStructure {
   toJSON(): Partial<ApplePass> {
     const res: Partial<ApplePass> = { formatVersion: 1 };
     for (const [field, value] of Object.entries(this.fields)) {
-      res[field] = value instanceof Date ? getW3CDateString(value) : value;
+      (res as Record<string, unknown>)[field] =
+        value instanceof Date ? getW3CDateString(value) : value;
     }
     return res;
   }
@@ -483,7 +484,7 @@ export class PassBase extends PassStructure {
     relevantText?: string,
   ): this {
     const { longitude, latitude, altitude } = getGeoPoint(point);
-    const location: import('../interfaces').Location = {
+    const location: import('../interfaces.js').Location = {
       longitude,
       latitude,
     };
