@@ -207,6 +207,9 @@ export const TOP_LEVEL_FIELDS: {
     templatable: true,
     localizable: true,
   },
+  semantics: {
+    type: Object,
+  },
   suppressStripShine: {
     type: Boolean,
     templatable: true,

@@ -32,12 +32,34 @@ export type NumberStyle =
   | 'PKNumberStyleScientific'
   | 'PKNumberStyleSpellOut';
 
+export interface SemanticTagObject {
+  [key: string]: SemanticTagValue;
+}
+
+export type SemanticTagValue =
+  | string
+  | number
+  | boolean
+  | Date
+  | SemanticTagObject
+  | SemanticTagValue[];
+
+/**
+ * Machine-readable metadata that Wallet uses to offer a pass and suggest
+ * related actions.
+ *
+ * @see {@link https://developer.apple.com/documentation/walletpasses/supporting-semantic-tags-in-wallet-passes}
+ * @see {@link https://developer.apple.com/documentation/walletpasses/semantictags}
+ */
+export type SemanticTags = SemanticTagObject;
+
 export type FieldDescriptor = {
   // Standard Field Dictionary Keys
   label?: string;
   attributedValue?: string | number;
   changeMessage?: string;
   dataDetectorTypes?: DataDetectors[];
+  semantics?: SemanticTags;
 } & (
   | {
       value: string;
@@ -175,6 +197,14 @@ export interface PassCompanionAppKeys {
    * for the companion app to read, making it easy to place an order for “the usual” from the app.
    */
   userInfo?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+}
+
+export interface PassSemanticKeys {
+  /**
+   * Machine-readable metadata for Wallet suggestions. This dictionary may
+   * also be specified on individual pass fields.
+   */
+  semantics?: SemanticTags;
 }
 
 /**
@@ -449,6 +479,7 @@ export type PassStructureFields =
 export type ApplePass = PassStandardKeys &
   PassAssociatedAppKeys &
   PassCompanionAppKeys &
+  PassSemanticKeys &
   PassExpirationKeys &
   PassRelevanceKeys &
   PassVisualAppearanceKeys &

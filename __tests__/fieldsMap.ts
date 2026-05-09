@@ -4,6 +4,27 @@ import assert from 'node:assert/strict';
 import { FieldsMap } from '../dist/lib/fieldsMap.js';
 import { getW3CDateString } from '../dist/lib/w3cdate.js';
 
+test('FieldsMap serializes semantic tags per-field', () => {
+  const fields = new FieldsMap();
+  const eventStartDate = new Date(2026, 0, 2, 3, 4);
+  fields.add({
+    key: 'event',
+    label: 'Venue',
+    value: 'Steve Jobs Theater',
+    semantics: {
+      eventName: 'Animated Movie',
+      eventStartDate,
+      venueLocation: { latitude: 37.330886, longitude: -122.007427 },
+    },
+  });
+  assert.equal(
+    JSON.stringify(fields),
+    `[{"key":"event","label":"Venue","value":"Steve Jobs Theater","semantics":{"eventName":"Animated Movie","eventStartDate":"${getW3CDateString(
+      eventStartDate,
+    )}","venueLocation":{"latitude":37.330886,"longitude":-122.007427}}}]`,
+  );
+});
+
 test('FieldsMap Class', () => {
   const fields = new FieldsMap();
   // should not add empty arrays if not needed

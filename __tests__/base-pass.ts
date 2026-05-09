@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import { PassBase } from '../dist/lib/base-pass.js';
 import { TOP_LEVEL_FIELDS } from '../dist/constants.js';
+import { getW3CDateString } from '../dist/lib/w3cdate.js';
 
 describe('PassBase', () => {
   it('should have all required pass properties', () => {
@@ -71,6 +72,35 @@ describe('PassBase', () => {
     assert.doesNotThrow(() => {
       bpWithAllowHttpTrue.webServiceURL = 'http://transfers.do/webservice';
     });
+  });
+
+  it('serializes semantic tags at the pass level', () => {
+    const eventStartDate = new Date(2026, 0, 2, 3, 4);
+    const bp = new PassBase({
+      eventTicket: {},
+      semantics: {
+        eventName: 'Animated Movie',
+        eventStartDate,
+        totalPrice: { amount: 1250, currencyCode: 'USD' },
+        venueLocation: { latitude: 37.330886, longitude: -122.007427 },
+      },
+    });
+    assert.deepEqual(bp.semantics, {
+      eventName: 'Animated Movie',
+      eventStartDate: getW3CDateString(eventStartDate),
+      totalPrice: { amount: 1250, currencyCode: 'USD' },
+      venueLocation: { latitude: 37.330886, longitude: -122.007427 },
+    });
+    assert.match(JSON.stringify(bp), /"semantics"/);
+    bp.semantics = undefined;
+    assert.equal(bp.semantics, undefined);
+  });
+
+  it('rejects invalid Date values in semantics', () => {
+    const bp = new PassBase({ eventTicket: {} });
+    assert.throws(() => {
+      bp.semantics = { eventStartDate: new Date('not a date') };
+    }, /Semantic tag Date values must be valid/);
   });
 
   it('appLaunchURL get/set', () => {
