@@ -2,24 +2,17 @@
  * Base PassImages class to add image filePath manipulation
  */
 
-import { promisify } from 'util';
 import * as path from 'path';
-import { createReadStream, promises as fs } from 'fs';
-
-import imagesize from 'imagesize';
+import { promises as fs } from 'fs';
 
 import { IMAGES, DENSITIES } from '../constants.js';
 
 import { normalizeLocale } from './normalize-locale.js';
-
-interface ImageSizeResult {
-  format: 'gif' | 'png' | 'jpeg';
-  width: number;
-  height: number;
-}
-
-const imageSize: (v: import('stream').Readable) => Promise<ImageSizeResult> =
-  promisify(imagesize);
+import {
+  readPngDimensions,
+  readPngDimensionsFromFile,
+  type PngDimensions,
+} from './png-size.js';
 
 export type ImageDensity = '1x' | '2x' | '3x';
 export type ImageType =
@@ -133,29 +126,42 @@ export class PassImages extends Map<string, string | Buffer> {
     if (density && !DENSITIES.has(density))
       throw new TypeError(`Invalid density ${density} for ${imageType}`);
 
-    // check data
-    let sizeRes;
-    if (typeof pathOrBuffer === 'string') {
-      // PNG size is in first 24 bytes
-      const rs = createReadStream(pathOrBuffer, { highWaterMark: 30 });
-      sizeRes = await imageSize(rs);
-      // see https://github.com/nodejs/node/issues/25335#issuecomment-451945106
-      rs.once('readable', () => rs.destroy());
-    } else {
-      if (!Buffer.isBuffer(pathOrBuffer))
+    // Verify PNG dimensions unless the user opted out. The reader only
+    // touches the first 24 bytes, so large files from disk aren't loaded
+    // into memory just to run the dimension check.
+    if (!disableImageCheck) {
+      let dims: PngDimensions;
+      if (typeof pathOrBuffer === 'string') {
+        try {
+          dims = await readPngDimensionsFromFile(pathOrBuffer);
+        } catch (err) {
+          throw new TypeError(
+            `Image for "${imageType}" at ${pathOrBuffer} is not a valid PNG: ${(err as Error).message}`,
+          );
+        }
+      } else if (Buffer.isBuffer(pathOrBuffer)) {
+        try {
+          dims = readPngDimensions(pathOrBuffer);
+        } catch (err) {
+          throw new TypeError(
+            `Supplied buffer for "${imageType}" is not a valid PNG: ${(err as Error).message}`,
+          );
+        }
+      } else {
         throw new TypeError(
           `Image data for ${imageType} must be either file path or buffer`,
         );
-      const { Parser } = imagesize;
-      const parser = Parser();
-      const res = parser.parse(pathOrBuffer);
-      if (res !== Parser.DONE)
-        throw new TypeError(
-          `Supplied buffer doesn't contain valid PNG image for ${imageType}`,
-        );
-      sizeRes = parser.getResult() as ImageSizeResult;
+      }
+      this.checkImage(imageType, dims, density);
+    } else if (
+      typeof pathOrBuffer !== 'string' &&
+      !Buffer.isBuffer(pathOrBuffer)
+    ) {
+      // Shape check still applies even when dimension validation is off.
+      throw new TypeError(
+        `Image data for ${imageType} must be either file path or buffer`,
+      );
     }
-    if (!disableImageCheck) this.checkImage(imageType, sizeRes, density);
     super.set(this.getImageFilename(imageType, density, lang), pathOrBuffer);
   }
 
@@ -179,13 +185,11 @@ export class PassImages extends Map<string, string | Buffer> {
   // eslint-disable-next-line complexity
   private checkImage(
     imageType: ImageType,
-    sizeResult: ImageSizeResult,
+    dims: PngDimensions,
     density?: ImageDensity,
   ): void {
     const densityMulti = density ? parseInt(density.charAt(0), 10) : 1;
-    const { format, width, height } = sizeResult;
-    if (format !== 'png')
-      throw new TypeError(`Image for "${imageType}" is not a PNG file!`);
+    const { width, height } = dims;
     if (!Number.isInteger(width) || width <= 0)
       throw new TypeError(`Image ${imageType} has invalid width: ${width}`);
     if (!Number.isInteger(height) || height <= 0)
