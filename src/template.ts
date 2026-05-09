@@ -147,7 +147,7 @@ export class Template extends PassBase {
     for (const entry of zip.entries) {
       if (entry.filename.endsWith('/')) continue;
 
-      if (/\/?pass\.json$/i.test(entry.filename)) {
+      if (/(?:^|\/)pass\.json$/i.test(entry.filename)) {
         if (foundPassJson)
           throw new TypeError(
             `Archive contains more than one pass.json - found ${entry.filename}`,

@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 
 import { Template } from '../dist/template.js';
+import { writeZip } from '../dist/lib/zip.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -74,6 +75,26 @@ describe('Template', () => {
     assert.equal(res.images.size, 8);
     assert.equal(res.localization.size, 3);
     assert.equal(res.localization.get('zh-CN').size, 29);
+  });
+
+  it('fromBuffer matches pass.json only as a whole path segment', async () => {
+    // Archive contains a decoy `notpass.json` that a naive
+    // `/?pass.json$` regex would mistake for the main payload.
+    const passJson = JSON.stringify({
+      formatVersion: 1,
+      passTypeIdentifier: 'pass.real',
+      teamIdentifier: 'T',
+      organizationName: 'O',
+      description: 'd',
+      serialNumber: 's',
+      coupon: {},
+    });
+    const buf = writeZip([
+      { path: 'notpass.json', data: '{"decoy":true}' },
+      { path: 'pass.json', data: passJson },
+    ]);
+    const templ = await Template.fromBuffer(buf);
+    assert.equal(templ.passTypeIdentifier, 'pass.real');
   });
 
   it('loads an existing .pkpass buffer as a Template', async () => {

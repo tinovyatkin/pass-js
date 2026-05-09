@@ -15,6 +15,20 @@ describe('W3C dates strings', () => {
     assert.ok(!isValidW3CDateString('2012-07-22'));
   });
 
+  it('isValidW3CDateString rejects trailing garbage after Z', () => {
+    // `Z` branch must be anchored to end of string.
+    assert.ok(!isValidW3CDateString('2026-01-01T12:34Zgarbage'));
+    assert.ok(!isValidW3CDateString('2026-01-01T12:34:56Zmore'));
+  });
+
+  it('isValidW3CDateString accepts non-standard timezone offsets', () => {
+    // :45 offsets exist in the real world — Nepal (+05:45), Chatham Is.
+    // (+12:45 in NZDT). Some sources also emit :15.
+    assert.ok(isValidW3CDateString('2026-01-01T12:34+05:45'));
+    assert.ok(isValidW3CDateString('2026-01-01T12:34+12:45'));
+    assert.ok(isValidW3CDateString('2026-01-01T12:34+05:30'));
+  });
+
   it('getW3CDateString', () => {
     const date = new Date();
     const res = getW3CDateString(date);

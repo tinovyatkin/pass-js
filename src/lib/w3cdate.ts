@@ -6,8 +6,13 @@
  */
 export function isValidW3CDateString(dateStr: string): boolean {
   if (typeof dateStr !== 'string') return false;
-  // W3C date format with optional seconds
-  return /^20\d{2}-[01]\d-[0-3]\dT[0-5]\d:[0-5]\d(:[0-5]\d)?(Z|([+-][01]\d:[03]0)$)/.test(
+  // W3C date format: YYYY-MM-DDThh:mm(:ss)?(Z|±HH:MM)
+  // Must match the parser in getDateFromW3CString exactly so the two don't
+  // disagree (the parser crashes on strings the validator greenlights).
+  // - `$` anchors the whole string, not just the offset branch.
+  // - Timezone minutes accept 00–59 (some offsets are :45, e.g. Nepal +05:45,
+  //   Chatham Is. +12:45 — the old [03]0 class rejected them).
+  return /^20\d{2}-[01]\d-[0-3]\dT[0-5]\d:[0-5]\d(?::[0-5]\d)?(?:Z|[+-][01]\d:[0-5]\d)$/.test(
     dateStr,
   );
 }
