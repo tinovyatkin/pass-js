@@ -12,7 +12,7 @@ Object.defineProperties(ZipFile.prototype, {
     writable: false,
     configurable: false,
     value() {
-      return new EventIterator<Entry>((push, stop, fail) => {
+      return new EventIterator<Entry>(({ push, stop, fail }) => {
         this.addListener('entry', push);
         this.addListener('end', stop);
         this.addListener('error', fail);

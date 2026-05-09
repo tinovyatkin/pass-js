@@ -97,7 +97,7 @@ export class PassStructure {
       );
 
     if (!v) {
-      if (this.fields.boardingPass) delete this.fields.boardingPass.transitType;
+      if (this.fields.boardingPass) delete (this.fields.boardingPass as { transitType?: TransitType }).transitType;
     } else {
       if (Object.values(TRANSIT).includes(v)) {
         if (this.fields.boardingPass) this.fields.boardingPass.transitType = v;

@@ -311,7 +311,7 @@ export class Template extends PassBase {
             if (apn.destroyed)
               throw new Error('APN was destroyed before connecting');
             this.apn = apn;
-            resolve();
+            resolve(undefined);
           });
       });
     }
