@@ -1,0 +1,46 @@
+// hk (jdx/hk) — Git 2.53 native hook manager
+// See CLAUDE.md § "Git hooks (optional)" for install instructions.
+// Generated from `hk init`, customized for pass-js.
+
+amends "package://github.com/jdx/hk/releases/download/v1.44.3/hk@1.44.3#/Config.pkl"
+
+local linters = new Mapping<String, Step> {
+  // oxfmt is per-file, fast, and safe to auto-fix.
+  ["oxfmt"] {
+    glob = List("*.ts")
+    check = "oxfmt --check {{files}}"
+    fix = "oxfmt {{files}}"
+  }
+  // oxlint runs project-wide because type-aware mode needs the whole
+  // program (tsgo loads tsconfig.json). Gated on *.ts changes so it
+  // doesn't fire for README-only commits.
+  ["oxlint"] {
+    glob = List("*.ts")
+    check = "oxlint --type-aware"
+    fix = "oxlint --type-aware --fix"
+  }
+}
+
+hooks {
+  ["pre-commit"] {
+    fix = true
+    stash = "git"
+    steps = linters
+  }
+  ["pre-push"] {
+    steps = new Mapping<String, Step> {
+      // Full test suite including the build + openssl signing round-trip.
+      // Takes ~1s on a modern laptop; worth catching before a public push.
+      ["test"] {
+        check = "npm test"
+      }
+    }
+  }
+  ["fix"] {
+    fix = true
+    steps = linters
+  }
+  ["check"] {
+    steps = linters
+  }
+}

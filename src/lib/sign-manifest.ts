@@ -76,6 +76,34 @@ const OID_RSA_ENCRYPTION = '1.2.840.113549.1.1.1';
 
 const APPLE_WWDR_CA = parsePkiCertificate(APPLE_WWDR_CA_PEM);
 
+// Emit a process warning if the bundled WWDR cert is within 90 days of
+// expiry (or already expired). The 2013–2023 G1 silently expired and every
+// downstream user shipped broken passes for months before anyone noticed —
+// this is the guard that should catch the next rotation.
+//
+// Uses process.emitWarning (rather than console.warn) so consumers can
+// silence or intercept it the standard Node way:
+//   node --disable-warning=WalletPassWWDRExpiring app.js
+//   process.on('warning', w => { if (w.code === 'WALLETPASS_WWDR_EXPIRED') ... })
+const WWDR_WARN_WINDOW_MS = 90 * 24 * 60 * 60 * 1000;
+const wwdrNotAfter = APPLE_WWDR_CA.notAfter.value;
+const msUntilExpiry = wwdrNotAfter.getTime() - Date.now();
+if (msUntilExpiry < WWDR_WARN_WINDOW_MS) {
+  const when = wwdrNotAfter.toISOString().slice(0, 10);
+  const days = Math.ceil(msUntilExpiry / (24 * 60 * 60 * 1000));
+  if (msUntilExpiry < 0) {
+    process.emitWarning(
+      `Bundled Apple WWDR certificate expired on ${when}. Signed passes will fail validation. Upgrade @walletpass/pass-js or override via APPLE_WWDR_CERT_PEM. See https://www.apple.com/certificateauthority/`,
+      { type: 'WalletPassWWDRExpired', code: 'WALLETPASS_WWDR_EXPIRED' },
+    );
+  } else {
+    process.emitWarning(
+      `Bundled Apple WWDR certificate expires on ${when} (${days} days). Upgrade @walletpass/pass-js before then to avoid silently shipping invalid passes.`,
+      { type: 'WalletPassWWDRExpiring', code: 'WALLETPASS_WWDR_EXPIRING' },
+    );
+  }
+}
+
 // ─── Public API ─────────────────────────────────────────────────────────────
 
 // Sign the manifest.json of an Apple Wallet pass bundle.
