@@ -46,10 +46,13 @@ jobs:
       - name: Run tests with lcov coverage
         run: |
           mkdir -p coverage
-          node --test \
+          # --enable-source-maps makes the lcov reporter emit src/*.ts
+          # paths (as declared in the .js.map files tsgo generates),
+          # not the built dist/*.js. Codecov then annotates the actual
+          # source in PR comments without needing path rewrites.
+          node --enable-source-maps --test \
             --experimental-test-coverage \
             --test-coverage-exclude="__tests__/**" \
-            --test-coverage-exclude="dist/**/*.d.ts" \
             --test-reporter=spec \
             --test-reporter-destination=stdout \
             --test-reporter=lcov \

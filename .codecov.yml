@@ -9,15 +9,6 @@ coverage:
         target: 80%
         threshold: 5%
 
-# Tests build src/*.ts → dist/*.js and measure coverage against the emitted
-# JS. Rewrite those paths back to src/*.ts so Codecov's file view, PR
-# annotations, and "Files changed" diff correlate with the actual sources.
-fixes:
-  - "dist/lib/::src/lib/"
-  - "dist/::src/"
-  - "*.js::*.ts"
-  - "*.cjs::*.ts"
-
 ignore:
   - __tests__
   - coverage
