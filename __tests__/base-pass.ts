@@ -103,6 +103,35 @@ describe('PassBase', () => {
     }, /Semantic tag Date values must be valid/);
   });
 
+  it('relevantDates + preferredStyleSchemes (iOS 18+)', () => {
+    const bp = new PassBase({ eventTicket: {} });
+    // starts empty
+    assert.equal(bp.relevantDates, undefined);
+    assert.equal(bp.preferredStyleSchemes, undefined);
+
+    bp.relevantDates = [
+      { relevantDate: '2026-06-01T19:00-07:00' },
+      {
+        startDate: '2026-06-02T18:00-07:00',
+        endDate: '2026-06-02T22:00-07:00',
+      },
+    ];
+    bp.preferredStyleSchemes = ['posterEventTicket', 'eventTicket'];
+
+    const serialized = JSON.parse(JSON.stringify(bp));
+    assert.equal(serialized.relevantDates.length, 2);
+    assert.deepEqual(serialized.preferredStyleSchemes, [
+      'posterEventTicket',
+      'eventTicket',
+    ]);
+
+    // clearing
+    bp.relevantDates = undefined;
+    bp.preferredStyleSchemes = [];
+    assert.equal(bp.relevantDates, undefined);
+    assert.equal(bp.preferredStyleSchemes, undefined);
+  });
+
   it('appLaunchURL get/set', () => {
     const bp = new PassBase();
     assert.equal(bp.appLaunchURL, undefined);

@@ -183,9 +183,16 @@ export const TOP_LEVEL_FIELDS: {
   relevantDate: {
     type: 'string', // W3C date, as a string
   },
+  relevantDates: {
+    type: Array,
+  },
   // Visual Appearance Keys
   barcodes: {
     type: Array,
+  },
+  preferredStyleSchemes: {
+    type: Array,
+    templatable: true,
   },
   backgroundColor: {
     type: 'string',

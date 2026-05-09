@@ -277,6 +277,21 @@ export interface Location {
 }
 
 /**
+ * A date/time range during which the pass is relevant. Either a point
+ * in time (`relevantDate`) or a window (`startDate`/`endDate`).
+ *
+ * @see {@link https://developer.apple.com/documentation/walletpasses/pass/relevantdates}
+ */
+export interface RelevantDateEntry {
+  /** ISO 8601 date-time at which the pass becomes relevant. */
+  relevantDate?: string | Date;
+  /** Start of a relevance window (ISO 8601 date-time). */
+  startDate?: string | Date;
+  /** End of a relevance window (ISO 8601 date-time). */
+  endDate?: string | Date;
+}
+
+/**
  * Information about where and when a pass is relevant.
  */
 export interface PassRelevanceKeys {
@@ -299,8 +314,21 @@ export interface PassRelevanceKeys {
    * For example, the start time of a movie.
    * The value must be a complete date with hours and minutes,
    * and may optionally include seconds.
+   *
+   * @deprecated Prefer `relevantDates` (iOS 18+) for new passes. The
+   * singular `relevantDate` is still emitted for backward compatibility
+   * but Apple recommends the array form for event tickets and boarding
+   * passes with multiple relevant windows.
    */
   relevantDate?: string | Date;
+  /**
+   * List of dates and date ranges during which the pass is relevant.
+   * Added in iOS 18. Supersedes the singular `relevantDate` for passes
+   * with multiple relevance windows (e.g. multi-leg itineraries).
+   *
+   * @see {@link https://developer.apple.com/documentation/walletpasses/pass/relevantdates}
+   */
+  relevantDates?: RelevantDateEntry[];
 }
 
 /**
@@ -340,7 +368,8 @@ export interface PassVisualAppearanceKeys {
   /**
    * Information specific to the pass’s barcode.
    * For this dictionary’s keys, see Barcode Dictionary Keys.
-   * DEPRECATED in iOS 9.0 and later; use `barcodes` instead.
+   *
+   * @deprecated Deprecated in iOS 9.0 and later; use `barcodes` instead.
    */
   barcode?: BarcodeDescriptor;
   /**
@@ -393,6 +422,15 @@ export interface PassVisualAppearanceKeys {
    * In iOS 7.0, a shine effect is never applied, and this key is deprecated.
    */
   suppressStripShine?: boolean;
+  /**
+   * Ordered list of visual style schemes the pass opts into, in order
+   * of preference. iOS 18+ renders `posterEventTicket` with richer
+   * hero imagery for event passes; older OSes silently fall back to
+   * the classic style.
+   *
+   * @see {@link https://developer.apple.com/documentation/walletpasses/preferredstyleschemes}
+   */
+  preferredStyleSchemes?: ('posterEventTicket' | 'eventTicket')[];
 }
 
 export interface PassWebServiceKeys {

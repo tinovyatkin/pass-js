@@ -173,6 +173,29 @@ export class PassBase extends PassStructure {
   }
 
   /**
+   * List of dates and date ranges during which the pass is relevant
+   * (iOS 18+). Supersedes `relevantDate` for multi-window passes.
+   */
+  get relevantDates(): ApplePass['relevantDates'] {
+    return this.fields.relevantDates;
+  }
+  set relevantDates(v: ApplePass['relevantDates']) {
+    if (!v) delete this.fields.relevantDates;
+    else this.fields.relevantDates = v;
+  }
+
+  /**
+   * Ordered list of visual style schemes the pass opts into (iOS 18+).
+   */
+  get preferredStyleSchemes(): ApplePass['preferredStyleSchemes'] {
+    return this.fields.preferredStyleSchemes;
+  }
+  set preferredStyleSchemes(v: ApplePass['preferredStyleSchemes']) {
+    if (!v || v.length === 0) delete this.fields.preferredStyleSchemes;
+    else this.fields.preferredStyleSchemes = v;
+  }
+
+  /**
    * A list of iTunes Store item identifiers for the associated apps.
    * Only one item in the list is used—the first item identifier for an app
    * compatible with the current device.
