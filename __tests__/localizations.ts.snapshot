@@ -1,0 +1,446 @@
+exports[`Localizations files helpers > returns string as utf-16 .lproj buffer 1`] = `
+"\\"Terms of Service\\" = \\"Условия использования\\";\\n\\"Privacy Policy\\" = \\"Политика конфиденциальности\\";\\n\\"Legal Notices\\" = \\"Юридические уведомления\\";\\n\\"Unable to load webpage.\\" = \\"Не удалось загрузить веб-страницу.\\";\\n\\"OK\\" = \\"ОК\\";\\n\\"Do you want to add the token named “%@”?\\" = \\"Добавить токен \\\\\\"%@\\\\\\"?\\";\\n\\"No\\" = \\"Нет\\";\\n\\"Yes\\" = \\"Да\\";\\n\\"Invalid Key\\" = \\"Недействительный ключ\\";\\n\\"The key '%@' is invalid.\\" = \\"Ключ \\\\\\"%@\\\\\\" недействителен.\\";\\n\\"You must enter a key.\\" = \\"Необходимо ввести ключ.\\";\\n\\"Try Again\\" = \\"Повторить попытку\\";\\n\\"Cancel\\" = \\"Отмена\\";\\n\\"Invalid Barcode\\" = \\"Недопустимый штрихкод\\";\\n\\"The barcode '%@' is not a valid authentication token barcode.\\" = \\"Штрихкод \\\\\\"%@\\\\\\" не является действительным токеном аутентификации.\\";\\n\\"Welcome\\" = \\"Добро пожаловать\\";\\n\\"Welcome_label\\" = \\"Google Authenticator обеспечивает дополнительную безопасность аккаунта с помощью сгенерированных кодов.\\\\n\\\\nЧтобы использовать Google Authenticator, необходимо добавить аккаунт, нажав:\\";\\n\\"Legal Information\\" = \\"Юридическая информация\\";\\n\\"Authenticator\\" = \\"Authenticator\\";\\n\\"Google Authenticator\\" = \\"Google Authenticator\\";\\n\\"Add Token\\" = \\"Добавить токен\\";\\n\\"Time Based\\" = \\"По времени\\";\\n\\"Counter Based\\" = \\"По счетчику\\";\\n\\"Account:\\" = \\"Аккаунт:\\";\\n\\"user@example.com\\" = \\"user@example.com\\";\\n\\"Key:\\" = \\"Ключ:\\";\\n\\"Enter your key\\" = \\"Введите ключ\\";\\n\\"Scan Barcode\\" = \\"Сканировать штрихкод\\";\\n\\"Integrity Check Value\\" = \\"Integrity Check Value\\";"
+`;
+
+exports[`Localizations files helpers > should clone other instance if provided for constructor 1`] = `
+[
+  {
+    "path": "ru.lproj/pass.strings",
+    "data": {
+      "type": "Buffer",
+      "data": [
+        255,
+        254,
+        34,
+        0,
+        107,
+        0,
+        101,
+        0,
+        121,
+        0,
+        49,
+        0,
+        34,
+        0,
+        32,
+        0,
+        61,
+        0,
+        32,
+        0,
+        34,
+        0,
+        66,
+        4,
+        53,
+        4,
+        65,
+        4,
+        66,
+        4,
+        34,
+        0,
+        59,
+        0,
+        10,
+        0,
+        34,
+        0,
+        107,
+        0,
+        101,
+        0,
+        121,
+        0,
+        50,
+        0,
+        34,
+        0,
+        32,
+        0,
+        61,
+        0,
+        32,
+        0,
+        34,
+        0,
+        116,
+        0,
+        101,
+        0,
+        115,
+        0,
+        116,
+        0,
+        32,
+        0,
+        107,
+        0,
+        101,
+        0,
+        121,
+        0,
+        32,
+        0,
+        50,
+        0,
+        34,
+        0,
+        59,
+        0
+      ]
+    }
+  },
+  {
+    "path": "fr.lproj/pass.strings",
+    "data": {
+      "type": "Buffer",
+      "data": [
+        255,
+        254,
+        34,
+        0,
+        107,
+        0,
+        101,
+        0,
+        121,
+        0,
+        49,
+        0,
+        34,
+        0,
+        32,
+        0,
+        61,
+        0,
+        32,
+        0,
+        34,
+        0,
+        116,
+        0,
+        101,
+        0,
+        115,
+        0,
+        116,
+        0,
+        32,
+        0,
+        102,
+        0,
+        114,
+        0,
+        32,
+        0,
+        107,
+        0,
+        101,
+        0,
+        121,
+        0,
+        49,
+        0,
+        34,
+        0,
+        59,
+        0,
+        10,
+        0,
+        34,
+        0,
+        107,
+        0,
+        101,
+        0,
+        121,
+        0,
+        50,
+        0,
+        34,
+        0,
+        32,
+        0,
+        61,
+        0,
+        32,
+        0,
+        34,
+        0,
+        116,
+        0,
+        101,
+        0,
+        115,
+        0,
+        116,
+        0,
+        32,
+        0,
+        102,
+        0,
+        114,
+        0,
+        32,
+        0,
+        107,
+        0,
+        101,
+        0,
+        121,
+        0,
+        50,
+        0,
+        34,
+        0,
+        59,
+        0
+      ]
+    }
+  }
+]
+`;
+
+exports[`Localizations files helpers > should read pass.strings file 1`] = `
+[
+  [
+    "Terms of Service",
+    "Условия использования"
+  ],
+  [
+    "Privacy Policy",
+    "Политика конфиденциальности"
+  ],
+  [
+    "Legal Notices",
+    "Юридические уведомления"
+  ],
+  [
+    "Unable to load webpage.",
+    "Не удалось загрузить веб-страницу."
+  ],
+  [
+    "OK",
+    "ОК"
+  ],
+  [
+    "Do you want to add the token named “%@”?",
+    "Добавить токен \\"%@\\"?"
+  ],
+  [
+    "No",
+    "Нет"
+  ],
+  [
+    "Yes",
+    "Да"
+  ],
+  [
+    "Invalid Key",
+    "Недействительный ключ"
+  ],
+  [
+    "The key '%@' is invalid.",
+    "Ключ \\"%@\\" недействителен."
+  ],
+  [
+    "You must enter a key.",
+    "Необходимо ввести ключ."
+  ],
+  [
+    "Try Again",
+    "Повторить попытку"
+  ],
+  [
+    "Cancel",
+    "Отмена"
+  ],
+  [
+    "Invalid Barcode",
+    "Недопустимый штрихкод"
+  ],
+  [
+    "The barcode '%@' is not a valid authentication token barcode.",
+    "Штрихкод \\"%@\\" не является действительным токеном аутентификации."
+  ],
+  [
+    "Welcome",
+    "Добро пожаловать"
+  ],
+  [
+    "Welcome_label",
+    "Google Authenticator обеспечивает дополнительную безопасность аккаунта с помощью сгенерированных кодов.\\n\\nЧтобы использовать Google Authenticator, необходимо добавить аккаунт, нажав:"
+  ],
+  [
+    "Legal Information",
+    "Юридическая информация"
+  ],
+  [
+    "Authenticator",
+    "Authenticator"
+  ],
+  [
+    "Google Authenticator",
+    "Google Authenticator"
+  ],
+  [
+    "Add Token",
+    "Добавить токен"
+  ],
+  [
+    "Time Based",
+    "По времени"
+  ],
+  [
+    "Counter Based",
+    "По счетчику"
+  ],
+  [
+    "Account:",
+    "Аккаунт:"
+  ],
+  [
+    "user@example.com",
+    "user@example.com"
+  ],
+  [
+    "Key:",
+    "Ключ:"
+  ],
+  [
+    "Enter your key",
+    "Введите ключ"
+  ],
+  [
+    "Scan Barcode",
+    "Сканировать штрихкод"
+  ],
+  [
+    "Integrity Check Value",
+    "Integrity Check Value"
+  ]
+]
+`;
+
+exports[`Localizations files helpers > should read pass.strings file 2`] = `
+[
+  [
+    "Terms of Service",
+    "服务条款"
+  ],
+  [
+    "Privacy Policy",
+    "隐私权政策"
+  ],
+  [
+    "Legal Notices",
+    "法律声明"
+  ],
+  [
+    "Unable to load webpage.",
+    "无法加载网页。"
+  ],
+  [
+    "OK",
+    "确定"
+  ],
+  [
+    "Do you want to add the token named “%@”?",
+    "您想添加名为“%@”的令牌吗？"
+  ],
+  [
+    "No",
+    "否"
+  ],
+  [
+    "Yes",
+    "是"
+  ],
+  [
+    "Invalid Key",
+    "密钥无效"
+  ],
+  [
+    "The key '%@' is invalid.",
+    "密钥“%@”无效。"
+  ],
+  [
+    "You must enter a key.",
+    "您必须输入一个密钥。"
+  ],
+  [
+    "Try Again",
+    "重试"
+  ],
+  [
+    "Cancel",
+    "取消"
+  ],
+  [
+    "Invalid Barcode",
+    "条形码无效"
+  ],
+  [
+    "The barcode '%@' is not a valid authentication token barcode.",
+    "条形码“%@”不是有效的身份验证令牌条形码。"
+  ],
+  [
+    "Welcome",
+    "欢迎"
+  ],
+  [
+    "Welcome_label",
+    "Google 身份验证器可以生成验证码，从而增强登录时的安全性。\\n\\n要使用 Google 身份验证器，必须先添加一个帐户，方法是按："
+  ],
+  [
+    "Legal Information",
+    "法律信息"
+  ],
+  [
+    "Authenticator",
+    "身份验证器"
+  ],
+  [
+    "Google Authenticator",
+    "Google 身份验证器"
+  ],
+  [
+    "Add Token",
+    "添加令牌"
+  ],
+  [
+    "Time Based",
+    "基于时间"
+  ],
+  [
+    "Counter Based",
+    "基于计数器"
+  ],
+  [
+    "Account:",
+    "帐户："
+  ],
+  [
+    "user@example.com",
+    "user@example.com"
+  ],
+  [
+    "Key:",
+    "密钥："
+  ],
+  [
+    "Enter your key",
+    "输入您的密钥"
+  ],
+  [
+    "Scan Barcode",
+    "扫描条形码"
+  ],
+  [
+    "Integrity Check Value",
+    "Integrity Check Value"
+  ]
+]
+`;

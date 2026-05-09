@@ -1,97 +1,138 @@
-import * as path from 'path';
-import { readFileSync } from 'fs';
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+import { generateKeyPairSync } from 'node:crypto';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'node:fs';
 
-import { Template } from '../src/template';
+import { Template } from '../dist/template.js';
+import { writeZip } from '../dist/lib/zip.js';
 
-const originalFields = {
-  passTypeIdentifier: 'com.example.passbook',
-};
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 describe('Template', () => {
-  it('should throw an error on unsupported type', () => {
-    // @ts-ignore
-    expect(() => new Template('discount')).toThrow();
+  it('throws on unsupported style', () => {
+    assert.throws(
+      // @ts-expect-error testing invalid input
+      () => new Template('discount'),
+      /Unsupported pass style/,
+    );
   });
 
-  it('doesn`t mutate fields', () => {
-    const templ = new Template('coupon', originalFields);
-    expect(templ.passTypeIdentifier).toBe('com.example.passbook');
+  it('rejects non-RSA private keys', () => {
+    const { privateKey } = generateKeyPairSync('ec', {
+      namedCurve: 'prime256v1',
+    });
+    const pem = privateKey.export({
+      type: 'pkcs8',
+      format: 'pem',
+    }) as string;
+    const templ = new Template();
+    assert.throws(() => templ.setPrivateKey(pem), /must be RSA/);
+  });
+
+  it('does not mutate input fields', () => {
+    const original = { passTypeIdentifier: 'com.example.passbook' };
+    const templ = new Template('coupon', original);
+    assert.equal(templ.passTypeIdentifier, 'com.example.passbook');
     templ.passTypeIdentifier = 'com.byaka.buka';
-    expect(templ.passTypeIdentifier).toBe('com.byaka.buka');
-    expect(originalFields.passTypeIdentifier).toBe('com.example.passbook');
+    assert.equal(templ.passTypeIdentifier, 'com.byaka.buka');
+    assert.equal(original.passTypeIdentifier, 'com.example.passbook');
 
-    // should not change when original object changes'
-    originalFields.passTypeIdentifier = 'com.example.somethingelse';
-    expect(templ.passTypeIdentifier).toBe('com.byaka.buka');
+    original.passTypeIdentifier = 'com.example.somethingelse';
+    assert.equal(templ.passTypeIdentifier, 'com.byaka.buka');
   });
 
-  it('loading template from a folder', async () => {
+  it('loads a template from a folder', async () => {
     const templ = await Template.load(
       path.resolve(__dirname, './resources/passes/BoardingPass.pass'),
     );
-    expect(templ.passTypeIdentifier).toBe('pass.com.apple.devpubs.example');
-    expect(templ.images.size).toBe(4);
+    assert.equal(templ.passTypeIdentifier, 'pass.com.apple.devpubs.example');
+    assert.equal(templ.images.size, 4);
 
     const templ2 = await Template.load(
       path.resolve(__dirname, './resources/passes/Event.pass'),
     );
-    expect(templ2.teamIdentifier).toBe('A93A5CM278');
-    expect(templ2.images.size).toBe(8);
+    assert.equal(templ2.teamIdentifier, 'A93A5CM278');
+    assert.equal(templ2.images.size, 8);
   });
 
-  it('loads images and translation from folder without pass.json', async () => {
+  it('loads images and translations from a folder without pass.json', async () => {
     const templ = await Template.load(
       path.resolve(__dirname, './resources/passes/Generic'),
     );
-    expect(templ.images.size).toBe(5);
-    expect(templ.localization.size).toBe(2);
-    // ensure it normalizes locales name
-    expect(templ.localization.has('zh-CN')).toBeTruthy();
+    assert.equal(templ.images.size, 5);
+    assert.equal(templ.localization.size, 2);
+    assert.ok(templ.localization.has('zh-CN'));
   });
 
-  it('loads template from ZIP buffer', async () => {
+  it('loads a template from a ZIP buffer', async () => {
     const buffer = readFileSync(
       path.resolve(__dirname, './resources/passes/Generic.zip'),
     );
     const res = await Template.fromBuffer(buffer);
-    expect(res).toBeInstanceOf(Template);
-    expect(res.images.size).toBe(8);
-    expect(res.localization.size).toBe(3);
-    expect(res.localization.get('zh-CN').size).toBe(29);
+    assert.ok(res instanceof Template);
+    assert.equal(res.images.size, 8);
+    assert.equal(res.localization.size, 3);
+    assert.equal(res.localization.get('zh-CN').size, 29);
   });
 
-  it('can load existing pass as Template', async () => {
+  it('fromBuffer matches pass.json only as a whole path segment', async () => {
+    // Archive contains a decoy `notpass.json` that a naive
+    // `/?pass.json$` regex would mistake for the main payload.
+    const passJson = JSON.stringify({
+      formatVersion: 1,
+      passTypeIdentifier: 'pass.real',
+      teamIdentifier: 'T',
+      organizationName: 'O',
+      description: 'd',
+      serialNumber: 's',
+      coupon: {},
+    });
+    const buf = writeZip([
+      { path: 'notpass.json', data: '{"decoy":true}' },
+      { path: 'pass.json', data: passJson },
+    ]);
+    const templ = await Template.fromBuffer(buf);
+    assert.equal(templ.passTypeIdentifier, 'pass.real');
+  });
+
+  it('loads an existing .pkpass buffer as a Template', async () => {
     const buffer = readFileSync(
       path.resolve(__dirname, './resources/passes/StoreCard.pkpass'),
     );
     const res = await Template.fromBuffer(buffer);
-    expect(res).toBeInstanceOf(Template);
-    expect(res.passTypeIdentifier).toBe('pass.com.apple.devpubs.example');
-    expect(res.images.size).toBe(5);
+    assert.ok(res instanceof Template);
+    assert.equal(res.passTypeIdentifier, 'pass.com.apple.devpubs.example');
+    assert.equal(res.images.size, 5);
   });
 
-  it('push updates', async () => {
-    const template = new Template('coupon', {
-      passTypeIdentifier: 'pass.com.example.passbook',
-      teamIdentifier: 'MXL',
-      labelColor: 'red',
-    });
+  // Real-network push test against APNs — requires both a valid Pass Type ID
+  // cert and a live device token. Skipped in CI; opt-in via env var.
+  it(
+    'push updates',
+    {
+      skip:
+        !process.env['APPLE_PASS_CERTIFICATE'] ||
+        !process.env['APPLE_PASS_PRIVATE_KEY'] ||
+        !process.env['APPLE_PUSH_TOKEN'],
+    },
+    async () => {
+      const template = new Template('coupon', {
+        passTypeIdentifier: 'pass.com.example.passbook',
+        teamIdentifier: 'MXL',
+        labelColor: 'red',
+      });
 
-    template.setCertificate(process.env.APPLE_PASS_CERTIFICATE as string);
-    template.setPrivateKey(
-      process.env.APPLE_PASS_PRIVATE_KEY as string,
-      process.env.APPLE_PASS_KEY_PASSWORD,
-    );
+      template.setCertificate(process.env['APPLE_PASS_CERTIFICATE']!);
+      template.setPrivateKey(
+        process.env['APPLE_PASS_PRIVATE_KEY']!,
+        process.env['APPLE_PASS_KEY_PASSWORD'],
+      );
 
-    await expect(
-      template.pushUpdates(
-        '0e40d22a36e101a59ab296d9e6021df3ee1dcf95e29e8ab432213b12ba522dbb',
-      ),
-    ).resolves.toEqual(
-      expect.objectContaining({
-        ':status': 200,
-        'apns-id': expect.any(String),
-      }),
-    );
-  }, 40000);
+      const resp = await template.pushUpdates(process.env['APPLE_PUSH_TOKEN']!);
+      assert.equal(resp[':status'], 200);
+      assert.equal(typeof resp['apns-id'], 'string');
+    },
+  );
 });

@@ -1,55 +1,78 @@
-/* eslint-disable max-depth */
 /**
  * Class that implements base structure fields setters / getters
  *
  * @see {@link https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/LowerLevel.html#//apple_ref/doc/uid/TP40012026-CH3-SW3}
  */
 
-import {
+import type {
   ApplePass,
   PassStyle,
   TransitType,
   PassCommonStructure,
-} from '../interfaces';
-import { PASS_STYLES, TRANSIT, STRUCTURE_FIELDS } from '../constants';
+} from '../interfaces.js';
+import { PASS_STYLES, TRANSIT, STRUCTURE_FIELDS } from '../constants.js';
 
-import { FieldsMap } from './fieldsMap';
-import { NFCField } from './nfc-fields';
+import { FieldsMap } from './fieldsMap.js';
+import { NFCField } from './nfc-fields.js';
+
+type StructureFieldName =
+  | 'headerFields'
+  | 'auxiliaryFields'
+  | 'backFields'
+  | 'primaryFields'
+  | 'secondaryFields';
 
 export class PassStructure {
   protected fields: Partial<ApplePass> = {};
 
-  // eslint-disable-next-line sonarjs/cognitive-complexity
   constructor(fields: Partial<ApplePass> = {}) {
-    // setting style first
     for (const style of PASS_STYLES) {
-      if (style in fields) {
-        this.style = style;
-        if ('boardingPass' in fields && fields.boardingPass) {
-          this.transitType = fields.boardingPass.transitType;
-        } else if ('storeCard' in this.fields && 'nfc' in fields) {
-          // check NFC fields
-          this.fields.nfc = new NFCField(fields.nfc);
-        }
-        const structure: PassCommonStructure = fields[this.style];
-        for (const prop of STRUCTURE_FIELDS) {
-          if (prop in structure) {
-            const currentProperty = structure[prop];
-            if (Array.isArray(currentProperty))
-              for (const field of currentProperty) this[prop].add(field);
-            else if (currentProperty instanceof FieldsMap)
-              // copy fields
-              for (const [key, data] of currentProperty)
-                this[prop].add({ key, ...data });
-          }
-        }
+      if (!(style in fields)) continue;
+      this.style = style;
+      if ('boardingPass' in fields && fields.boardingPass) {
+        this.transitType = fields.boardingPass.transitType;
+      } else if ('storeCard' in this.fields && 'nfc' in fields) {
+        this.fields.nfc = new NFCField(fields.nfc);
+      }
+      const structure = fields[style as keyof ApplePass] as
+        | PassCommonStructure
+        | undefined;
+      if (!structure) continue;
+      for (const prop of STRUCTURE_FIELDS) {
+        if (!(prop in structure)) continue;
+        const currentProperty = structure[prop as keyof PassCommonStructure];
+        const target = this[prop as StructureFieldName];
+        if (Array.isArray(currentProperty))
+          for (const field of currentProperty) target.add(field);
+        else if (currentProperty instanceof FieldsMap)
+          for (const [key, data] of currentProperty)
+            target.add({ key, ...data });
       }
     }
   }
 
-  /**
-   * Pass type, e.g boardingPass, coupon, etc
-   */
+  // Returns the structure container for the current pass style, creating it
+  // if it doesn't exist. Throws if no style is set.
+  private structure(): PassCommonStructure {
+    const { style } = this;
+    if (!style)
+      throw new ReferenceError(
+        `Pass style is undefined, set the pass style before accessing pass structure fields`,
+      );
+    const s = this.fields[style as keyof ApplePass];
+    if (s) return s as PassCommonStructure;
+    const fresh = {} as PassCommonStructure;
+    (this.fields as Record<PassStyle, PassCommonStructure>)[style] = fresh;
+    return fresh;
+  }
+
+  private fieldMap(name: StructureFieldName): FieldsMap {
+    const s = this.structure();
+    if (!(s[name] instanceof FieldsMap)) s[name] = new FieldsMap();
+    return s[name] as FieldsMap;
+  }
+
+  /** Pass type, e.g. boardingPass, coupon, etc. */
   get style(): PassStyle | undefined {
     for (const style of PASS_STYLES) {
       if (style in this.fields) return style;
@@ -58,21 +81,20 @@ export class PassStructure {
   }
 
   set style(v: PassStyle | undefined) {
-    // remove all other styles
-    for (const style of PASS_STYLES) if (style !== v) delete this.fields[style];
+    for (const style of PASS_STYLES)
+      if (style !== v) delete this.fields[style as keyof ApplePass];
+    // NFC is a storeCard-only field; drop any carry-over when switching away.
+    if (v !== 'storeCard')
+      delete (this.fields as Partial<{ nfc: unknown }>).nfc;
     if (!v) return;
     if (!PASS_STYLES.has(v)) throw new TypeError(`Invalid Pass type "${v}"`);
-    if (!(v in this.fields)) this.fields[v] = {};
-    // Add NFC fields
-    if ('storeCard' in this.fields) this.fields.nfc = new NFCField();
-    //   if ('boardingPass' in this.fields && this.fields.boardingPass) this.fields.boardingPass.
+    if (!(v in this.fields))
+      (this.fields as Record<PassStyle, PassCommonStructure>)[v] =
+        {} as PassCommonStructure;
+    if ('storeCard' in this.fields && !this.fields.nfc)
+      this.fields.nfc = new NFCField();
   }
 
-  /**
-   * Required for boarding passes; otherwise not allowed.
-   * Type of transit.
-   * Must be one of the following values: PKTransitTypeAir, PKTransitTypeBoat, PKTransitTypeBus, PKTransitTypeGeneric,PKTransitTypeTrain.
-   */
   get transitType(): TransitType | undefined {
     if (this.style !== 'boardingPass')
       throw new ReferenceError(
@@ -86,9 +108,7 @@ export class PassStructure {
   set transitType(v: TransitType | undefined) {
     const { style } = this;
     if (!style) {
-      // removing transitType on empty pass does nothing
       if (!v) return;
-      // setting transitStyle on a pass without type will set this pass as boardingPass also
       this.style = 'boardingPass';
     }
     if (!('boardingPass' in this.fields))
@@ -97,7 +117,9 @@ export class PassStructure {
       );
 
     if (!v) {
-      if (this.fields.boardingPass) delete this.fields.boardingPass.transitType;
+      if (this.fields.boardingPass)
+        delete (this.fields.boardingPass as { transitType?: TransitType })
+          .transitType;
     } else {
       if (Object.values(TRANSIT).includes(v)) {
         if (this.fields.boardingPass) this.fields.boardingPass.transitType = v;
@@ -106,15 +128,6 @@ export class PassStructure {
     }
   }
 
-  /**
-   * NFC-enabled pass keys support sending reward card information as part of an Apple Pay transaction.
-   *
-   * NFC-enabled pass keys are only supported in passes that contain an Enhanced Passbook/NFC certificate.
-   * For more information, contact merchant support at https://developer.apple.com/contact/passkit/.
-   * **Only for storeCards with special Apple approval**
-   *
-   * @see {@link https://developer.apple.com/library/archive/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/TopLevel.html#//apple_ref/doc/uid/TP40012026-CH2-DontLinkElementID_3}
-   */
   get nfc(): NFCField {
     if (!('storeCard' in this.fields))
       throw new ReferenceError(
@@ -124,53 +137,18 @@ export class PassStructure {
   }
 
   get headerFields(): FieldsMap {
-    const { style } = this;
-    if (!style)
-      throw new ReferenceError(
-        `Pass style is undefined, set the pass style before accessing pass structure fields`,
-      );
-    if (!(this.fields[style].headerFields instanceof FieldsMap))
-      this.fields[style].headerFields = new FieldsMap();
-    return this.fields[style].headerFields;
+    return this.fieldMap('headerFields');
   }
   get auxiliaryFields(): FieldsMap {
-    const { style } = this;
-    if (!style)
-      throw new ReferenceError(
-        `Pass style is undefined, set the pass style before accessing pass structure fields`,
-      );
-    if (!(this.fields[style].auxiliaryFields instanceof FieldsMap))
-      this.fields[style].auxiliaryFields = new FieldsMap();
-    return this.fields[style].auxiliaryFields;
+    return this.fieldMap('auxiliaryFields');
   }
   get backFields(): FieldsMap {
-    const { style } = this;
-    if (!style)
-      throw new ReferenceError(
-        `Pass style is undefined, set the pass style before accessing pass structure fields`,
-      );
-    if (!(this.fields[style].backFields instanceof FieldsMap))
-      this.fields[style].backFields = new FieldsMap();
-    return this.fields[style].backFields;
+    return this.fieldMap('backFields');
   }
   get primaryFields(): FieldsMap {
-    const { style } = this;
-    if (!style)
-      throw new ReferenceError(
-        `Pass style is undefined, set the pass style before accessing pass structure fields`,
-      );
-    if (!(this.fields[style].primaryFields instanceof FieldsMap))
-      this.fields[style].primaryFields = new FieldsMap();
-    return this.fields[style].primaryFields;
+    return this.fieldMap('primaryFields');
   }
   get secondaryFields(): FieldsMap {
-    const { style } = this;
-    if (!style)
-      throw new ReferenceError(
-        `Pass style is undefined, set the pass style before accessing pass structure fields`,
-      );
-    if (!(this.fields[style].secondaryFields instanceof FieldsMap))
-      this.fields[style].secondaryFields = new FieldsMap();
-    return this.fields[style].secondaryFields;
+    return this.fieldMap('secondaryFields');
   }
 }

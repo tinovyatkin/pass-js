@@ -2,27 +2,17 @@
  * Base PassImages class to add image filePath manipulation
  */
 
-'use strict';
-
-import { promisify } from 'util';
 import * as path from 'path';
-import { createReadStream, promises as fs } from 'fs';
+import { promises as fs } from 'fs';
 
-import * as imagesize from 'imagesize';
+import { IMAGES, DENSITIES } from '../constants.js';
 
-import { IMAGES, DENSITIES } from '../constants';
-
-import { normalizeLocale } from './normalize-locale';
-
-interface ImageSizeResult {
-  format: 'gif' | 'png' | 'jpeg';
-  width: number;
-  height: number;
-}
-
-const imageSize: (
-  v: import('stream').Readable,
-) => Promise<ImageSizeResult> = promisify(imagesize);
+import { normalizeLocale } from './normalize-locale.js';
+import {
+  readPngDimensions,
+  readPngDimensionsFromFile,
+  type PngDimensions,
+} from './png-size.js';
 
 export type ImageDensity = '1x' | '2x' | '3x';
 export type ImageType =
@@ -75,7 +65,7 @@ export class PassImages extends Map<string, string | Buffer> {
    * @param {string} dirPath - path to a directory with images
    * @memberof PassImages
    */
-  async load(dirPath: string): Promise<this> {
+  async load(dirPath: string, disableImageCheck?: boolean): Promise<this> {
     // Check if the path is accessible directory actually
     const entries = await fs.readdir(dirPath, { withFileTypes: true });
     // checking rest of files
@@ -101,6 +91,7 @@ export class PassImages extends Map<string, string | Buffer> {
                 path.join(currentPath, f.name),
                 img.density,
                 lang,
+                disableImageCheck,
               ),
             );
         }
@@ -113,6 +104,8 @@ export class PassImages extends Map<string, string | Buffer> {
               img.imageType,
               path.join(dirPath, entry.name),
               img.density,
+              undefined,
+              disableImageCheck,
             ),
           );
       }
@@ -126,35 +119,51 @@ export class PassImages extends Map<string, string | Buffer> {
     pathOrBuffer: string | Buffer,
     density?: ImageDensity,
     lang?: string,
+    disableImageCheck?: boolean,
   ): Promise<void> {
     if (!IMAGES_TYPES.has(imageType))
-      throw new TypeError(`Unknown image type ${imageSize} for ${imageType}`);
+      throw new TypeError(`Unknown image type ${imageType}`);
     if (density && !DENSITIES.has(density))
       throw new TypeError(`Invalid density ${density} for ${imageType}`);
 
-    // check data
-    let sizeRes;
-    if (typeof pathOrBuffer === 'string') {
-      // PNG size is in first 24 bytes
-      const rs = createReadStream(pathOrBuffer, { highWaterMark: 30 });
-      sizeRes = await imageSize(rs);
-      // see https://github.com/nodejs/node/issues/25335#issuecomment-451945106
-      rs.once('readable', () => rs.destroy());
-    } else {
-      if (!Buffer.isBuffer(pathOrBuffer))
+    // Verify PNG dimensions unless the user opted out. The reader only
+    // touches the first 24 bytes, so large files from disk aren't loaded
+    // into memory just to run the dimension check.
+    if (!disableImageCheck) {
+      let dims: PngDimensions;
+      if (typeof pathOrBuffer === 'string') {
+        try {
+          dims = await readPngDimensionsFromFile(pathOrBuffer);
+        } catch (err) {
+          throw new TypeError(
+            `Image for "${imageType}" at ${pathOrBuffer} is not a valid PNG: ${(err as Error).message}`,
+            { cause: err },
+          );
+        }
+      } else if (Buffer.isBuffer(pathOrBuffer)) {
+        try {
+          dims = readPngDimensions(pathOrBuffer);
+        } catch (err) {
+          throw new TypeError(
+            `Supplied buffer for "${imageType}" is not a valid PNG: ${(err as Error).message}`,
+            { cause: err },
+          );
+        }
+      } else {
         throw new TypeError(
           `Image data for ${imageType} must be either file path or buffer`,
         );
-      const { Parser } = imagesize;
-      const parser = Parser();
-      const res = parser.parse(pathOrBuffer);
-      if (res !== Parser.DONE)
-        throw new TypeError(
-          `Supplied buffer doesn't contain valid PNG image for ${imageType}`,
-        );
-      sizeRes = parser.getResult() as ImageSizeResult;
+      }
+      this.checkImage(imageType, dims, density);
+    } else if (
+      typeof pathOrBuffer !== 'string' &&
+      !Buffer.isBuffer(pathOrBuffer)
+    ) {
+      // Shape check still applies even when dimension validation is off.
+      throw new TypeError(
+        `Image data for ${imageType} must be either file path or buffer`,
+      );
     }
-    this.checkImage(imageType, sizeRes, density);
     super.set(this.getImageFilename(imageType, density, lang), pathOrBuffer);
   }
 
@@ -178,13 +187,11 @@ export class PassImages extends Map<string, string | Buffer> {
   // eslint-disable-next-line complexity
   private checkImage(
     imageType: ImageType,
-    sizeResult: ImageSizeResult,
+    dims: PngDimensions,
     density?: ImageDensity,
   ): void {
     const densityMulti = density ? parseInt(density.charAt(0), 10) : 1;
-    const { format, width, height } = sizeResult;
-    if (format !== 'png')
-      throw new TypeError(`Image for "${imageType}" is not a PNG file!`);
+    const { width, height } = dims;
     if (!Number.isInteger(width) || width <= 0)
       throw new TypeError(`Image ${imageType} has invalid width: ${width}`);
     if (!Number.isInteger(height) || height <= 0)
@@ -196,21 +203,20 @@ export class PassImages extends Map<string, string | Buffer> {
       case 'icon':
         if (width < 29 * densityMulti)
           throw new TypeError(
-            `icon image must have width ${29 *
-              densityMulti}px for ${densityMulti}x density`,
+            `icon image must have width ${29 * densityMulti}px for ${densityMulti}x density`,
           );
         if (height < 29 * densityMulti)
           throw new TypeError(
-            `icon image must have height ${29 *
-              densityMulti}px for ${densityMulti}x density`,
+            `icon image must have height ${29 * densityMulti}px for ${densityMulti}x density`,
           );
         break;
 
       case 'logo':
         if (width > 160 * densityMulti)
           throw new TypeError(
-            `logo image must have width no large than ${160 *
-              densityMulti}px for ${densityMulti}x density`,
+            `logo image must have width no larger than ${
+              160 * densityMulti
+            }px for ${densityMulti}x density`,
           );
         // if (height > 50 * densityMulti)
         //   throw new TypeError(
@@ -222,26 +228,24 @@ export class PassImages extends Map<string, string | Buffer> {
       case 'background':
         if (width > 180 * densityMulti)
           throw new TypeError(
-            `background image must have width ${180 *
-              densityMulti}px for ${densityMulti}x density`,
+            `background image must have width ${180 * densityMulti}px for ${densityMulti}x density`,
           );
         if (height > 220 * densityMulti)
           throw new TypeError(
-            `background image must have height ${220 *
-              densityMulti}px for ${densityMulti}x density`,
+            `background image must have height ${
+              220 * densityMulti
+            }px for ${densityMulti}x density`,
           );
         break;
 
       case 'footer':
         if (width > 286 * densityMulti)
           throw new TypeError(
-            `footer image must have width ${286 *
-              densityMulti}px for ${densityMulti}x density`,
+            `footer image must have width ${286 * densityMulti}px for ${densityMulti}x density`,
           );
         if (height > 15 * densityMulti)
           throw new TypeError(
-            `footer image must have height ${15 *
-              densityMulti}px for ${densityMulti}x density`,
+            `footer image must have height ${15 * densityMulti}px for ${densityMulti}x density`,
           );
         break;
 
@@ -253,21 +257,22 @@ export class PassImages extends Map<string, string | Buffer> {
         //   );
         if (height > 144 * densityMulti)
           throw new TypeError(
-            `strip image must have height ${144 *
-              densityMulti}px for ${densityMulti}x density`,
+            `strip image must have height ${144 * densityMulti}px for ${densityMulti}x density`,
           );
         break;
 
       case 'thumbnail':
         if (width > 120 * densityMulti)
           throw new TypeError(
-            `thumbnail image must have width no large than ${90 *
-              densityMulti}px for ${densityMulti}x density, received ${width}`,
+            `thumbnail image must have width no larger than ${
+              120 * densityMulti
+            }px for ${densityMulti}x density, received ${width}`,
           );
         if (height > 150 * densityMulti)
           throw new TypeError(
-            `thumbnail image must have height ${90 *
-              densityMulti}px for ${densityMulti}x density, received ${height}`,
+            `thumbnail image must have height no larger than ${
+              150 * densityMulti
+            }px for ${densityMulti}x density, received ${height}`,
           );
         break;
     }

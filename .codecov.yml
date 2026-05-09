@@ -1,4 +1,22 @@
 coverage:
-  parsers:
-    javascript:
-      enable_partials: yes
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 2%
+    patch:
+      default:
+        target: 80%
+        threshold: 5%
+
+ignore:
+  - __tests__
+  - coverage
+  - bin
+  - keys
+  - images
+
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: false

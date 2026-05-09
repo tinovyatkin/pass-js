@@ -1,0 +1,23 @@
+name: Code metrics
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  mehen:
+    runs-on: ubuntu-latest
+    # Metrics only; don't block the merge queue on tool failures.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ophidiarium/mehen@v0
+        with:
+          paths: src
+        continue-on-error: true

@@ -4,8 +4,8 @@
  * @see {@link https://developer.apple.com/library/archive/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/FieldDictionary.html}
  */
 
-import { PassColor } from './lib/pass-color';
-import { FieldsMap } from './lib/fieldsMap';
+import { PassColor } from './lib/pass-color.js';
+import { FieldsMap } from './lib/fieldsMap.js';
 
 export type DataDetectors =
   | 'PKDataDetectorTypePhoneNumber'
@@ -32,12 +32,34 @@ export type NumberStyle =
   | 'PKNumberStyleScientific'
   | 'PKNumberStyleSpellOut';
 
+export interface SemanticTagObject {
+  [key: string]: SemanticTagValue;
+}
+
+export type SemanticTagValue =
+  | string
+  | number
+  | boolean
+  | Date
+  | SemanticTagObject
+  | SemanticTagValue[];
+
+/**
+ * Machine-readable metadata that Wallet uses to offer a pass and suggest
+ * related actions.
+ *
+ * @see {@link https://developer.apple.com/documentation/walletpasses/supporting-semantic-tags-in-wallet-passes}
+ * @see {@link https://developer.apple.com/documentation/walletpasses/semantictags}
+ */
+export type SemanticTags = SemanticTagObject;
+
 export type FieldDescriptor = {
   // Standard Field Dictionary Keys
   label?: string;
   attributedValue?: string | number;
   changeMessage?: string;
   dataDetectorTypes?: DataDetectors[];
+  semantics?: SemanticTags;
 } & (
   | {
       value: string;
@@ -56,7 +78,8 @@ export type FieldDescriptor = {
       // Number Style Keys
       currencyCode?: string;
       numberStyle?: NumberStyle;
-    });
+    }
+);
 
 export type Field = {
   // Standard Field Dictionary Keys
@@ -176,6 +199,14 @@ export interface PassCompanionAppKeys {
   userInfo?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
+export interface PassSemanticKeys {
+  /**
+   * Machine-readable metadata for Wallet suggestions. This dictionary may
+   * also be specified on individual pass fields.
+   */
+  semantics?: SemanticTags;
+}
+
 /**
  * Information about when a pass expires and whether it is still valid.
  * A pass is marked as expired if the current date is after the pass’s expiration date,
@@ -246,6 +277,21 @@ export interface Location {
 }
 
 /**
+ * A date/time range during which the pass is relevant. Either a point
+ * in time (`relevantDate`) or a window (`startDate`/`endDate`).
+ *
+ * @see {@link https://developer.apple.com/documentation/walletpasses/pass/relevantdates}
+ */
+export interface RelevantDateEntry {
+  /** ISO 8601 date-time at which the pass becomes relevant. */
+  relevantDate?: string | Date;
+  /** Start of a relevance window (ISO 8601 date-time). */
+  startDate?: string | Date;
+  /** End of a relevance window (ISO 8601 date-time). */
+  endDate?: string | Date;
+}
+
+/**
  * Information about where and when a pass is relevant.
  */
 export interface PassRelevanceKeys {
@@ -268,8 +314,21 @@ export interface PassRelevanceKeys {
    * For example, the start time of a movie.
    * The value must be a complete date with hours and minutes,
    * and may optionally include seconds.
+   *
+   * @deprecated Prefer `relevantDates` (iOS 18+) for new passes. The
+   * singular `relevantDate` is still emitted for backward compatibility
+   * but Apple recommends the array form for event tickets and boarding
+   * passes with multiple relevant windows.
    */
   relevantDate?: string | Date;
+  /**
+   * List of dates and date ranges during which the pass is relevant.
+   * Added in iOS 18. Supersedes the singular `relevantDate` for passes
+   * with multiple relevance windows (e.g. multi-leg itineraries).
+   *
+   * @see {@link https://developer.apple.com/documentation/walletpasses/pass/relevantdates}
+   */
+  relevantDates?: RelevantDateEntry[];
 }
 
 /**
@@ -309,7 +368,8 @@ export interface PassVisualAppearanceKeys {
   /**
    * Information specific to the pass’s barcode.
    * For this dictionary’s keys, see Barcode Dictionary Keys.
-   * DEPRECATED in iOS 9.0 and later; use `barcodes` instead.
+   *
+   * @deprecated Deprecated in iOS 9.0 and later; use `barcodes` instead.
    */
   barcode?: BarcodeDescriptor;
   /**
@@ -362,6 +422,15 @@ export interface PassVisualAppearanceKeys {
    * In iOS 7.0, a shine effect is never applied, and this key is deprecated.
    */
   suppressStripShine?: boolean;
+  /**
+   * Ordered list of visual style schemes the pass opts into, in order
+   * of preference. iOS 18+ renders `posterEventTicket` with richer
+   * hero imagery for event passes; older OSes silently fall back to
+   * the classic style.
+   *
+   * @see {@link https://developer.apple.com/documentation/walletpasses/preferredstyleschemes}
+   */
+  preferredStyleSchemes?: ('posterEventTicket' | 'eventTicket')[];
 }
 
 export interface PassWebServiceKeys {
@@ -392,7 +461,13 @@ export interface NFCDictionary {
    * The public encryption key used by the Value Added Services protocol.
    * Use a Base64 encoded X.509 SubjectPublicKeyInfo structure containing a ECDH public key for group P256.
    */
-  encryptionPublicKey?: string | import('node-forge').pki.PublicKey;
+  encryptionPublicKey?: string;
+  /**
+   * Indicates whether the NFC pass requires authentication.
+   * When `true`, the user must authenticate (Face ID / Touch ID / passcode)
+   * before the pass is transmitted via NFC.
+   */
+  requiresAuthentication?: boolean;
 }
 
 /**
@@ -442,12 +517,14 @@ export type PassStructureFields =
 export type ApplePass = PassStandardKeys &
   PassAssociatedAppKeys &
   PassCompanionAppKeys &
+  PassSemanticKeys &
   PassExpirationKeys &
   PassRelevanceKeys &
   PassVisualAppearanceKeys &
   PassWebServiceKeys &
   PassStructureFields;
 
-  export interface Options {
-    allowHttp: boolean
-  }
+export interface Options {
+  allowHttp?: boolean;
+  disableImageCheck?: boolean;
+}

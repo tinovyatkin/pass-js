@@ -1,31 +1,40 @@
-import { getGeoPoint } from '../src/lib/get-geo-point';
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+
+import { getGeoPoint } from '../dist/lib/get-geo-point.js';
 
 describe('getGeoPoint', () => {
   it('works with 4 numbers array', () => {
-    expect(getGeoPoint([14.235, 23.3444, 23.4444])).toMatchObject({
-      longitude: expect.any(Number),
-      latitude: expect.any(Number),
-      altitude: expect.any(Number),
-    });
+    const p = getGeoPoint([14.235, 23.3444, 23.4444]);
+    assert.equal(typeof p.longitude, 'number');
+    assert.equal(typeof p.latitude, 'number');
+    assert.equal(typeof p.altitude, 'number');
   });
 
   it('throws on bad input', () => {
-    expect(() => getGeoPoint([14.235, 'brrrr', 23.4444])).toThrow();
-    expect(() => getGeoPoint({ lat: 1, log: 3 })).toThrow(
-      'Unknown geo point format',
+    assert.throws(() =>
+      getGeoPoint([14.235, 'brrrr' as unknown as number, 23.4444]),
+    );
+    assert.throws(
+      () =>
+        getGeoPoint({ lat: 1, log: 3 } as unknown as {
+          lat: number;
+          lng: number;
+        }),
+      /Unknown geo point format/,
     );
   });
 
   it('works with lat/lng/alt object', () => {
-    expect(getGeoPoint({ lat: 1, lng: 2, alt: 3 })).toMatchObject({
+    assert.deepEqual(getGeoPoint({ lat: 1, lng: 2, alt: 3 }), {
       longitude: 2,
       latitude: 1,
       altitude: 3,
     });
   });
 
-  it('work with longitude/latitude object', () => {
-    expect(getGeoPoint({ longitude: 10, latitude: 20 })).toMatchObject({
+  it('works with longitude/latitude object', () => {
+    assert.deepEqual(getGeoPoint({ longitude: 10, latitude: 20 }), {
       longitude: 10,
       latitude: 20,
       altitude: undefined,

@@ -1,0 +1,27 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      types:
+        patterns:
+          - "@types/*"
+      dev-dependencies:
+        dependency-type: development
+        exclude-patterns:
+          - "@types/*"
+      prod-dependencies:
+        dependency-type: production
+    # tsgo preview builds change frequently; let dependabot bump but
+    # review before merging.
+    ignore:
+      - dependency-name: "@typescript/native-preview"
+        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

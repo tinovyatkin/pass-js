@@ -1,0 +1,23 @@
+* text=auto eol=lf
+
+# Binary assets — never convert
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pem binary
+*.p12 binary
+*.zip binary
+*.pkpass binary
+*.der binary
+*.cer binary
+*.crt binary
+
+# Apple .strings files are UTF-16LE with their own line-ending conventions;
+# never let git convert them.
+*.strings binary
+
+# Snapshot files must match byte-for-byte; treat as binary so LF stays LF.
+*.snapshot -text

@@ -4,9 +4,7 @@
  *
  */
 
-'use strict';
-
-import {
+import type {
   PassStyle,
   TransitType,
   TextAlignment,
@@ -16,8 +14,8 @@ import {
   DataDetectors,
   PassCommonStructure,
   ApplePass,
-} from './interfaces';
-import { ImageType, ImageDensity } from './lib/images';
+} from './interfaces.js';
+import type { ImageType, ImageDensity } from './lib/images.js';
 
 export const PASS_MIME_TYPE = 'application/vnd.apple.pkpass';
 
@@ -160,6 +158,11 @@ export const TOP_LEVEL_FIELDS: {
     type: Array,
     templatable: true,
   },
+  appLaunchURL: {
+    required: false,
+    type: 'string',
+    templatable: true,
+  },
   // Expiration Keys
   expirationDate: {
     type: 'string', // W3C date, as a string
@@ -180,9 +183,16 @@ export const TOP_LEVEL_FIELDS: {
   relevantDate: {
     type: 'string', // W3C date, as a string
   },
+  relevantDates: {
+    type: Array,
+  },
   // Visual Appearance Keys
   barcodes: {
     type: Array,
+  },
+  preferredStyleSchemes: {
+    type: Array,
+    templatable: true,
   },
   backgroundColor: {
     type: 'string',
@@ -203,6 +213,9 @@ export const TOP_LEVEL_FIELDS: {
     type: 'string',
     templatable: true,
     localizable: true,
+  },
+  semantics: {
+    type: Object,
   },
   suppressStripShine: {
     type: Boolean,
