@@ -192,6 +192,30 @@ pass.primaryFields.delete("date");
 pass.primaryFields.clear();
 ```
 
+You can add Apple Wallet semantic tags at the pass level or on a specific
+field:
+
+```js
+pass.semantics = {
+  eventName: "Animated Movie",
+  venueName: "Steve Jobs Theater",
+  venueLocation: {
+    latitude: 37.330886,
+    longitude: -122.007427
+  }
+};
+
+pass.secondaryFields.add({
+  key: "runtime",
+  label: "Run Time",
+  value: "1:21",
+  semantics: {
+    eventStartDate: new Date("2025-01-02T19:00:00-08:00"),
+    eventEndDate: "2025-01-02T20:21-08:00"
+  }
+});
+```
+
 Adding images to a pass is the same as adding images to a template (see above).
 
 # Working with Dates
@@ -295,4 +319,3 @@ If the pass file generates without errors but you aren't able to open your pass 
 # Financial Contributors
 
 Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/walletpass/contribute)]
-

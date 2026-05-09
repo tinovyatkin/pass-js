@@ -7,6 +7,7 @@
 
 import {
   ApplePass,
+  BoardingPass,
   PassStyle,
   TransitType,
   PassCommonStructure,
@@ -97,7 +98,10 @@ export class PassStructure {
       );
 
     if (!v) {
-      if (this.fields.boardingPass) delete this.fields.boardingPass.transitType;
+      if (this.fields.boardingPass)
+        delete (this.fields.boardingPass as Partial<
+          BoardingPass['boardingPass']
+        >).transitType;
     } else {
       if (Object.values(TRANSIT).includes(v)) {
         if (this.fields.boardingPass) this.fields.boardingPass.transitType = v;

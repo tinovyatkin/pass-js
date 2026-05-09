@@ -1,4 +1,4 @@
-import { ApplePass, Options } from '../interfaces';
+import { ApplePass, Options, SemanticTags } from '../interfaces';
 import { BARCODES_FORMAT, STRUCTURE_FIELDS } from '../constants';
 
 import { PassColor } from './pass-color';
@@ -6,6 +6,7 @@ import { PassImages } from './images';
 import { Localizations } from './localizations';
 import { getGeoPoint } from './get-geo-point';
 import { PassStructure } from './pass-structure';
+import { normalizeSemanticTags } from './semantic-tags';
 import { getW3CDateString, isValidW3CDateString } from './w3cdate';
 
 const STRUCTURE_FIELDS_SET = new Set([...STRUCTURE_FIELDS, 'nfc']);
@@ -203,6 +204,21 @@ export class PassBase extends PassStructure {
   set description(v: string | undefined) {
     if (!v) delete this.fields.description;
     else this.fields.description = v;
+  }
+
+  /**
+   * Machine-readable metadata used by Wallet to offer pass-related actions.
+   */
+  get semantics(): SemanticTags | undefined {
+    return this.fields.semantics;
+  }
+
+  set semantics(v: SemanticTags | undefined) {
+    if (!v) {
+      delete this.fields.semantics;
+      return;
+    }
+    this.fields.semantics = normalizeSemanticTags(v);
   }
 
   /**

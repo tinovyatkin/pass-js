@@ -1,5 +1,6 @@
 import { PassBase } from '../src/lib/base-pass';
 import { TOP_LEVEL_FIELDS } from '../src/constants';
+import { getW3CDateString } from '../src/lib/w3cdate';
 import 'jest-extended';
 
 describe('PassBase', () => {
@@ -38,6 +39,41 @@ describe('PassBase', () => {
     expect(() => {
       bp.beacons = [{ byaka: 'buka' }];
     }).toThrow(TypeError);
+  });
+
+  it('works with semantic tags', () => {
+    const eventStartDate = new Date(2025, 0, 2, 3, 4);
+    const bp = new PassBase({
+      eventTicket: {},
+      semantics: {
+        eventName: 'Animated Movie',
+        eventStartDate,
+        totalPrice: {
+          amount: 1250,
+          currencyCode: 'USD',
+        },
+        venueLocation: {
+          latitude: 37.330886,
+          longitude: -122.007427,
+        },
+      },
+    });
+
+    expect(bp.semantics).toEqual({
+      eventName: 'Animated Movie',
+      eventStartDate: getW3CDateString(eventStartDate),
+      totalPrice: {
+        amount: 1250,
+        currencyCode: 'USD',
+      },
+      venueLocation: {
+        latitude: 37.330886,
+        longitude: -122.007427,
+      },
+    });
+    expect(JSON.stringify(bp)).toContain('"semantics"');
+    bp.semantics = undefined;
+    expect(bp.semantics).toBeUndefined();
   });
 
   it('webServiceURL', () => {

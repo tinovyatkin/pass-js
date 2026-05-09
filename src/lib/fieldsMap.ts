@@ -2,6 +2,7 @@
 
 import { Field, FieldDescriptor, DataStyleFormat } from '../interfaces';
 
+import { normalizeSemanticTags } from './semantic-tags';
 import { getW3CDateString } from './w3cdate';
 
 export class FieldsMap extends Map<string, FieldDescriptor> {
@@ -12,10 +13,13 @@ export class FieldsMap extends Map<string, FieldDescriptor> {
     if (!this.size) return undefined;
     return [...this].map(
       ([key, data]): Field => {
+        const field = { key, ...data };
         // Remap Date objects to string
-        if (data.value instanceof Date)
-          data.value = getW3CDateString(data.value);
-        return { key, ...data };
+        if (field.value instanceof Date)
+          field.value = getW3CDateString(field.value);
+        if (field.semantics)
+          field.semantics = normalizeSemanticTags(field.semantics);
+        return field;
       },
     );
   }

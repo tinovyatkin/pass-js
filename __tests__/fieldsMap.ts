@@ -41,3 +41,28 @@ test('FieldsMap Class', () => {
     )}"}]`,
   );
 });
+
+test('FieldsMap serializes semantic tags', () => {
+  const fields = new FieldsMap();
+  const eventStartDate = new Date(2025, 0, 2, 3, 4);
+
+  fields.add({
+    key: 'event',
+    label: 'Venue',
+    value: 'Steve Jobs Theater',
+    semantics: {
+      eventName: 'Animated Movie',
+      eventStartDate,
+      venueLocation: {
+        latitude: 37.330886,
+        longitude: -122.007427,
+      },
+    },
+  });
+
+  expect(JSON.stringify(fields)).toBe(
+    `[{"key":"event","label":"Venue","value":"Steve Jobs Theater","semantics":{"eventName":"Animated Movie","eventStartDate":"${getW3CDateString(
+      eventStartDate,
+    )}","venueLocation":{"latitude":37.330886,"longitude":-122.007427}}}]`,
+  );
+});
