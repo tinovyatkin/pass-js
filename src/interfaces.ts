@@ -450,5 +450,6 @@ export type ApplePass = PassStandardKeys &
   PassStructureFields;
 
 export interface Options {
-  allowHttp: boolean;
+  allowHttp?: boolean;
+  disableImageCheck?: boolean;
 }

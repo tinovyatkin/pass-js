@@ -72,7 +72,7 @@ export class PassImages extends Map<string, string | Buffer> {
    * @param {string} dirPath - path to a directory with images
    * @memberof PassImages
    */
-  async load(dirPath: string): Promise<this> {
+  async load(dirPath: string, disableImageCheck?: boolean): Promise<this> {
     // Check if the path is accessible directory actually
     const entries = await fs.readdir(dirPath, { withFileTypes: true });
     // checking rest of files
@@ -98,6 +98,7 @@ export class PassImages extends Map<string, string | Buffer> {
                 path.join(currentPath, f.name),
                 img.density,
                 lang,
+                disableImageCheck,
               ),
             );
         }
@@ -110,6 +111,8 @@ export class PassImages extends Map<string, string | Buffer> {
               img.imageType,
               path.join(dirPath, entry.name),
               img.density,
+              undefined,
+              disableImageCheck,
             ),
           );
       }
@@ -123,6 +126,7 @@ export class PassImages extends Map<string, string | Buffer> {
     pathOrBuffer: string | Buffer,
     density?: ImageDensity,
     lang?: string,
+    disableImageCheck?: boolean,
   ): Promise<void> {
     if (!IMAGES_TYPES.has(imageType))
       throw new TypeError(`Unknown image type ${imageType}`);
@@ -151,7 +155,7 @@ export class PassImages extends Map<string, string | Buffer> {
         );
       sizeRes = parser.getResult() as ImageSizeResult;
     }
-    this.checkImage(imageType, sizeRes, density);
+    if (!disableImageCheck) this.checkImage(imageType, sizeRes, density);
     super.set(this.getImageFilename(imageType, density, lang), pathOrBuffer);
   }
 

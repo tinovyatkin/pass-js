@@ -102,6 +102,7 @@ export class Template extends PassBase {
                 join(currentPath, f.name),
                 img.density,
                 lang,
+                options?.disableImageCheck,
               ),
             );
         }
@@ -119,6 +120,8 @@ export class Template extends PassBase {
               img.imageType,
               join(folderPath, entry.name),
               img.density,
+              undefined,
+              options?.disableImageCheck,
             ),
           );
       }
@@ -168,6 +171,7 @@ export class Template extends PassBase {
             imgBuffer,
             img.density,
             img.lang,
+            options?.disableImageCheck,
           );
         } else {
           const test = /(^|\/)(?<lang>[-_a-z]+)\.lproj\/pass\.strings$/i.exec(
