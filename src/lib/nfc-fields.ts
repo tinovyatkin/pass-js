@@ -10,12 +10,15 @@ import type { NFCDictionary } from '../interfaces.js';
 export class NFCField implements NFCDictionary {
   message = '';
   encryptionPublicKey?: string;
+  requiresAuthentication?: boolean;
 
   constructor(nfc?: NFCDictionary) {
     if (!nfc) return;
     this.message = nfc.message;
     if (typeof nfc.encryptionPublicKey === 'string')
       this.encryptionPublicKey = nfc.encryptionPublicKey;
+    if (typeof nfc.requiresAuthentication === 'boolean')
+      this.requiresAuthentication = nfc.requiresAuthentication;
   }
 
   // Accepts a PEM-encoded SubjectPublicKeyInfo (SPKI) containing an EC public
@@ -41,6 +44,8 @@ export class NFCField implements NFCDictionary {
     const res: NFCDictionary = { message: this.message };
     if (this.encryptionPublicKey)
       res.encryptionPublicKey = this.encryptionPublicKey;
+    if (this.requiresAuthentication)
+      res.requiresAuthentication = this.requiresAuthentication;
     return res;
   }
 }

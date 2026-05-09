@@ -158,6 +158,11 @@ export const TOP_LEVEL_FIELDS: {
     type: Array,
     templatable: true,
   },
+  appLaunchURL: {
+    required: false,
+    type: 'string',
+    templatable: true,
+  },
   // Expiration Keys
   expirationDate: {
     type: 'string', // W3C date, as a string

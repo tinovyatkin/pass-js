@@ -73,6 +73,19 @@ describe('PassBase', () => {
     });
   });
 
+  it('appLaunchURL get/set', () => {
+    const bp = new PassBase();
+    assert.equal(bp.appLaunchURL, undefined);
+    bp.appLaunchURL = 'mybrand://open/pass/abc';
+    assert.equal(bp.appLaunchURL, 'mybrand://open/pass/abc');
+    assert.match(
+      JSON.stringify(bp),
+      /"appLaunchURL":"mybrand:\/\/open\/pass\/abc"/,
+    );
+    bp.appLaunchURL = undefined;
+    assert.equal(bp.appLaunchURL, undefined);
+  });
+
   it('color values as RGB triplets', () => {
     const bp = new PassBase();
     assert.doesNotThrow(() => {

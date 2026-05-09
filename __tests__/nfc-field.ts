@@ -42,6 +42,19 @@ describe('NFCField', () => {
     });
   });
 
+  it('serializes requiresAuthentication when set', () => {
+    const nfc = new NFCField({
+      message: 'secure-nfc',
+      requiresAuthentication: true,
+    });
+    assert.deepEqual(nfc.toJSON(), {
+      message: 'secure-nfc',
+      requiresAuthentication: true,
+    });
+    nfc.requiresAuthentication = false;
+    assert.deepEqual(nfc.toJSON(), { message: 'secure-nfc' });
+  });
+
   it('throws on wrong key type', () => {
     // RSA key, not EC — should be rejected
     const { publicKey, privateKey } = generateKeyPairSync('rsa', {

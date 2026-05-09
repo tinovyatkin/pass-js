@@ -394,6 +394,12 @@ export interface NFCDictionary {
    * Use a Base64 encoded X.509 SubjectPublicKeyInfo structure containing a ECDH public key for group P256.
    */
   encryptionPublicKey?: string;
+  /**
+   * Indicates whether the NFC pass requires authentication.
+   * When `true`, the user must authenticate (Face ID / Touch ID / passcode)
+   * before the pass is transmitted via NFC.
+   */
+  requiresAuthentication?: boolean;
 }
 
 /**
