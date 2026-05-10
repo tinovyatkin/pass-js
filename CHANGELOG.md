@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.1.0](https://github.com/tinovyatkin/pass-js/compare/v7.0.0...v7.1.0) (2026-05-10)
+
+
+### Features
+
+* AGPL ([20c9190](https://github.com/tinovyatkin/pass-js/commit/20c9190bb0f1dd68fcc065a64fb356fbb855a1cd))
+
 ## [7.0.0](https://github.com/tinovyatkin/pass-js/compare/v6.9.8...v7.0.0) (2026-05-10)
 
 
