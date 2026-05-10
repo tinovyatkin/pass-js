@@ -166,6 +166,34 @@ describe('upcomingPassInformation', () => {
     }
   });
 
+  it('setter throws on invalid image scale', () => {
+    const bp = new PassBase({ eventTicket: {} });
+    bp.preferredStyleSchemes = ['posterEventTicket'];
+    for (const bad of [0, 4, 1.5, -1, Number.NaN]) {
+      assert.throws(
+        () => {
+          bp.upcomingPassInformation = [
+            baseEntry({
+              images: {
+                headerImage: {
+                  URLs: [
+                    {
+                      URL: 'https://cdn.example/header.png',
+                      SHA256,
+                      scale: bad as 1 | 2 | 3,
+                    },
+                  ],
+                },
+              },
+            }),
+          ];
+        },
+        /scale must be 1, 2, or 3/,
+        `scale=${bad} should throw`,
+      );
+    }
+  });
+
   it('setter throws on non-https image URL', () => {
     const bp = new PassBase({ eventTicket: {} });
     bp.preferredStyleSchemes = ['posterEventTicket'];

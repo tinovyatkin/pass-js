@@ -179,6 +179,13 @@ export function validateUpcomingPassInformationEntries(
             throw new TypeError(
               `upcomingPassInformation[${i}].images.${slot}.URLs[${j}].SHA256 must be a 64-char hex string`,
             );
+          if (
+            url.scale !== undefined &&
+            !(url.scale === 1 || url.scale === 2 || url.scale === 3)
+          )
+            throw new TypeError(
+              `upcomingPassInformation[${i}].images.${slot}.URLs[${j}].scale must be 1, 2, or 3`,
+            );
           if (url.size !== undefined) {
             if (
               typeof url.size !== 'number' ||
