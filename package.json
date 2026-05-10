@@ -4,7 +4,7 @@
   "author": "Konstantin Vyatkin <tino@vtkn.io>",
   "version": "7.0.0",
   "homepage": "https://github.com/tinovyatkin/pass-js",
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "funding": {
     "type": "opencollective",
     "url": "https://opencollective.com/walletpass"

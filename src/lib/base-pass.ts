@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2017-2026 Konstantin Vyatkin <tino@vtkn.io>
+
 import type { ApplePass, Options, SemanticTags } from '../interfaces.js';
 import { BARCODES_FORMAT, STRUCTURE_FIELDS } from '../constants.js';
 

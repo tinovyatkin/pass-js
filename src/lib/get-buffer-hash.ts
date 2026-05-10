@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2017-2026 Konstantin Vyatkin <tino@vtkn.io>
+
 import { createHash } from 'node:crypto';
 
 // SHA-1 is used because Apple's PassKit spec requires SHA-1 hex digests

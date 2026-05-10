@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2017-2026 Konstantin Vyatkin <tino@vtkn.io>
+
 /**
  * Returns normalized geo point object from geoJSON, {lat, lng} or {lattitude,longutude,altitude}
  *

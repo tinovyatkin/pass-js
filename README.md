@@ -279,4 +279,4 @@ If the pass file generates without errors but you can't open it on an iPhone, co
 
 ## License
 
-`@walletpass/pass-js` is [MIT licensed](LICENSE).
+`@walletpass/pass-js` is licensed under [AGPL-3.0-or-later](LICENSE).

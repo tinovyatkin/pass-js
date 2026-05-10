@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2017-2026 Konstantin Vyatkin <tino@vtkn.io>
+
 /**
  * @see {@link https://stackoverflow.com/questions/8758340/regex-to-detect-locales}
  */

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2017-2026 Konstantin Vyatkin <tino@vtkn.io>
+
 import colorNames from 'color-name';
 
 const ABBR_RE = /^#([\da-f])([\da-f])([\da-f])([\da-f])?$/i;

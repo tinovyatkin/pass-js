@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2017-2026 Konstantin Vyatkin <tino@vtkn.io>
+
 import { inflateRawSync } from 'node:zlib';
 
 // CRC-32 (IEEE 802.3) table, built once.

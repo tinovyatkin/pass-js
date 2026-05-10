@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2017-2026 Konstantin Vyatkin <tino@vtkn.io>
+
 // Minimal PNG dimensions reader for .pkpass bundles.
 //
 // Apple requires all pkpass image assets to be PNG; the library enforces

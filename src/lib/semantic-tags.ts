@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2017-2026 Konstantin Vyatkin <tino@vtkn.io>
+
 import type { SemanticTags, SemanticTagValue } from '../interfaces.js';
 
 import { getW3CDateString } from './w3cdate.js';
