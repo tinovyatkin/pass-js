@@ -45,7 +45,13 @@ export class Template extends PassBase {
     }
   }
 
-  // Load a Template, images, and key from a directory on disk.
+  /**
+   * Load a Template, images, and key from a trusted directory on disk.
+   *
+   * Do not pass attacker-controlled template folders. Loading untrusted
+   * pass bundles can force excessive memory allocation and may crash or stall
+   * the process.
+   */
   static async load(
     folderPath: string,
     keyPassword?: string,
@@ -134,9 +140,15 @@ export class Template extends PassBase {
     return template;
   }
 
-  // Reconstruct a Template from a pre-zipped buffer (e.g. a .pkpass fetched
-  // from S3). Reads pass.json, images, and localization strings out of the
-  // bundle.
+  /**
+   * Reconstruct a Template from a trusted pre-zipped buffer (e.g. a .pkpass
+   * fetched from S3). Reads pass.json, images, and localization strings out of
+   * the bundle.
+   *
+   * Do not pass attacker-controlled ZIP or .pkpass buffers. Loading untrusted
+   * pass bundles can force excessive memory allocation and may crash or stall
+   * the process.
+   */
   static async fromBuffer(
     buffer: Buffer,
     options?: Options,

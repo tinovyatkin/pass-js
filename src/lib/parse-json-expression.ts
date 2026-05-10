@@ -3,7 +3,7 @@
 
 import { Script, createContext } from 'node:vm';
 
-const EVALUATION_TIMEOUT_MS = 100;
+const EVALUATION_TIMEOUT_MS = 50;
 
 /**
  * Parses a JSON-compatible JavaScript expression, primarily so pass.json
