@@ -16,8 +16,8 @@ not the focus.
 
 ## 1. Executive summary
 
-`pass-js` has a tighter, more modern runtime core (native `node:crypto`
-PKCS#7 via `pkijs` instead of `node-forge`, in-repo ZIP reader/writer
+`pass-js` has a tighter, more modern runtime core (minimal in-repo CMS
+writer + `node:crypto` instead of `node-forge`, in-repo ZIP reader/writer
 instead of `yauzl`+`do-not-zip`, full ESM, PNG dimension validation,
 APN push via `http2`, WWDR cert rotation warnings). `passkit-generator`
 has broader **schema coverage** — particularly for iOS 18 event ticket
@@ -52,7 +52,8 @@ The largest functional gaps, in decreasing priority:
 which should be preserved while closing the gaps:
 
 - No `node-forge` dependency (CVE-prone historically); signature chain
-  is `pkijs` + `node:crypto`.
+  is a minimal in-repo CMS writer + `node:crypto`. If Node adds native
+  CMS/PKCS#7 signing support, replace the internal writer with that API.
 - Bundled WWDR G4 with `process.emitWarning` 90 days before expiry.
 - Own ZIP reader/writer (works with Lambda / Cloudflare Workers without
   native modules).
@@ -189,7 +190,7 @@ misspelled.
 
 | Capability | `pass-js` | `passkit-generator` |
 |---|---|---|
-| PKCS#7 detached SignedData over `manifest.json` | ✅ `pkijs` + `node:crypto` | ✅ `node-forge` |
+| PKCS#7 detached SignedData over `manifest.json` | ✅ minimal in-repo CMS writer + `node:crypto` | ✅ `node-forge` |
 | WWDR bundled | ✅ G4, PEM inlined with rotation warning hooked into `process.emitWarning` at 90-day window | ❌ — caller must supply every time |
 | WWDR override for dev | ✅ `APPLE_WWDR_CERT_PEM` env var | n/a |
 | Encrypted private key handling | ✅ via `createPrivateKey({ passphrase })` | ✅ via forge's `decryptRsaPrivateKey` |

@@ -47,7 +47,6 @@
   },
   "dependencies": {
     "color-name": "^2.0.0",
-    "pkijs": "^3.4.0",
     "strip-json-comments": "^5.0.3"
   },
   "keywords": [

@@ -9,29 +9,37 @@ import {
 } from 'node:crypto';
 import type { KeyObject } from 'node:crypto';
 
-import * as asn1js from 'asn1js';
 import {
-  Certificate as PkiCertificate,
-  ContentInfo,
-  EncapsulatedContentInfo,
-  IssuerAndSerialNumber,
-  SignedData,
-  SignerInfo,
-  SignedAndUnsignedAttributes,
-  Attribute,
-  AlgorithmIdentifier,
-} from 'pkijs';
+  contextSpecificConstructed,
+  extractCertificateInfo,
+  integer,
+  nullValue,
+  objectIdentifier,
+  octetString,
+  sequence,
+  setOf,
+  setOfContent,
+  utcTime,
+} from './der.js';
+import type { X509CertificateDerInfo } from './der.js';
 
-// Convert a PEM certificate into a pkijs Certificate by going through the
-// node:crypto X509Certificate parser (which accepts PEM and emits DER in .raw).
-function parsePkiCertificate(pem: string): PkiCertificate {
-  const der = new X509Certificate(pem).raw;
-  const ab = der.buffer.slice(der.byteOffset, der.byteOffset + der.byteLength);
-  const asn1 = asn1js.fromBER(ab);
-  if (asn1.offset === -1) {
-    throw new Error('Failed to parse X.509 certificate: invalid ASN.1');
-  }
-  return new PkiCertificate({ schema: asn1.result });
+interface CmsCertificate extends X509CertificateDerInfo {
+  notAfter: Date;
+}
+
+function parseCertificate(pem: string): CmsCertificate {
+  const certificate = new X509Certificate(pem);
+  return {
+    ...extractCertificateInfo(certificate.raw),
+    notAfter: parseX509Date(certificate.validTo),
+  };
+}
+
+function parseX509Date(value: string): Date {
+  const timestamp = Date.parse(value);
+  if (!Number.isFinite(timestamp))
+    throw new Error(`Failed to parse X.509 certificate expiry: ${value}`);
+  return new Date(timestamp);
 }
 
 // Apple WWDR Certification Authority — G4
@@ -74,10 +82,11 @@ const OID_CONTENT_TYPE = '1.2.840.113549.1.9.3';
 const OID_MESSAGE_DIGEST = '1.2.840.113549.1.9.4';
 const OID_SIGNING_TIME = '1.2.840.113549.1.9.5';
 const OID_DATA = '1.2.840.113549.1.7.1';
+const OID_SIGNED_DATA = '1.2.840.113549.1.7.2';
 const OID_SHA1 = '1.3.14.3.2.26';
 const OID_RSA_ENCRYPTION = '1.2.840.113549.1.1.1';
 
-const APPLE_WWDR_CA = parsePkiCertificate(APPLE_WWDR_CA_PEM);
+const APPLE_WWDR_CA = parseCertificate(APPLE_WWDR_CA_PEM);
 
 // Emit a process warning if the bundled WWDR cert is within 90 days of
 // expiry (or already expired). The 2013–2023 G1 silently expired and every
@@ -89,7 +98,7 @@ const APPLE_WWDR_CA = parsePkiCertificate(APPLE_WWDR_CA_PEM);
 //   node --disable-warning=WalletPassWWDRExpiring app.js
 //   process.on('warning', w => { if (w.code === 'WALLETPASS_WWDR_EXPIRED') ... })
 const WWDR_WARN_WINDOW_MS = 90 * 24 * 60 * 60 * 1000;
-const wwdrNotAfter = APPLE_WWDR_CA.notAfter.value;
+const wwdrNotAfter = APPLE_WWDR_CA.notAfter;
 const msUntilExpiry = wwdrNotAfter.getTime() - Date.now();
 if (msUntilExpiry < WWDR_WARN_WINDOW_MS) {
   const when = wwdrNotAfter.toISOString().slice(0, 10);
@@ -123,7 +132,7 @@ export function signManifest(
   privateKey: string | KeyObject,
   manifestJson: string,
 ): Buffer {
-  const signerCert = parsePkiCertificate(certificatePem);
+  const signerCert = parseCertificate(certificatePem);
 
   const keyObject =
     typeof privateKey === 'string' ? createPrivateKey(privateKey) : privateKey;
@@ -131,68 +140,52 @@ export function signManifest(
   const manifestBytes = Buffer.from(manifestJson, 'utf8');
   const digest = createHash('sha1').update(manifestBytes).digest();
 
-  // Authenticated attributes: content-type, message-digest, signing-time.
-  // These are what Apple requires in the SignerInfo.
-  const signedAttrs = new SignedAndUnsignedAttributes({
-    type: 0,
-    attributes: [
-      new Attribute({
-        type: OID_CONTENT_TYPE,
-        values: [new asn1js.ObjectIdentifier({ value: OID_DATA })],
-      }),
-      new Attribute({
-        type: OID_MESSAGE_DIGEST,
-        values: [new asn1js.OctetString({ valueHex: digest })],
-      }),
-      new Attribute({
-        type: OID_SIGNING_TIME,
-        values: [new asn1js.UTCTime({ valueDate: new Date() })],
-      }),
-    ],
-  });
+  const signedAttributes = [
+    cmsAttribute(OID_CONTENT_TYPE, objectIdentifier(OID_DATA)),
+    cmsAttribute(OID_MESSAGE_DIGEST, octetString(digest)),
+    cmsAttribute(OID_SIGNING_TIME, utcTime(new Date())),
+  ];
+  const signedAttributesContent = setOfContent(...signedAttributes);
+  const signedAttributesDer = setOf(...signedAttributes);
 
-  const signerInfo = new SignerInfo({
-    version: 1,
-    sid: new IssuerAndSerialNumber({
-      issuer: signerCert.issuer,
-      serialNumber: signerCert.serialNumber,
-    }),
-    digestAlgorithm: new AlgorithmIdentifier({ algorithmId: OID_SHA1 }),
-    signedAttrs,
-    signatureAlgorithm: new AlgorithmIdentifier({
-      algorithmId: OID_RSA_ENCRYPTION,
-    }),
-  });
+  // CMS signs the DER SET OF attributes, while SignerInfo stores the same
+  // content under the IMPLICIT [0] signedAttrs tag.
+  const signature = createSign('sha1')
+    .update(signedAttributesDer)
+    .sign(keyObject);
 
-  // Serialize the signed attributes (SET OF), sign with RSA-SHA1.
-  // Per RFC 5652 §5.4, the IMPLICIT [0] is replaced with an explicit SET tag
-  // for the signed bytes.
-  const attrsDer = Buffer.from(
-    (signedAttrs.toSchema() as asn1js.Constructed).toBER(false),
+  const signerInfo = sequence(
+    integer(1),
+    sequence(signerCert.issuer, signerCert.serialNumber),
+    algorithmIdentifier(OID_SHA1),
+    contextSpecificConstructed(0, signedAttributesContent),
+    algorithmIdentifier(OID_RSA_ENCRYPTION, nullValue()),
+    octetString(signature),
   );
-  // Replace the IMPLICIT [0] tag (0xA0) with explicit SET (0x31).
-  const toSign = Buffer.concat([Buffer.from([0x31]), attrsDer.subarray(1)]);
 
-  const signature = createSign('sha1').update(toSign).sign(keyObject);
-  signerInfo.signature = new asn1js.OctetString({ valueHex: signature });
+  const signedData = sequence(
+    integer(1),
+    setOf(algorithmIdentifier(OID_SHA1)),
+    sequence(objectIdentifier(OID_DATA)),
+    contextSpecificConstructed(
+      0,
+      setOfContent(signerCert.rawCertificate, APPLE_WWDR_CA.rawCertificate),
+    ),
+    setOf(signerInfo),
+  );
 
-  const signedData = new SignedData({
-    version: 1,
-    digestAlgorithms: [new AlgorithmIdentifier({ algorithmId: OID_SHA1 })],
-    encapContentInfo: new EncapsulatedContentInfo({
-      eContentType: OID_DATA,
-      // No eContent — detached signature.
-    }),
-    certificates: [signerCert, APPLE_WWDR_CA],
-    signerInfos: [signerInfo],
-  });
+  return sequence(
+    objectIdentifier(OID_SIGNED_DATA),
+    contextSpecificConstructed(0, signedData),
+  );
+}
 
-  // Wrap in ContentInfo.
-  const contentInfo = new ContentInfo({
-    contentType: '1.2.840.113549.1.7.2', // id-signedData
-    content: signedData.toSchema(true),
-  });
+function algorithmIdentifier(oid: string, parameters?: Buffer): Buffer {
+  const parts = [objectIdentifier(oid)];
+  if (parameters !== undefined) parts.push(parameters);
+  return sequence(...parts);
+}
 
-  const ber = contentInfo.toSchema().toBER(false);
-  return Buffer.from(ber);
+function cmsAttribute(type: string, ...values: Buffer[]): Buffer {
+  return sequence(objectIdentifier(type), setOf(...values));
 }

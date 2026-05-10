@@ -37,7 +37,7 @@ release pipeline**, so please follow it:
 | `fix:` | patch | Bug Fixes | `fix: reject invalid Date in semantics` |
 | `perf:` | patch | Performance | `perf: cache CRC table at module load` |
 | `feat!:` or `BREAKING CHANGE:` footer | **major** | Features + BREAKING note | `feat!: drop Node < 24` |
-| `deps:` | patch | Dependencies | `deps: bump pkijs 3.4 → 3.5` |
+| `deps:` | patch | Dependencies | `deps: bump oxlint 1.63 → 1.64` |
 | `docs:`, `refactor:`, `test:`, `ci:`, `chore:`, `build:`, `style:` | — | hidden | `docs: clarify WWDR rotation flow` |
 
 Scopes are optional (`feat(nfc): ...`). Keep the subject line ≤ 72 chars.
