@@ -34,7 +34,6 @@ src/
   interfaces.ts     — 🔓 all TypeScript types for the Apple PassKit schema
   pass.ts           — 🔓 Pass class; serializes a pass to a .pkpass Buffer
   template.ts       — 🔓 Template class; loads from folder / buffer, owns cert+key
-  types.d.ts        — ambient declarations for color-name + imagesize (internal)
   lib/              — all internal; nothing below is re-exported
     base-pass.ts    — shared getter/setter layer (visual, dates, semantics)
     pass-structure.ts — headerFields / primaryFields / ... per-style containers
@@ -46,6 +45,7 @@ src/
     nfc-fields.ts   — NFC dictionary helpers
     semantic-tags.ts — recursive Date→W3C normalization for iOS 18 semantics
     pass-color.ts   — parse 'rgb(...)', '#FFF', named colors into triplets
+    css-named-colors.ts — in-repo CSS Color Module Level 4 named-color map
     get-geo-point.ts, normalize-locale.ts, get-buffer-hash.ts, w3cdate.ts
 ```
 
