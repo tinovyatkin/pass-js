@@ -86,6 +86,28 @@ test('malformed X.509 DER throws a clear error', () => {
   );
 });
 
+test('X.509 extraction rejects child elements outside parent bounds', () => {
+  const serialOverrunsTbs = testSequence(
+    Buffer.from('30020202123430003000', 'hex'),
+    Buffer.from('3000', 'hex'),
+    Buffer.from('030100', 'hex'),
+  );
+  assert.throws(
+    () => extractCertificateInfo(serialOverrunsTbs),
+    /first tbsCertificate field exceeds tbsCertificate bounds/,
+  );
+
+  const versionOverrunsWrapper = testSequence(
+    Buffer.from('3008a002020201020201', 'hex'),
+    Buffer.from('3000', 'hex'),
+    Buffer.from('030100', 'hex'),
+  );
+  assert.throws(
+    () => extractCertificateInfo(versionOverrunsWrapper),
+    /certificate version exceeds certificate version wrapper bounds/,
+  );
+});
+
 function makeGeneratedCertificate(version: 1 | 3): {
   der: Buffer;
   pemPath: string;

@@ -181,24 +181,54 @@ export function extractCertificateInfo(
     expectTag(tbsCertificate, 0x30, 'tbsCertificate');
 
     let cursor = tbsCertificate.contentStart;
-    const firstTbsField = readDerElement(der, cursor);
+    const firstTbsField = readChildElement(
+      der,
+      cursor,
+      tbsCertificate,
+      'first tbsCertificate field',
+      'tbsCertificate',
+    );
     if (firstTbsField.tag === 0xa0) {
-      const version = readDerElement(der, firstTbsField.contentStart);
+      const version = readChildElement(
+        der,
+        firstTbsField.contentStart,
+        firstTbsField,
+        'certificate version',
+        'certificate version wrapper',
+      );
       expectTag(version, 0x02, 'certificate version');
       if (version.end !== firstTbsField.end)
         throw new Error('certificate version field has trailing data');
       cursor = firstTbsField.end;
     }
 
-    const serialNumber = readDerElement(der, cursor);
+    const serialNumber = readChildElement(
+      der,
+      cursor,
+      tbsCertificate,
+      'certificate serialNumber',
+      'tbsCertificate',
+    );
     expectTag(serialNumber, 0x02, 'certificate serialNumber');
     cursor = serialNumber.end;
 
-    const signature = readDerElement(der, cursor);
+    const signature = readChildElement(
+      der,
+      cursor,
+      tbsCertificate,
+      'certificate signature algorithm',
+      'tbsCertificate',
+    );
     expectTag(signature, 0x30, 'certificate signature algorithm');
     cursor = signature.end;
 
-    const issuer = readDerElement(der, cursor);
+    const issuer = readChildElement(
+      der,
+      cursor,
+      tbsCertificate,
+      'certificate issuer',
+      'tbsCertificate',
+    );
     expectTag(issuer, 0x30, 'certificate issuer');
 
     return {
@@ -213,6 +243,23 @@ export function extractCertificateInfo(
       cause: error,
     });
   }
+}
+
+function readChildElement(
+  input: Buffer,
+  offset: number,
+  parent: DerElement,
+  label: string,
+  parentLabel: string,
+): DerElement {
+  if (offset < parent.contentStart || offset >= parent.end)
+    throw new Error(`${label} starts outside ${parentLabel} bounds`);
+
+  const element = readDerElement(input, offset);
+  if (element.end > parent.end)
+    throw new Error(`${label} exceeds ${parentLabel} bounds`);
+
+  return element;
 }
 
 function readDerElement(input: Buffer, offset: number): DerElement {
