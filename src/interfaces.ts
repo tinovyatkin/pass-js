@@ -47,14 +47,254 @@ export type SemanticTagValue =
   | SemanticTagObject
   | SemanticTagValue[];
 
+// ─── Semantic-tag sub-types ─────────────────────────────────────────────────
+// https://developer.apple.com/documentation/walletpasses/semantictagtype
+
+/** ISO 4217 currency amount. */
+export interface CurrencyAmount {
+  amount: string | number;
+  currencyCode: string;
+}
+
+/** Geographic coordinate, used by `departureLocation`, `venueLocation`, etc. */
+export interface SemanticLocation {
+  latitude: number;
+  longitude: number;
+}
+
+export interface PersonNameComponents {
+  givenName?: string;
+  familyName?: string;
+  middleName?: string;
+  namePrefix?: string;
+  nameSuffix?: string;
+  nickname?: string;
+  phoneticRepresentation?: string;
+}
+
+export interface WifiNetwork {
+  ssid: string;
+  password: string;
+}
+
+export interface Seat {
+  seatDescription?: string;
+  seatIdentifier?: string;
+  seatNumber?: string;
+  seatRow?: string;
+  seatSection?: string;
+  seatType?: string;
+  /** iOS 18+ */
+  seatAisle?: string;
+  /** iOS 18+ */
+  seatLevel?: string;
+  /** iOS 18+. CSS-style RGB/hex color for the section swatch. */
+  seatSectionColor?: string;
+}
+
+/**
+ * iOS 18+ alternative to the bare `eventStartDate`, with more control over
+ * time display, timezone, and TBA/TBD states (iOS 18.1).
+ */
+export interface EventDateInfo {
+  date: string | Date;
+  timeZone?: string;
+  ignoreTimeComponents?: boolean;
+  /** iOS 18.1 — renders "TBA" when the time has not been announced. */
+  unannounced?: boolean;
+  /** iOS 18.1 — renders "TBD" for undetermined start time. */
+  undetermined?: boolean;
+}
+
+// iOS 26 — transit security program enums
+export type PKTransitSecurityProgram =
+  | 'PKTransitSecurityProgramTSAPreCheck'
+  | 'PKTransitSecurityProgramTSAPreCheckTouchlessID'
+  | 'PKTransitSecurityProgramOSS'
+  | 'PKTransitSecurityProgramITI'
+  | 'PKTransitSecurityProgramITD'
+  | 'PKTransitSecurityProgramGlobalEntry'
+  | 'PKTransitSecurityProgramCLEAR';
+
+// iOS 26 — passenger capability enums
+export type PKPassengerCapability =
+  | 'PKPassengerCapabilityPreboarding'
+  | 'PKPassengerCapabilityPriorityBoarding'
+  | 'PKPassengerCapabilityCarryon'
+  | 'PKPassengerCapabilityPersonalItem';
+
 /**
  * Machine-readable metadata that Wallet uses to offer a pass and suggest
- * related actions.
+ * related actions. Covers every field Apple has documented through
+ * iOS 26.
+ *
+ * Strictly typed — assigning a key Apple hasn't documented produces a
+ * TypeScript error. To write an undocumented or not-yet-typed tag,
+ * cast through `SemanticTagObject` at the assignment site.
  *
  * @see {@link https://developer.apple.com/documentation/walletpasses/supporting-semantic-tags-in-wallet-passes}
  * @see {@link https://developer.apple.com/documentation/walletpasses/semantictags}
  */
-export type SemanticTags = SemanticTagObject;
+export interface SemanticTags {
+  // ── Pre-iOS-18 baseline ──────────────────────────────────────────────────
+  airlineCode?: string;
+  artistIDs?: string[];
+  awayTeamAbbreviation?: string;
+  awayTeamLocation?: string;
+  awayTeamName?: string;
+  balance?: CurrencyAmount;
+  boardingGroup?: string;
+  boardingSequenceNumber?: string;
+  carNumber?: string;
+  confirmationNumber?: string;
+  currentArrivalDate?: string | Date;
+  currentBoardingDate?: string | Date;
+  currentDepartureDate?: string | Date;
+  departureAirportCode?: string;
+  departureAirportName?: string;
+  departureGate?: string;
+  departureLocation?: SemanticLocation;
+  departureLocationDescription?: string;
+  departurePlatform?: string;
+  departureStationName?: string;
+  departureTerminal?: string;
+  destinationAirportCode?: string;
+  destinationAirportName?: string;
+  destinationGate?: string;
+  destinationLocation?: SemanticLocation;
+  destinationLocationDescription?: string;
+  destinationPlatform?: string;
+  destinationStationName?: string;
+  destinationTerminal?: string;
+  duration?: number;
+  eventEndDate?: string | Date;
+  eventName?: string;
+  eventStartDate?: string | Date;
+  eventType?:
+    | 'PKEventTypeGeneric'
+    | 'PKEventTypeLivePerformance'
+    | 'PKEventTypeMovie'
+    | 'PKEventTypeSports'
+    | 'PKEventTypeConference'
+    | 'PKEventTypeConvention'
+    | 'PKEventTypeWorkshop'
+    | 'PKEventTypeSocialGathering';
+  flightCode?: string;
+  flightNumber?: number;
+  genre?: string;
+  homeTeamAbbreviation?: string;
+  homeTeamLocation?: string;
+  homeTeamName?: string;
+  leagueAbbreviation?: string;
+  leagueName?: string;
+  membershipProgramName?: string;
+  membershipProgramNumber?: string;
+  originalArrivalDate?: string | Date;
+  originalBoardingDate?: string | Date;
+  originalDepartureDate?: string | Date;
+  passengerName?: PersonNameComponents;
+  performerNames?: string[];
+  priorityStatus?: string;
+  seats?: Seat[];
+  securityScreening?: string;
+  silenceRequested?: boolean;
+  sportName?: string;
+  totalPrice?: CurrencyAmount;
+  transitProvider?: string;
+  transitStatus?: string;
+  transitStatusReason?: string;
+  vehicleName?: string;
+  vehicleNumber?: string;
+  vehicleType?: string;
+  venueEntrance?: string;
+  venueLocation?: SemanticLocation;
+  venueName?: string;
+  venuePhoneNumber?: string;
+  venueRoom?: string;
+  wifiAccess?: WifiNetwork[];
+
+  // ── iOS 18 event-ticket additions ────────────────────────────────────────
+  /** iOS 18 */
+  admissionLevel?: string;
+  /** iOS 18 */
+  admissionLevelAbbreviation?: string;
+  /** iOS 18 */
+  albumIDs?: string[];
+  /** iOS 18. `true` enables AirPlay playback controls on the pass. */
+  airplay?: boolean;
+  /** iOS 18 */
+  attendeeName?: string;
+  /** iOS 18 */
+  additionalTicketAttributes?: string;
+  /** iOS 18 */
+  entranceDescription?: string;
+  /** iOS 18. Short message shown during a live activity. */
+  eventLiveMessage?: string;
+  /** iOS 18 / 18.1. Structured alternative to `eventStartDate`. */
+  eventStartDateInfo?: EventDateInfo;
+  /** iOS 18 */
+  playlistIDs?: string[];
+  /** iOS 18 */
+  tailgatingAllowed?: boolean;
+  /** iOS 18 */
+  venueGatesOpenDate?: string | Date;
+  /** iOS 18 */
+  venueParkingLotsOpenDate?: string | Date;
+  /** iOS 18 */
+  venueBoxOfficeOpenDate?: string | Date;
+  /** iOS 18 */
+  venueDoorsOpenDate?: string | Date;
+  /** iOS 18 */
+  venueFanZoneOpenDate?: string | Date;
+  /** iOS 18 */
+  venueOpenDate?: string | Date;
+  /** iOS 18 */
+  venueCloseDate?: string | Date;
+  /** iOS 18 */
+  venueRegionName?: string;
+  /** iOS 18 */
+  venueEntranceGate?: string;
+  /** iOS 18 */
+  venueEntranceDoor?: string;
+  /** iOS 18 */
+  venueEntrancePortal?: string;
+
+  // ── iOS 26 enhanced boarding pass additions ─────────────────────────────
+  /** iOS 26 */
+  boardingZone?: string;
+  /** iOS 26 */
+  departureCityName?: string;
+  /** iOS 26 */
+  destinationCityName?: string;
+  /** iOS 26 */
+  departureLocationSecurityPrograms?: PKTransitSecurityProgram[];
+  /** iOS 26 */
+  destinationLocationSecurityPrograms?: PKTransitSecurityProgram[];
+  /** iOS 26 */
+  passengerEligibleSecurityPrograms?: PKTransitSecurityProgram[];
+  /** iOS 26. IANA time zone name, e.g. `America/Chicago`. */
+  departureLocationTimeZone?: string;
+  /** iOS 26. IANA time zone name, e.g. `America/Los_Angeles`. */
+  destinationLocationTimeZone?: string;
+  /** iOS 26 */
+  internationalDocumentsAreVerified?: boolean;
+  /** iOS 26 */
+  internationalDocumentsVerifiedDeclarationName?: string;
+  /** iOS 26. MapKit Place IDs referencing lounge locations. */
+  loungePlaceIDs?: string[];
+  /** iOS 26 */
+  membershipProgramStatus?: string;
+  /** iOS 26 */
+  passengerAirlineSSRs?: string[];
+  /** iOS 26 */
+  passengerCapabilities?: PKPassengerCapability[];
+  /** iOS 26. IATA information SSRs. */
+  passengerInformationSSRs?: string[];
+  /** iOS 26. IATA service SSRs. */
+  passengerServiceSSRs?: string[];
+  /** iOS 26. Fare class badge displayed on the boarding pass. */
+  ticketFareClass?: string;
+}
 
 export type FieldDescriptor = {
   // Standard Field Dictionary Keys
@@ -362,6 +602,12 @@ export interface PassCommonStructure {
    * Fields to be on the back of the pass.
    */
   backFields?: Field[] | FieldsMap;
+  /**
+   * Event-ticket dashboard fields (iOS 18+). Only valid on `eventTicket`
+   * passes; the setter on `PassStructure` throws a ReferenceError if
+   * accessed on another style.
+   */
+  additionalInfoFields?: Field[] | FieldsMap;
 }
 
 /**
@@ -428,12 +674,18 @@ export interface PassVisualAppearanceKeys {
   /**
    * Ordered list of visual style schemes the pass opts into, in order
    * of preference. iOS 18+ renders `posterEventTicket` with richer
-   * hero imagery for event passes; older OSes silently fall back to
-   * the classic style.
+   * hero imagery for event passes; iOS 26 adds `semanticBoardingPass`
+   * for enhanced boarding-pass layouts. Older OSes silently fall back
+   * to the classic style.
    *
    * @see {@link https://developer.apple.com/documentation/walletpasses/preferredstyleschemes}
    */
-  preferredStyleSchemes?: ('posterEventTicket' | 'eventTicket')[];
+  preferredStyleSchemes?: (
+    | 'posterEventTicket'
+    | 'eventTicket'
+    | 'boardingPass'
+    | 'semanticBoardingPass'
+  )[];
 }
 
 export interface PassWebServiceKeys {
@@ -517,6 +769,106 @@ export type PassStructureFields =
   | GenericPass
   | StoreCardPass;
 
+/**
+ * iOS 18 event-ticket "Event Guide" and styling keys.
+ *
+ * All fields are optional. They apply only to `eventTicket` passes
+ * using the new poster layout (`preferredStyleSchemes` includes
+ * `'posterEventTicket'`). Older iOS versions silently ignore them.
+ */
+export interface PassEventTicketKeys {
+  /** Event Guide: URL to the bag/re-entry policy. */
+  bagPolicyURL?: string;
+  /** Event Guide: URL to order food at the venue. */
+  orderFoodURL?: string;
+  /** Event Guide: URL to parking information. */
+  parkingInformationURL?: string;
+  /** Event Guide: URL to directions to the venue. */
+  directionsInformationURL?: string;
+  /** Event Guide: URL to purchase parking. */
+  purchaseParkingURL?: string;
+  /** Event Guide: URL to purchase merchandise. */
+  merchandiseURL?: string;
+  /** Event Guide: URL to transit information. */
+  transitInformationURL?: string;
+  /** Event Guide: URL to accessibility information. */
+  accessibilityURL?: string;
+  /** Event Guide: URL to add-on experiences / upgrades. */
+  addOnURL?: string;
+  /** Event Guide: venue contact email address (plain string, not a URL). */
+  contactVenueEmail?: string;
+  /** Event Guide: venue contact phone number. */
+  contactVenuePhoneNumber?: string;
+  /** Event Guide: venue website URL. */
+  contactVenueWebsite?: string;
+  /** Menu dropdown: URL to initiate ticket transfer. */
+  transferURL?: string;
+  /** Menu dropdown: URL to resell the ticket. */
+  sellURL?: string;
+  /** Disables the automatic dark shadow behind the header in new layouts. */
+  suppressHeaderDarkening?: boolean;
+  /** Overrides the footer chin color (defaults to blurred background). */
+  footerBackgroundColor?: PassColor | string;
+  /**
+   * When `true`, Wallet derives `foregroundColor` and `labelColor` from
+   * the background image automatically; any explicit values are ignored.
+   */
+  useAutomaticColors?: boolean;
+  /**
+   * Secondary App Store identifiers related to the event ticket. Unlike
+   * `associatedStoreIdentifiers`, apps listed here cannot read the user's
+   * passes.
+   */
+  auxiliaryStoreIdentifiers?: number[];
+  /** iOS 18.1. Text shown next to the logo on `posterEventTicket` passes. */
+  eventLogoText?: string;
+}
+
+/**
+ * iOS 26 enhanced / semantic boarding-pass keys.
+ *
+ * Available when `preferredStyleSchemes` includes `'semanticBoardingPass'`.
+ * All fields are optional.
+ */
+export interface PassEnhancedBoardingPassKeys {
+  /** URL for changing the seat. */
+  changeSeatURL?: string;
+  /** URL for in-flight entertainment. */
+  entertainmentURL?: string;
+  /** URL for purchasing additional checked baggage. */
+  purchaseAdditionalBaggageURL?: string;
+  /** URL for purchasing lounge access. */
+  purchaseLoungeAccessURL?: string;
+  /** URL for purchasing in-flight Wi-Fi. */
+  purchaseWifiURL?: string;
+  /** URL for upgrading the flight. */
+  upgradeURL?: string;
+  /** URL for general ticket management. */
+  managementURL?: string;
+  /** URL for registering a service animal. */
+  registerServiceAnimalURL?: string;
+  /** URL for reporting a lost bag. */
+  reportLostBagURL?: string;
+  /** URL for requesting a wheelchair. */
+  requestWheelchairURL?: string;
+  /** Transit provider website URL. */
+  transitProviderWebsiteURL?: string;
+  /** Transit provider email address (plain string, not a URL). */
+  transitProviderEmail?: string;
+  /** Transit provider phone number. */
+  transitProviderPhoneNumber?: string;
+}
+
+/**
+ * iOS 26 poster-event-ticket key for declaring upcoming passes chained
+ * to this one. The nested shape lives in
+ * `src/lib/upcoming-pass-information.ts`; the setter on `PassBase`
+ * validates style/scheme pre-conditions and each entry's shape.
+ */
+export interface PassUpcomingKeys {
+  upcomingPassInformation?: import('./lib/upcoming-pass-information.js').UpcomingPassInformationEntry[];
+}
+
 export type ApplePass = PassStandardKeys &
   PassAssociatedAppKeys &
   PassCompanionAppKeys &
@@ -525,7 +877,10 @@ export type ApplePass = PassStandardKeys &
   PassRelevanceKeys &
   PassVisualAppearanceKeys &
   PassWebServiceKeys &
-  PassStructureFields;
+  PassStructureFields &
+  PassEventTicketKeys &
+  PassEnhancedBoardingPassKeys &
+  PassUpcomingKeys;
 
 export interface Options {
   allowHttp?: boolean;

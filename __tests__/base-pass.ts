@@ -195,6 +195,278 @@ describe('PassBase', () => {
     assert.equal(bp.appLaunchURL, undefined);
   });
 
+  it('P0 iOS 18 event-ticket URL setters round-trip', () => {
+    const urlFields = [
+      'bagPolicyURL',
+      'orderFoodURL',
+      'parkingInformationURL',
+      'directionsInformationURL',
+      'purchaseParkingURL',
+      'merchandiseURL',
+      'transitInformationURL',
+      'accessibilityURL',
+      'addOnURL',
+      'contactVenueWebsite',
+      'transferURL',
+      'sellURL',
+    ] as const;
+    const bp = new PassBase({ eventTicket: {} }) as unknown as Record<
+      string,
+      string | undefined
+    >;
+    for (const key of urlFields) {
+      assert.equal(bp[key], undefined, `${key} should start undefined`);
+      const url = `https://example.com/${key}`;
+      bp[key] = url;
+      assert.equal(bp[key], url, `${key} should persist the set value`);
+      assert.match(
+        JSON.stringify(bp),
+        new RegExp(`"${key}":"https://example.com/${key}"`),
+        `${key} should serialize into pass.json`,
+      );
+      bp[key] = undefined;
+      assert.equal(bp[key], undefined, `${key} should clear on undefined`);
+    }
+    // Malformed URL throws for every setter.
+    for (const key of urlFields) {
+      assert.throws(
+        () => {
+          bp[key] = '/not-a-url';
+        },
+        TypeError,
+        `${key} should reject malformed URL`,
+      );
+    }
+  });
+
+  it('P0 iOS 18 event-ticket plain-string setters', () => {
+    const bp = new PassBase();
+    bp.contactVenueEmail = 'venue@example.com';
+    bp.contactVenuePhoneNumber = '+1-555-0100';
+    bp.eventLogoText = 'World Cup 2026';
+    assert.equal(bp.contactVenueEmail, 'venue@example.com');
+    assert.equal(bp.contactVenuePhoneNumber, '+1-555-0100');
+    assert.equal(bp.eventLogoText, 'World Cup 2026');
+    const json = JSON.parse(JSON.stringify(bp));
+    assert.equal(json.contactVenueEmail, 'venue@example.com');
+    assert.equal(json.contactVenuePhoneNumber, '+1-555-0100');
+    assert.equal(json.eventLogoText, 'World Cup 2026');
+    // Delete-on-empty.
+    bp.contactVenueEmail = undefined;
+    bp.contactVenuePhoneNumber = undefined;
+    bp.eventLogoText = undefined;
+    const json2 = JSON.parse(JSON.stringify(bp));
+    assert.equal(json2.contactVenueEmail, undefined);
+    assert.equal(json2.contactVenuePhoneNumber, undefined);
+    assert.equal(json2.eventLogoText, undefined);
+  });
+
+  it('P0 iOS 18 event-ticket boolean setters', () => {
+    const bp = new PassBase();
+    assert.equal(bp.suppressHeaderDarkening, false);
+    assert.equal(bp.useAutomaticColors, false);
+    bp.suppressHeaderDarkening = true;
+    bp.useAutomaticColors = true;
+    const on = JSON.parse(JSON.stringify(bp));
+    assert.equal(on.suppressHeaderDarkening, true);
+    assert.equal(on.useAutomaticColors, true);
+    // false deletes
+    bp.suppressHeaderDarkening = false;
+    bp.useAutomaticColors = false;
+    const off = JSON.parse(JSON.stringify(bp));
+    assert.equal(off.suppressHeaderDarkening, undefined);
+    assert.equal(off.useAutomaticColors, undefined);
+  });
+
+  it('P0 auxiliaryStoreIdentifiers filters to integers', () => {
+    const bp = new PassBase();
+    bp.auxiliaryStoreIdentifiers = [1, 2.5, 3, 'x' as unknown as number];
+    assert.deepEqual(bp.auxiliaryStoreIdentifiers, [1, 3]);
+    // Empty effective array deletes.
+    bp.auxiliaryStoreIdentifiers = [2.5, 'x' as unknown as number];
+    assert.equal(bp.auxiliaryStoreIdentifiers, undefined);
+    bp.auxiliaryStoreIdentifiers = undefined;
+    assert.equal(bp.auxiliaryStoreIdentifiers, undefined);
+  });
+
+  it('P0 footerBackgroundColor accepts PassColor inputs', () => {
+    const bp = new PassBase();
+    assert.equal(bp.footerBackgroundColor, undefined);
+    bp.footerBackgroundColor = '#FF0000';
+    assert.deepEqual(Array.from(bp.footerBackgroundColor!), [255, 0, 0]);
+    bp.footerBackgroundColor = 'rgb(0, 128, 0)';
+    assert.deepEqual(Array.from(bp.footerBackgroundColor!), [0, 128, 0]);
+    bp.footerBackgroundColor = 'navy';
+    assert.deepEqual(Array.from(bp.footerBackgroundColor!), [0, 0, 128]);
+    assert.throws(() => {
+      bp.footerBackgroundColor = 'not-a-color';
+    }, /Invalid color value/);
+    bp.footerBackgroundColor = undefined;
+    assert.equal(bp.footerBackgroundColor, undefined);
+  });
+
+  it('P0 additionalInfoFields is gated on eventTicket', () => {
+    // storeCard should throw on access
+    const store = new PassBase({ storeCard: {} });
+    assert.throws(
+      () => store.additionalInfoFields,
+      /only allowed on eventTicket/,
+    );
+    // eventTicket should allow add + serialize
+    const evt = new PassBase({ eventTicket: {} });
+    evt.additionalInfoFields.add({ key: 'info', value: 'See our FAQ' });
+    const json = JSON.parse(JSON.stringify(evt));
+    assert.deepEqual(json.eventTicket.additionalInfoFields, [
+      { key: 'info', value: 'See our FAQ' },
+    ]);
+    // Constructor-side hydration also works.
+    const evt2 = new PassBase({
+      eventTicket: {
+        additionalInfoFields: [{ key: 'info2', value: 'Rules apply' }],
+      },
+    });
+    assert.equal(evt2.additionalInfoFields.size, 1);
+  });
+
+  it('P0 preferredStyleSchemes accepts iOS 26 schemes', () => {
+    const bp = new PassBase({
+      boardingPass: { transitType: 'PKTransitTypeAir' },
+    });
+    bp.preferredStyleSchemes = ['semanticBoardingPass', 'boardingPass'];
+    const json = JSON.parse(JSON.stringify(bp));
+    assert.deepEqual(json.preferredStyleSchemes, [
+      'semanticBoardingPass',
+      'boardingPass',
+    ]);
+  });
+
+  it('P0 typed SemanticTags (iOS 18 fields) compile + serialize', () => {
+    const eventStart = new Date(Date.UTC(2026, 5, 1, 20, 0, 0));
+    const bp = new PassBase({
+      eventTicket: {},
+      semantics: {
+        admissionLevel: 'VIP',
+        admissionLevelAbbreviation: 'VIP',
+        entranceDescription: 'Main entrance',
+        venueOpenDate: eventStart,
+        eventStartDateInfo: {
+          date: eventStart,
+          timeZone: 'America/Chicago',
+          unannounced: true,
+        },
+        seats: [
+          {
+            seatSection: 'A',
+            seatRow: '12',
+            seatNumber: '7',
+            seatAisle: 'Left',
+            seatLevel: '2',
+            seatSectionColor: '#FF0000',
+          },
+        ],
+        tailgatingAllowed: true,
+      },
+    });
+    const json = JSON.parse(JSON.stringify(bp));
+    assert.equal(json.semantics.admissionLevel, 'VIP');
+    assert.equal(json.semantics.tailgatingAllowed, true);
+    assert.equal(json.semantics.seats[0].seatSectionColor, '#FF0000');
+    // venueOpenDate is a Date in input → W3C string in output.
+    assert.match(
+      json.semantics.venueOpenDate,
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:[+-]\d{2}:\d{2}|Z)$/,
+    );
+    assert.equal(json.semantics.eventStartDateInfo.timeZone, 'America/Chicago');
+    assert.equal(json.semantics.eventStartDateInfo.unannounced, true);
+  });
+
+  it('P1 iOS 26 enhanced boarding-pass URL setters round-trip', () => {
+    const urlFields = [
+      'changeSeatURL',
+      'entertainmentURL',
+      'purchaseAdditionalBaggageURL',
+      'purchaseLoungeAccessURL',
+      'purchaseWifiURL',
+      'upgradeURL',
+      'managementURL',
+      'registerServiceAnimalURL',
+      'reportLostBagURL',
+      'requestWheelchairURL',
+      'transitProviderWebsiteURL',
+    ] as const;
+    const bp = new PassBase({
+      boardingPass: { transitType: 'PKTransitTypeAir' },
+    }) as unknown as Record<string, string | undefined>;
+    for (const key of urlFields) {
+      assert.equal(bp[key], undefined);
+      const url = `https://airline.example/${key}`;
+      bp[key] = url;
+      assert.equal(bp[key], url);
+      assert.match(JSON.stringify(bp), new RegExp(`"${key}":"${url}"`));
+      bp[key] = undefined;
+      assert.equal(bp[key], undefined);
+      assert.throws(() => {
+        bp[key] = '/nope';
+      }, TypeError);
+    }
+  });
+
+  it('P1 iOS 26 transit provider contact setters', () => {
+    const bp = new PassBase({
+      boardingPass: { transitType: 'PKTransitTypeAir' },
+    });
+    bp.transitProviderEmail = 'support@airline.example';
+    bp.transitProviderPhoneNumber = '+1-800-FLY-AWAY';
+    assert.equal(bp.transitProviderEmail, 'support@airline.example');
+    assert.equal(bp.transitProviderPhoneNumber, '+1-800-FLY-AWAY');
+    bp.transitProviderEmail = undefined;
+    bp.transitProviderPhoneNumber = undefined;
+    const json = JSON.parse(JSON.stringify(bp));
+    assert.equal(json.transitProviderEmail, undefined);
+    assert.equal(json.transitProviderPhoneNumber, undefined);
+  });
+
+  it('P1 typed SemanticTags (iOS 26 fields) compile + serialize', () => {
+    const bp = new PassBase({
+      boardingPass: { transitType: 'PKTransitTypeAir' },
+      semantics: {
+        boardingZone: '3',
+        departureCityName: 'London',
+        destinationCityName: 'Shanghai',
+        departureLocationTimeZone: 'Europe/London',
+        destinationLocationTimeZone: 'Asia/Shanghai',
+        passengerCapabilities: [
+          'PKPassengerCapabilityPreboarding',
+          'PKPassengerCapabilityPriorityBoarding',
+        ],
+        passengerEligibleSecurityPrograms: [
+          'PKTransitSecurityProgramTSAPreCheck',
+          'PKTransitSecurityProgramGlobalEntry',
+        ],
+        departureLocationSecurityPrograms: [
+          'PKTransitSecurityProgramTSAPreCheck',
+        ],
+        destinationLocationSecurityPrograms: ['PKTransitSecurityProgramCLEAR'],
+        ticketFareClass: 'Economy',
+        membershipProgramStatus: 'Gold',
+        loungePlaceIDs: ['I123456', 'I654321'],
+        passengerAirlineSSRs: ['MEAL'],
+        passengerInformationSSRs: ['FQTV'],
+        passengerServiceSSRs: ['WCHR'],
+        internationalDocumentsAreVerified: true,
+        internationalDocumentsVerifiedDeclarationName: 'DOCS OK',
+      },
+    });
+    const json = JSON.parse(JSON.stringify(bp));
+    assert.equal(json.semantics.boardingZone, '3');
+    assert.deepEqual(json.semantics.passengerCapabilities, [
+      'PKPassengerCapabilityPreboarding',
+      'PKPassengerCapabilityPriorityBoarding',
+    ]);
+    assert.equal(json.semantics.ticketFareClass, 'Economy');
+    assert.equal(json.semantics.internationalDocumentsAreVerified, true);
+  });
+
   it('color values as RGB triplets', () => {
     const bp = new PassBase();
     assert.doesNotThrow(() => {

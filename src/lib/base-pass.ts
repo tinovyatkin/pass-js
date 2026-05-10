@@ -11,6 +11,10 @@ import { getGeoPoint } from './get-geo-point.js';
 import { PassStructure } from './pass-structure.js';
 import { normalizeSemanticTags } from './semantic-tags.js';
 import { isValidW3CDateString, normalizeDatesDeep } from './w3cdate.js';
+import {
+  validateUpcomingPassInformationEntries,
+  type UpcomingPassInformationEntry,
+} from './upcoming-pass-information.js';
 
 const STRUCTURE_FIELDS_SET = new Set([...STRUCTURE_FIELDS, 'nfc']);
 
@@ -567,5 +571,414 @@ export class PassBase extends PassStructure {
     else
       for (const location of v)
         this.addLocation(location, location.relevantText);
+  }
+
+  // ─── iOS 18 event-ticket: Event Guide URL keys ─────────────────────────
+  // 12 optional URL fields. `new URL(v)` validates shape only — no scheme
+  // restriction (Apple recommends https but mailto/tel/custom schemes are
+  // accepted in the wild). Contact email and phone are plain strings
+  // (below); they are not URLs.
+
+  get bagPolicyURL(): string | undefined {
+    return this.fields.bagPolicyURL;
+  }
+  set bagPolicyURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.bagPolicyURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.bagPolicyURL = v;
+  }
+
+  get orderFoodURL(): string | undefined {
+    return this.fields.orderFoodURL;
+  }
+  set orderFoodURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.orderFoodURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.orderFoodURL = v;
+  }
+
+  get parkingInformationURL(): string | undefined {
+    return this.fields.parkingInformationURL;
+  }
+  set parkingInformationURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.parkingInformationURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.parkingInformationURL = v;
+  }
+
+  get directionsInformationURL(): string | undefined {
+    return this.fields.directionsInformationURL;
+  }
+  set directionsInformationURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.directionsInformationURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.directionsInformationURL = v;
+  }
+
+  get purchaseParkingURL(): string | undefined {
+    return this.fields.purchaseParkingURL;
+  }
+  set purchaseParkingURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.purchaseParkingURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.purchaseParkingURL = v;
+  }
+
+  get merchandiseURL(): string | undefined {
+    return this.fields.merchandiseURL;
+  }
+  set merchandiseURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.merchandiseURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.merchandiseURL = v;
+  }
+
+  get transitInformationURL(): string | undefined {
+    return this.fields.transitInformationURL;
+  }
+  set transitInformationURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.transitInformationURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.transitInformationURL = v;
+  }
+
+  get accessibilityURL(): string | undefined {
+    return this.fields.accessibilityURL;
+  }
+  set accessibilityURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.accessibilityURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.accessibilityURL = v;
+  }
+
+  get addOnURL(): string | undefined {
+    return this.fields.addOnURL;
+  }
+  set addOnURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.addOnURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.addOnURL = v;
+  }
+
+  get contactVenueWebsite(): string | undefined {
+    return this.fields.contactVenueWebsite;
+  }
+  set contactVenueWebsite(v: string | undefined) {
+    if (!v) {
+      delete this.fields.contactVenueWebsite;
+      return;
+    }
+    void new URL(v);
+    this.fields.contactVenueWebsite = v;
+  }
+
+  get transferURL(): string | undefined {
+    return this.fields.transferURL;
+  }
+  set transferURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.transferURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.transferURL = v;
+  }
+
+  get sellURL(): string | undefined {
+    return this.fields.sellURL;
+  }
+  set sellURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.sellURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.sellURL = v;
+  }
+
+  // ─── iOS 18 event-ticket: plain-string keys ────────────────────────────
+  // Not URLs; stored as strings with delete-on-empty semantics.
+
+  get contactVenueEmail(): string | undefined {
+    return this.fields.contactVenueEmail;
+  }
+  set contactVenueEmail(v: string | undefined) {
+    if (!v) delete this.fields.contactVenueEmail;
+    else this.fields.contactVenueEmail = v;
+  }
+
+  get contactVenuePhoneNumber(): string | undefined {
+    return this.fields.contactVenuePhoneNumber;
+  }
+  set contactVenuePhoneNumber(v: string | undefined) {
+    if (!v) delete this.fields.contactVenuePhoneNumber;
+    else this.fields.contactVenuePhoneNumber = v;
+  }
+
+  get eventLogoText(): string | undefined {
+    return this.fields.eventLogoText;
+  }
+  set eventLogoText(v: string | undefined) {
+    if (!v) delete this.fields.eventLogoText;
+    else this.fields.eventLogoText = v;
+  }
+
+  // ─── iOS 18 event-ticket: styling + misc ──────────────────────────────
+
+  get suppressHeaderDarkening(): boolean {
+    return !!this.fields.suppressHeaderDarkening;
+  }
+  set suppressHeaderDarkening(v: boolean) {
+    if (!v) delete this.fields.suppressHeaderDarkening;
+    else this.fields.suppressHeaderDarkening = true;
+  }
+
+  get useAutomaticColors(): boolean {
+    return !!this.fields.useAutomaticColors;
+  }
+  set useAutomaticColors(v: boolean) {
+    if (!v) delete this.fields.useAutomaticColors;
+    else this.fields.useAutomaticColors = true;
+  }
+
+  // Overrides the chin/footer color in the new event-ticket layout.
+  // Uses the same PassColor machinery as backgroundColor.
+  get footerBackgroundColor():
+    | [number, number, number]
+    | string
+    | undefined
+    | PassColor {
+    if (!(this.fields.footerBackgroundColor instanceof PassColor))
+      return undefined;
+    return this.fields.footerBackgroundColor;
+  }
+  set footerBackgroundColor(
+    v: string | [number, number, number] | undefined | PassColor,
+  ) {
+    if (!v) {
+      delete this.fields.footerBackgroundColor;
+      return;
+    }
+    if (!(this.fields.footerBackgroundColor instanceof PassColor))
+      this.fields.footerBackgroundColor = new PassColor(v);
+    else this.fields.footerBackgroundColor.set(v);
+  }
+
+  // Secondary App Store IDs; filter to integers like
+  // associatedStoreIdentifiers does (drop non-integer / non-number entries).
+  get auxiliaryStoreIdentifiers(): ApplePass['auxiliaryStoreIdentifiers'] {
+    return this.fields.auxiliaryStoreIdentifiers;
+  }
+  set auxiliaryStoreIdentifiers(v: ApplePass['auxiliaryStoreIdentifiers']) {
+    if (!v) {
+      delete this.fields.auxiliaryStoreIdentifiers;
+      return;
+    }
+    const arrayOfNumbers = v.filter(n => Number.isInteger(n));
+    if (arrayOfNumbers.length > 0)
+      this.fields.auxiliaryStoreIdentifiers = arrayOfNumbers;
+    else delete this.fields.auxiliaryStoreIdentifiers;
+  }
+
+  // ─── iOS 26 enhanced / semantic boarding pass: URL keys ───────────────
+
+  get changeSeatURL(): string | undefined {
+    return this.fields.changeSeatURL;
+  }
+  set changeSeatURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.changeSeatURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.changeSeatURL = v;
+  }
+
+  get entertainmentURL(): string | undefined {
+    return this.fields.entertainmentURL;
+  }
+  set entertainmentURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.entertainmentURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.entertainmentURL = v;
+  }
+
+  get purchaseAdditionalBaggageURL(): string | undefined {
+    return this.fields.purchaseAdditionalBaggageURL;
+  }
+  set purchaseAdditionalBaggageURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.purchaseAdditionalBaggageURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.purchaseAdditionalBaggageURL = v;
+  }
+
+  get purchaseLoungeAccessURL(): string | undefined {
+    return this.fields.purchaseLoungeAccessURL;
+  }
+  set purchaseLoungeAccessURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.purchaseLoungeAccessURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.purchaseLoungeAccessURL = v;
+  }
+
+  get purchaseWifiURL(): string | undefined {
+    return this.fields.purchaseWifiURL;
+  }
+  set purchaseWifiURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.purchaseWifiURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.purchaseWifiURL = v;
+  }
+
+  get upgradeURL(): string | undefined {
+    return this.fields.upgradeURL;
+  }
+  set upgradeURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.upgradeURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.upgradeURL = v;
+  }
+
+  get managementURL(): string | undefined {
+    return this.fields.managementURL;
+  }
+  set managementURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.managementURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.managementURL = v;
+  }
+
+  get registerServiceAnimalURL(): string | undefined {
+    return this.fields.registerServiceAnimalURL;
+  }
+  set registerServiceAnimalURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.registerServiceAnimalURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.registerServiceAnimalURL = v;
+  }
+
+  get reportLostBagURL(): string | undefined {
+    return this.fields.reportLostBagURL;
+  }
+  set reportLostBagURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.reportLostBagURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.reportLostBagURL = v;
+  }
+
+  get requestWheelchairURL(): string | undefined {
+    return this.fields.requestWheelchairURL;
+  }
+  set requestWheelchairURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.requestWheelchairURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.requestWheelchairURL = v;
+  }
+
+  get transitProviderWebsiteURL(): string | undefined {
+    return this.fields.transitProviderWebsiteURL;
+  }
+  set transitProviderWebsiteURL(v: string | undefined) {
+    if (!v) {
+      delete this.fields.transitProviderWebsiteURL;
+      return;
+    }
+    void new URL(v);
+    this.fields.transitProviderWebsiteURL = v;
+  }
+
+  // iOS 26 transit provider — contact fields (plain strings, not URLs)
+
+  get transitProviderEmail(): string | undefined {
+    return this.fields.transitProviderEmail;
+  }
+  set transitProviderEmail(v: string | undefined) {
+    if (!v) delete this.fields.transitProviderEmail;
+    else this.fields.transitProviderEmail = v;
+  }
+
+  get transitProviderPhoneNumber(): string | undefined {
+    return this.fields.transitProviderPhoneNumber;
+  }
+  set transitProviderPhoneNumber(v: string | undefined) {
+    if (!v) delete this.fields.transitProviderPhoneNumber;
+    else this.fields.transitProviderPhoneNumber = v;
+  }
+
+  // ─── iOS 26 poster event ticket: upcomingPassInformation ──────────────
+  // Setter validates per-entry shape (identifier / name / type / image
+  // URLs + SHA256 + size). The cross-field check that the pass is an
+  // eventTicket opted into `posterEventTicket` runs at pass-build time
+  // in `Pass.validate()` via `assertUpcomingPassInformationContext`,
+  // so hydrating a pass from a plain object whose keys happen to put
+  // `upcomingPassInformation` before `preferredStyleSchemes` doesn't
+  // throw during construction. Dates inside `dateInformation.date` are
+  // normalized to W3C strings by `normalizeDatesDeep` at toJSON time
+  // (see PassBase.toJSON above).
+
+  get upcomingPassInformation(): UpcomingPassInformationEntry[] | undefined {
+    return this.fields.upcomingPassInformation;
+  }
+  set upcomingPassInformation(v: UpcomingPassInformationEntry[] | undefined) {
+    if (!v) {
+      delete this.fields.upcomingPassInformation;
+      return;
+    }
+    this.fields.upcomingPassInformation =
+      validateUpcomingPassInformationEntries(v);
   }
 }

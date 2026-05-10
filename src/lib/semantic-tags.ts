@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2017-2026 Konstantin Vyatkin <tino@vtkn.io>
 
-import type { SemanticTags, SemanticTagValue } from '../interfaces.js';
+import type {
+  SemanticTagObject,
+  SemanticTags,
+  SemanticTagValue,
+} from '../interfaces.js';
 
 import { getW3CDateString } from './w3cdate.js';
 
@@ -49,5 +53,12 @@ function normalizeSemanticValue(
 // recursion path count as a cycle — shared subtrees used in multiple
 // branches are acyclic and serialize normally.
 export function normalizeSemanticTags(tags: SemanticTags): SemanticTags {
-  return normalizeSemanticValue(tags, new Set<object>()) as SemanticTags;
+  // Cast-through: the runtime walker treats any plain object as a
+  // `SemanticTagObject`, but the strictly-typed `SemanticTags` interface
+  // intentionally lacks an index signature. The narrowing is purely a
+  // compile-time safety net; the walk is schema-agnostic.
+  return normalizeSemanticValue(
+    tags as unknown as SemanticTagObject,
+    new Set<object>(),
+  ) as SemanticTags;
 }

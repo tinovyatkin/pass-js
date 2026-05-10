@@ -233,11 +233,49 @@ export const TOP_LEVEL_FIELDS: {
     type: 'string',
     templatable: true,
   },
+  // iOS 18 Event Ticket Keys — Event Guide URLs, contact, transfer/sell
+  bagPolicyURL: { type: 'string', templatable: true },
+  orderFoodURL: { type: 'string', templatable: true },
+  parkingInformationURL: { type: 'string', templatable: true },
+  directionsInformationURL: { type: 'string', templatable: true },
+  purchaseParkingURL: { type: 'string', templatable: true },
+  merchandiseURL: { type: 'string', templatable: true },
+  transitInformationURL: { type: 'string', templatable: true },
+  accessibilityURL: { type: 'string', templatable: true },
+  addOnURL: { type: 'string', templatable: true },
+  contactVenueEmail: { type: 'string', templatable: true },
+  contactVenuePhoneNumber: { type: 'string', templatable: true },
+  contactVenueWebsite: { type: 'string', templatable: true },
+  transferURL: { type: 'string', templatable: true },
+  sellURL: { type: 'string', templatable: true },
+  // iOS 18 Event Ticket Keys — styling + misc
+  suppressHeaderDarkening: { type: Boolean, templatable: true },
+  footerBackgroundColor: { type: 'string', templatable: true },
+  useAutomaticColors: { type: Boolean, templatable: true },
+  auxiliaryStoreIdentifiers: { type: Array, templatable: true },
+  eventLogoText: { type: 'string', templatable: true, localizable: true },
+  // iOS 26 Enhanced / Semantic Boarding Pass Keys
+  changeSeatURL: { type: 'string', templatable: true },
+  entertainmentURL: { type: 'string', templatable: true },
+  purchaseAdditionalBaggageURL: { type: 'string', templatable: true },
+  purchaseLoungeAccessURL: { type: 'string', templatable: true },
+  purchaseWifiURL: { type: 'string', templatable: true },
+  upgradeURL: { type: 'string', templatable: true },
+  managementURL: { type: 'string', templatable: true },
+  registerServiceAnimalURL: { type: 'string', templatable: true },
+  reportLostBagURL: { type: 'string', templatable: true },
+  requestWheelchairURL: { type: 'string', templatable: true },
+  transitProviderWebsiteURL: { type: 'string', templatable: true },
+  transitProviderEmail: { type: 'string', templatable: true },
+  transitProviderPhoneNumber: { type: 'string', templatable: true },
+  // iOS 26 Poster Event Ticket — upcoming chained events
+  upcomingPassInformation: { type: Array },
 };
 
 // Pass structure keys.
 // https://developer.apple.com/library/content/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/LowerLevel.html#//apple_ref/doc/uid/TP40012026-CH3-SW3
 export const STRUCTURE_FIELDS: readonly (keyof PassCommonStructure)[] = [
+  'additionalInfoFields',
   'auxiliaryFields',
   'backFields',
   'headerFields',
