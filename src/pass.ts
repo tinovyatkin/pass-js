@@ -11,6 +11,7 @@ import { writeZip, type ZipWriteEntry } from './lib/zip.js';
 import type { ApplePass, Options } from './interfaces.js';
 import type { Template } from './template.js';
 import type { Localizations } from './lib/localizations.js';
+import { assertUpcomingPassInformationContext } from './lib/upcoming-pass-information.js';
 
 // Create a new pass.
 //
@@ -59,6 +60,10 @@ export class Pass extends PassBase {
         'authenticationToken is present in Pass data while webServiceURL is missing!',
       );
     }
+
+    // Cross-field check deferred from the `upcomingPassInformation`
+    // setter — runs here so construction order doesn't matter.
+    assertUpcomingPassInformationContext(this.fields);
 
     this.images.validate();
   }

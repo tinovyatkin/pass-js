@@ -120,29 +120,24 @@ export interface UpcomingPassInformationEntry {
 }
 
 /**
- * Validates a full `upcomingPassInformation` payload against the iOS 26
- * spec. Throws `TypeError` on any rule violation; returns the input
- * array unchanged on success so the caller can inline the result.
+ * Per-entry shape validation for `upcomingPassInformation`. Runs at
+ * setter time and does not look at any other pass field, so it cannot
+ * produce order-dependent failures when a caller hydrates a pass from
+ * a plain object whose key order puts `upcomingPassInformation`
+ * before `preferredStyleSchemes`.
  *
- * Runtime-only — static types in `UpcomingPassInformationEntry` already
- * steer correct shapes; these checks catch cases where consumers build
- * entries dynamically or cast through `any`.
+ * Cross-field checks (eventTicket style + `posterEventTicket` scheme)
+ * live in `assertUpcomingPassInformationContext` and run at pass-build
+ * time, in `Pass.validate()`.
+ *
+ * Throws `TypeError` on any rule violation; returns the input array
+ * unchanged on success.
  */
-export function validateUpcomingPassInformation(
+export function validateUpcomingPassInformationEntries(
   value: UpcomingPassInformationEntry[],
-  pass: Partial<ApplePass>,
 ): UpcomingPassInformationEntry[] {
   if (!Array.isArray(value))
     throw new TypeError('upcomingPassInformation must be an array');
-
-  if (!('eventTicket' in pass))
-    throw new TypeError('upcomingPassInformation requires style "eventTicket"');
-
-  const schemes = pass.preferredStyleSchemes;
-  if (!Array.isArray(schemes) || !schemes.includes('posterEventTicket'))
-    throw new TypeError(
-      'upcomingPassInformation requires preferredStyleSchemes to include "posterEventTicket"',
-    );
 
   for (const [i, entry] of value.entries()) {
     if (!entry || typeof entry !== 'object')
@@ -174,20 +169,60 @@ export function validateUpcomingPassInformation(
             throw new TypeError(
               `upcomingPassInformation[${i}].images.${slot}.URLs[${j}].URL must be a string`,
             );
-          // URL shape validation (throws on malformed); no scheme restriction.
-          void new URL(url.URL);
+          // Apple spec: image URLs must be HTTPS.
+          const parsed = new URL(url.URL);
+          if (parsed.protocol !== 'https:')
+            throw new TypeError(
+              `upcomingPassInformation[${i}].images.${slot}.URLs[${j}].URL must use https`,
+            );
           if (typeof url.SHA256 !== 'string' || !SHA256_HEX.test(url.SHA256))
             throw new TypeError(
               `upcomingPassInformation[${i}].images.${slot}.URLs[${j}].SHA256 must be a 64-char hex string`,
             );
-          if (typeof url.size === 'number' && url.size > MAX_IMAGE_BYTES)
-            throw new TypeError(
-              `upcomingPassInformation[${i}].images.${slot}.URLs[${j}].size exceeds 2 MiB`,
-            );
+          if (url.size !== undefined) {
+            if (
+              typeof url.size !== 'number' ||
+              !Number.isInteger(url.size) ||
+              url.size < 0
+            )
+              throw new TypeError(
+                `upcomingPassInformation[${i}].images.${slot}.URLs[${j}].size must be a non-negative integer`,
+              );
+            if (url.size > MAX_IMAGE_BYTES)
+              throw new TypeError(
+                `upcomingPassInformation[${i}].images.${slot}.URLs[${j}].size exceeds 2 MiB`,
+              );
+          }
         }
       }
     }
   }
 
   return value;
+}
+
+/**
+ * Cross-field context check for `upcomingPassInformation`: the pass
+ * must be an `eventTicket` opted into the `posterEventTicket` scheme.
+ * No-ops if `upcomingPassInformation` is unset.
+ *
+ * Intended to run at pass-build time (from `Pass.validate()`), after
+ * the caller has finished wiring the pass's fields. Keeping this
+ * separate from `validateUpcomingPassInformationEntries` avoids an
+ * order-dependency bug when hydrating a pass from a serialized object
+ * whose key order is not style-first.
+ */
+export function assertUpcomingPassInformationContext(
+  pass: Partial<ApplePass>,
+): void {
+  if (!pass.upcomingPassInformation) return;
+
+  if (!('eventTicket' in pass))
+    throw new TypeError('upcomingPassInformation requires style "eventTicket"');
+
+  const schemes = pass.preferredStyleSchemes;
+  if (!Array.isArray(schemes) || !schemes.includes('posterEventTicket'))
+    throw new TypeError(
+      'upcomingPassInformation requires preferredStyleSchemes to include "posterEventTicket"',
+    );
 }

@@ -5,12 +5,11 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { PassBase } from '../dist/lib/base-pass.js';
+import { assertUpcomingPassInformationContext } from '../dist/lib/upcoming-pass-information.js';
 import type { UpcomingPassInformationEntry } from '../dist/lib/upcoming-pass-information.js';
 
 // Valid 64-char lowercase-hex digest used across tests.
-const SHA256 = 'a'.repeat(
-  64,
-) as UpcomingPassInformationEntry['images'] extends object ? string : string;
+const SHA256 = 'a'.repeat(64);
 
 function baseEntry(
   overrides: Partial<UpcomingPassInformationEntry> = {},
@@ -62,30 +61,9 @@ describe('upcomingPassInformation', () => {
     assert.equal(entry.images.headerImage.URLs[0].SHA256, SHA256);
   });
 
-  it('throws when pass style is not eventTicket', () => {
-    const bp = new PassBase({ storeCard: {} });
-    bp.preferredStyleSchemes = ['posterEventTicket'];
-    assert.throws(() => {
-      bp.upcomingPassInformation = [baseEntry()];
-    }, /requires style "eventTicket"/);
-  });
+  // ─── Per-entry shape (setter-time) ───────────────────────────────────
 
-  it('throws when preferredStyleSchemes is missing posterEventTicket', () => {
-    const bp = new PassBase({ eventTicket: {} });
-    bp.preferredStyleSchemes = ['eventTicket'];
-    assert.throws(() => {
-      bp.upcomingPassInformation = [baseEntry()];
-    }, /preferredStyleSchemes to include "posterEventTicket"/);
-  });
-
-  it('throws when preferredStyleSchemes is unset', () => {
-    const bp = new PassBase({ eventTicket: {} });
-    assert.throws(() => {
-      bp.upcomingPassInformation = [baseEntry()];
-    }, /preferredStyleSchemes to include "posterEventTicket"/);
-  });
-
-  it('throws when identifier is empty', () => {
+  it('setter throws when identifier is empty', () => {
     const bp = new PassBase({ eventTicket: {} });
     bp.preferredStyleSchemes = ['posterEventTicket'];
     assert.throws(() => {
@@ -93,7 +71,7 @@ describe('upcomingPassInformation', () => {
     }, /\.identifier must be a non-empty string/);
   });
 
-  it('throws when name is missing', () => {
+  it('setter throws when name is missing', () => {
     const bp = new PassBase({ eventTicket: {} });
     bp.preferredStyleSchemes = ['posterEventTicket'];
     assert.throws(() => {
@@ -105,7 +83,7 @@ describe('upcomingPassInformation', () => {
     }, /\.name must be a non-empty string/);
   });
 
-  it('throws when type is not "event"', () => {
+  it('setter throws when type is not "event"', () => {
     const bp = new PassBase({ eventTicket: {} });
     bp.preferredStyleSchemes = ['posterEventTicket'];
     assert.throws(() => {
@@ -117,7 +95,7 @@ describe('upcomingPassInformation', () => {
     }, /\.type must be "event"/);
   });
 
-  it('throws on bad SHA256', () => {
+  it('setter throws on bad SHA256', () => {
     const bp = new PassBase({ eventTicket: {} });
     bp.preferredStyleSchemes = ['posterEventTicket'];
     assert.throws(() => {
@@ -138,7 +116,7 @@ describe('upcomingPassInformation', () => {
     }, /SHA256 must be a 64-char hex string/);
   });
 
-  it('throws on oversize image (> 2 MiB)', () => {
+  it('setter throws on oversize image (> 2 MiB)', () => {
     const bp = new PassBase({ eventTicket: {} });
     bp.preferredStyleSchemes = ['posterEventTicket'];
     assert.throws(() => {
@@ -160,7 +138,56 @@ describe('upcomingPassInformation', () => {
     }, /size exceeds 2 MiB/);
   });
 
-  it('throws on malformed image URL', () => {
+  it('setter throws on invalid image size (negative, NaN, fractional)', () => {
+    const bp = new PassBase({ eventTicket: {} });
+    bp.preferredStyleSchemes = ['posterEventTicket'];
+    for (const bad of [-1, Number.NaN, 1.5, Number.POSITIVE_INFINITY]) {
+      assert.throws(
+        () => {
+          bp.upcomingPassInformation = [
+            baseEntry({
+              images: {
+                headerImage: {
+                  URLs: [
+                    {
+                      URL: 'https://cdn.example/header.png',
+                      SHA256,
+                      size: bad,
+                    },
+                  ],
+                },
+              },
+            }),
+          ];
+        },
+        /size must be a non-negative integer/,
+        `size=${bad} should throw`,
+      );
+    }
+  });
+
+  it('setter throws on non-https image URL', () => {
+    const bp = new PassBase({ eventTicket: {} });
+    bp.preferredStyleSchemes = ['posterEventTicket'];
+    assert.throws(() => {
+      bp.upcomingPassInformation = [
+        baseEntry({
+          images: {
+            headerImage: {
+              URLs: [
+                {
+                  URL: 'http://cdn.example/header.png', // http, not https
+                  SHA256,
+                },
+              ],
+            },
+          },
+        }),
+      ];
+    }, /URL must use https/);
+  });
+
+  it('setter throws on malformed image URL', () => {
     const bp = new PassBase({ eventTicket: {} });
     bp.preferredStyleSchemes = ['posterEventTicket'];
     assert.throws(() => {
@@ -176,7 +203,7 @@ describe('upcomingPassInformation', () => {
     }); // `new URL` throws TypeError
   });
 
-  it('throws on empty image URLs array', () => {
+  it('setter throws on empty image URLs array', () => {
     const bp = new PassBase({ eventTicket: {} });
     bp.preferredStyleSchemes = ['posterEventTicket'];
     assert.throws(() => {
@@ -189,6 +216,77 @@ describe('upcomingPassInformation', () => {
       ];
     }, /images\.headerImage\.URLs must be a non-empty array/);
   });
+
+  it('setter does NOT check style/scheme (that runs at pass-build time)', () => {
+    // Hydrate from a plain object with `upcomingPassInformation` BEFORE
+    // `preferredStyleSchemes` in key order — the old order-dependent
+    // validator would throw here. Must not.
+    const bp = new PassBase();
+    assert.doesNotThrow(() => {
+      bp.upcomingPassInformation = [baseEntry()];
+    });
+    // Same thing on a non-eventTicket pass — setter accepts.
+    const sc = new PassBase({ storeCard: {} });
+    assert.doesNotThrow(() => {
+      sc.upcomingPassInformation = [baseEntry()];
+    });
+  });
+
+  // ─── Cross-field context (pass-build-time) ────────────────────────────
+
+  it('context assertion throws when style is not eventTicket', () => {
+    const bp = new PassBase({ storeCard: {} });
+    bp.preferredStyleSchemes = ['posterEventTicket'];
+    bp.upcomingPassInformation = [baseEntry()];
+    assert.throws(
+      () => assertUpcomingPassInformationContext(bp.toJSON()),
+      /requires style "eventTicket"/,
+    );
+  });
+
+  it('context assertion throws when scheme misses posterEventTicket', () => {
+    const bp = new PassBase({ eventTicket: {} });
+    bp.preferredStyleSchemes = ['eventTicket'];
+    bp.upcomingPassInformation = [baseEntry()];
+    assert.throws(
+      () => assertUpcomingPassInformationContext(bp.toJSON()),
+      /preferredStyleSchemes to include "posterEventTicket"/,
+    );
+  });
+
+  it('context assertion throws when scheme is unset', () => {
+    const bp = new PassBase({ eventTicket: {} });
+    bp.upcomingPassInformation = [baseEntry()];
+    assert.throws(
+      () => assertUpcomingPassInformationContext(bp.toJSON()),
+      /preferredStyleSchemes to include "posterEventTicket"/,
+    );
+  });
+
+  it('context assertion no-ops when upcomingPassInformation is unset', () => {
+    const bp = new PassBase({ storeCard: {} });
+    assert.doesNotThrow(() =>
+      assertUpcomingPassInformationContext(bp.toJSON()),
+    );
+  });
+
+  it('context assertion accepts a well-formed pass regardless of key order', () => {
+    // Emulate PassBase constructor hydrating from a plain object whose
+    // key order puts `upcomingPassInformation` first. With the new
+    // architecture, construction succeeds and the context check still
+    // sees the final state when it runs.
+    const bp = new PassBase({
+      upcomingPassInformation: [baseEntry()],
+      preferredStyleSchemes: ['posterEventTicket'],
+      eventTicket: {},
+    });
+    assert.equal(bp.upcomingPassInformation?.length, 1);
+    assert.doesNotThrow(() =>
+      assertUpcomingPassInformationContext(bp.toJSON()),
+    );
+  });
+
+  // ─── Misc ────────────────────────────────────────────────────────────
 
   it('clears via undefined', () => {
     const bp = new PassBase({ eventTicket: {} });

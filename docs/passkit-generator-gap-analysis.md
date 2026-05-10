@@ -1,5 +1,14 @@
 # Gap analysis: `@walletpass/pass-js` vs. `passkit-generator`
 
+> **📌 Historical baseline (pre-PR #664).** This document describes the
+> gap between pass-js (7.0.1) and passkit-generator v3.5.7 **as of
+> 2026-05-10, before any implementation work landed**. P0, P1, and P2
+> (iOS 18 event-ticket keys, iOS 26 enhanced boarding-pass keys, typed
+> `SemanticTags`, and `upcomingPassInformation`) are **implemented in
+> this PR** — see the PR description for the current state. The
+> matrix and priority plan below are preserved as the rationale for
+> the change; do not use them to assess current coverage.
+
 **Prepared:** 2026-05-10 · **Compared against:** `passkit-generator` v3.5.7
 (`c31332b`, released 2025-12-25) · **Scope:** Apple Wallet pass-generation
 feature coverage only. Build/runtime/crypto differences are noted but are

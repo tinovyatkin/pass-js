@@ -12,7 +12,7 @@ import { PassStructure } from './pass-structure.js';
 import { normalizeSemanticTags } from './semantic-tags.js';
 import { isValidW3CDateString, normalizeDatesDeep } from './w3cdate.js';
 import {
-  validateUpcomingPassInformation,
+  validateUpcomingPassInformationEntries,
   type UpcomingPassInformationEntry,
 } from './upcoming-pass-information.js';
 
@@ -960,9 +960,15 @@ export class PassBase extends PassStructure {
   }
 
   // ─── iOS 26 poster event ticket: upcomingPassInformation ──────────────
-  // Setter validates style + scheme + per-entry shape; dates inside
-  // `dateInformation.date` are normalized to W3C strings by
-  // `normalizeDatesDeep` at toJSON time (see PassBase.toJSON above).
+  // Setter validates per-entry shape (identifier / name / type / image
+  // URLs + SHA256 + size). The cross-field check that the pass is an
+  // eventTicket opted into `posterEventTicket` runs at pass-build time
+  // in `Pass.validate()` via `assertUpcomingPassInformationContext`,
+  // so hydrating a pass from a plain object whose keys happen to put
+  // `upcomingPassInformation` before `preferredStyleSchemes` doesn't
+  // throw during construction. Dates inside `dateInformation.date` are
+  // normalized to W3C strings by `normalizeDatesDeep` at toJSON time
+  // (see PassBase.toJSON above).
 
   get upcomingPassInformation(): UpcomingPassInformationEntry[] | undefined {
     return this.fields.upcomingPassInformation;
@@ -972,9 +978,7 @@ export class PassBase extends PassStructure {
       delete this.fields.upcomingPassInformation;
       return;
     }
-    this.fields.upcomingPassInformation = validateUpcomingPassInformation(
-      v,
-      this.fields,
-    );
+    this.fields.upcomingPassInformation =
+      validateUpcomingPassInformationEntries(v);
   }
 }
