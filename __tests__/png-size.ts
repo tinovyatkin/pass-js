@@ -70,7 +70,7 @@ describe('png-size', () => {
     assert.deepEqual(dims, { width: 1, height: 1 });
   });
 
-  it('rejects a truncated file via the streaming reader', async () => {
+  it('rejects a truncated file via the file reader', async () => {
     // Point at a tiny text file that clearly isn't a PNG.
     await assert.rejects(
       () => readPngDimensionsFromFile(path.resolve(__dirname, '../.npmrc')),

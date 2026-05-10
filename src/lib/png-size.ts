@@ -7,10 +7,6 @@
 // this in images.ts#checkImage. We only need width/height and don't care
 // about the full pixel data, so the 24-byte prefix is sufficient.
 //
-// Replaces the stale `imagesize` npm dep (2013, last touched 2022, still
-// uses deprecated `new Buffer()`). ~30 LOC vs. 305, PNG-specific, no
-// streaming state machine.
-//
 // PNG spec (W3C PNG 2nd ed. §5 / RFC 2083):
 //   0..7     8-byte magic:  89 50 4E 47 0D 0A 1A 0A
 //   8..11    IHDR chunk length (big-endian uint32, always 13)
@@ -18,7 +14,7 @@
 //   16..19   width  (big-endian uint32)
 //   20..23   height (big-endian uint32)
 
-import { createReadStream } from 'node:fs';
+import { open } from 'node:fs/promises';
 
 const PNG_MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const IHDR_OFFSET = 12;
@@ -60,40 +56,27 @@ export function readPngDimensions(buf: Buffer): PngDimensions {
   return { width, height };
 }
 
-// Reads only the first 24 bytes from disk to determine PNG dimensions.
-// Uses the same tiny highWaterMark pattern as the original imagesize
-// stream path so we don't pull the whole image into memory just to read
-// two uint32s.
+// Reads only the 24-byte PNG header slice from disk to determine dimensions.
 export async function readPngDimensionsFromFile(
   filePath: string,
 ): Promise<PngDimensions> {
-  return new Promise<PngDimensions>((resolve, reject) => {
-    const stream = createReadStream(filePath, { highWaterMark: 32, end: 31 });
-    const chunks: Buffer[] = [];
-    let total = 0;
-    // createReadStream without an encoding always emits Buffer chunks.
-    stream.on('data', chunk => {
-      const buf = chunk as Buffer;
-      chunks.push(buf);
-      total += buf.length;
-      if (total >= MIN_BYTES) {
-        stream.destroy();
-        try {
-          resolve(readPngDimensions(Buffer.concat(chunks)));
-        } catch (err) {
-          reject(err);
-        }
-      }
-    });
-    stream.once('error', reject);
-    stream.once('end', () => {
-      if (total < MIN_BYTES) {
-        reject(
-          new TypeError(
-            `Not a PNG: file truncated (${total} < ${MIN_BYTES} bytes)`,
-          ),
-        );
-      }
-    });
-  });
+  await using file = await open(filePath, 'r');
+  const header = Buffer.allocUnsafe(MIN_BYTES);
+  let total = 0;
+  while (total < MIN_BYTES) {
+    const { bytesRead } = await file.read(
+      header,
+      total,
+      MIN_BYTES - total,
+      total,
+    );
+    if (bytesRead === 0) break;
+    total += bytesRead;
+  }
+  if (total < MIN_BYTES) {
+    throw new TypeError(
+      `Not a PNG: file truncated (${total} < ${MIN_BYTES} bytes)`,
+    );
+  }
+  return readPngDimensions(header);
 }
