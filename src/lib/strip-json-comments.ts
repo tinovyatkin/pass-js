@@ -6,7 +6,8 @@
  *
  * Comments are replaced with whitespace instead of deleted so JSON.parse error
  * positions still point near the original source. String literals are copied
- * untouched, so `//` and `/*` inside field values are preserved.
+ * untouched, so `//` and `/*` inside field values are preserved. Malformed
+ * block comments are left unchanged so JSON.parse remains the syntax authority.
  */
 export function stripJsonComments(source: string): string {
   let output = '';
@@ -44,8 +45,7 @@ export function stripJsonComments(source: string): string {
         output += source[i] === '\n' || source[i] === '\r' ? source[i] : ' ';
         i++;
       }
-      if (i >= source.length)
-        throw new SyntaxError('Unterminated block comment');
+      if (i >= source.length) return source;
       output += '  ';
       i += 2;
     } else {

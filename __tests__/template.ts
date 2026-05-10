@@ -6,11 +6,18 @@ import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 
 import { Template } from '../dist/template.js';
+import { stripJsonComments } from '../dist/lib/strip-json-comments.js';
 import { writeZip } from '../dist/lib/zip.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 describe('Template', () => {
+  it('leaves unterminated block comments for JSON.parse to reject', () => {
+    const source = '{"x": 1 /* unterminated';
+    assert.equal(stripJsonComments(source), source);
+    assert.throws(() => JSON.parse(stripJsonComments(source)), SyntaxError);
+  });
+
   it('throws on unsupported style', () => {
     assert.throws(
       // @ts-expect-error testing invalid input
