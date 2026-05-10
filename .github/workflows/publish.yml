@@ -1,8 +1,29 @@
 name: Publish to npm
 
 on:
+  # Normal path: release-please merged its PR, cut a GitHub Release, we
+  # publish the tag it created.
   release:
     types: [published]
+
+  # Manual re-run from the Actions UI ("Run workflow" button). Useful when
+  # npm's OIDC service has a transient outage and the release-triggered
+  # run failed; the release tag is already live, we just need to retry
+  # the publish step without cutting a new release.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Git tag to publish (e.g. v7.0.1). Defaults to the latest release.
+        required: false
+        type: string
+
+  # Remote / scripted re-run via `gh api repos/.../dispatches`. Same
+  # semantics as workflow_dispatch but addressable without a browser:
+  #   gh api -X POST /repos/tinovyatkin/pass-js/dispatches \
+  #     -f event_type=publish-npm \
+  #     -f 'client_payload[tag]=v7.0.1'
+  repository_dispatch:
+    types: [publish-npm]
 
 jobs:
   publish:
@@ -12,6 +33,11 @@ jobs:
       id-token: write # required for OIDC trusted publishing
     steps:
       - uses: actions/checkout@v6
+        with:
+          # For `release` events, actions/checkout defaults to the tag
+          # SHA already. For manual/dispatch triggers we resolve the ref
+          # from the inputs and fall back to the repo's latest release.
+          ref: ${{ github.event.inputs.tag || github.event.client_payload.tag || github.ref }}
       - uses: actions/setup-node@v6
         with:
           node-version: 24.x
