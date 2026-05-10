@@ -77,6 +77,40 @@ describe('Template', () => {
     assert.equal(res.localization.get('zh-CN').size, 29);
   });
 
+  it('loads commented pass.json from a ZIP buffer', async () => {
+    const passJson = `{
+      "formatVersion": 1,
+      "passTypeIdentifier": "pass.with.comments",
+      "teamIdentifier": "T",
+      "organizationName": "O",
+      "description": "d",
+      "serialNumber": "s",
+      // ZIP-loaded pass.json follows the same relaxed parser as folders.
+      "coupon": {}
+    }`;
+    const buffer = writeZip([{ path: 'pass.json', data: passJson }]);
+    const templ = await Template.fromBuffer(buffer);
+    assert.equal(templ.passTypeIdentifier, 'pass.with.comments');
+    assert.equal(templ.style, 'coupon');
+  });
+
+  it('rejects pass.json expressions that try to generate code', async () => {
+    const passJson = `({
+      formatVersion: 1,
+      passTypeIdentifier: Function("return process")().env.HOME,
+      teamIdentifier: "T",
+      organizationName: "O",
+      description: "d",
+      serialNumber: "s",
+      coupon: {}
+    })`;
+    const buffer = writeZip([{ path: 'pass.json', data: passJson }]);
+    await assert.rejects(
+      () => Template.fromBuffer(buffer),
+      /Code generation from strings disallowed/,
+    );
+  });
+
   it('fromBuffer matches pass.json only as a whole path segment', async () => {
     // Archive contains a decoy `notpass.json` that a naive
     // `/?pass.json$` regex would mistake for the main payload.

@@ -8,8 +8,6 @@ import { createPrivateKey, type KeyObject, X509Certificate } from 'node:crypto';
 import { join } from 'node:path';
 import { readFile, readdir } from 'node:fs/promises';
 
-import stripJsonComments from 'strip-json-comments';
-
 import { Pass } from './pass.js';
 import { PASS_STYLES } from './constants.js';
 import type { PassStyle, ApplePass, Options } from './interfaces.js';
@@ -17,6 +15,7 @@ import { PassBase } from './lib/base-pass.js';
 import { readZip } from './lib/zip.js';
 import type { PassImages } from './lib/images.js';
 import type { Localizations } from './lib/localizations.js';
+import { parseJsonObjectExpression } from './lib/parse-json-expression.js';
 
 const {
   HTTP2_HEADER_METHOD,
@@ -56,9 +55,11 @@ export class Template extends PassBase {
     let template: Template;
 
     if (entries.find(entry => entry.isFile() && entry.name === 'pass.json')) {
-      const jsonContent = await readFile(join(folderPath, 'pass.json'), 'utf8');
-      const passJson = JSON.parse(
-        stripJsonComments(jsonContent),
+      const passJsonPath = join(folderPath, 'pass.json');
+      const jsonContent = await readFile(passJsonPath, 'utf8');
+      const passJson = parseJsonObjectExpression(
+        jsonContent,
+        passJsonPath,
       ) as Partial<ApplePass>;
 
       let type: PassStyle | undefined;
@@ -157,8 +158,9 @@ export class Template extends PassBase {
           );
         foundPassJson = true;
         const buf = zip.getBuffer(entry);
-        const passJSON = JSON.parse(
-          stripJsonComments(buf.toString('utf8')),
+        const passJSON = parseJsonObjectExpression(
+          buf.toString('utf8'),
+          entry.filename,
         ) as Partial<ApplePass>;
         template = new Template(
           undefined,
