@@ -84,17 +84,20 @@ describe('Template', () => {
       "teamIdentifier": "T",
       "organizationName": "O",
       "description": "d",
+      "webServiceURL": "https://example.com/passes/*",
       "serialNumber": "s",
       // ZIP-loaded pass.json follows the same relaxed parser as folders.
+      /* Block comments are accepted too. */
       "coupon": {}
     }`;
     const buffer = writeZip([{ path: 'pass.json', data: passJson }]);
     const templ = await Template.fromBuffer(buffer);
     assert.equal(templ.passTypeIdentifier, 'pass.with.comments');
+    assert.equal(templ.webServiceURL, 'https://example.com/passes/*');
     assert.equal(templ.style, 'coupon');
   });
 
-  it('rejects pass.json expressions that try to generate code', async () => {
+  it('rejects JavaScript expressions in pass.json', async () => {
     const passJson = `({
       formatVersion: 1,
       passTypeIdentifier: Function("return process")().env.HOME,
@@ -105,10 +108,7 @@ describe('Template', () => {
       coupon: {}
     })`;
     const buffer = writeZip([{ path: 'pass.json', data: passJson }]);
-    await assert.rejects(
-      () => Template.fromBuffer(buffer),
-      /Code generation from strings disallowed/,
-    );
+    await assert.rejects(() => Template.fromBuffer(buffer), SyntaxError);
   });
 
   it('fromBuffer matches pass.json only as a whole path segment', async () => {

@@ -15,7 +15,7 @@ import { PassBase } from './lib/base-pass.js';
 import { readZip } from './lib/zip.js';
 import type { PassImages } from './lib/images.js';
 import type { Localizations } from './lib/localizations.js';
-import { parseJsonObjectExpression } from './lib/parse-json-expression.js';
+import { stripJsonComments } from './lib/strip-json-comments.js';
 
 const {
   HTTP2_HEADER_METHOD,
@@ -63,9 +63,8 @@ export class Template extends PassBase {
     if (entries.find(entry => entry.isFile() && entry.name === 'pass.json')) {
       const passJsonPath = join(folderPath, 'pass.json');
       const jsonContent = await readFile(passJsonPath, 'utf8');
-      const passJson = parseJsonObjectExpression(
-        jsonContent,
-        passJsonPath,
+      const passJson = JSON.parse(
+        stripJsonComments(jsonContent),
       ) as Partial<ApplePass>;
 
       let type: PassStyle | undefined;
@@ -170,9 +169,8 @@ export class Template extends PassBase {
           );
         foundPassJson = true;
         const buf = zip.getBuffer(entry);
-        const passJSON = parseJsonObjectExpression(
-          buf.toString('utf8'),
-          entry.filename,
+        const passJSON = JSON.parse(
+          stripJsonComments(buf.toString('utf8')),
         ) as Partial<ApplePass>;
         template = new Template(
           undefined,
