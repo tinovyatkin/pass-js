@@ -10,4 +10,27 @@ export type {
   SemanticTags,
   SemanticTagValue,
   SemanticTagObject,
+  // Semantic-tag sub-types
+  CurrencyAmount,
+  EventDateInfo,
+  PersonNameComponents,
+  Seat,
+  SemanticLocation,
+  WifiNetwork,
+  PKPassengerCapability,
+  PKTransitSecurityProgram,
+  // iOS 18 / 26 top-level key mixins
+  PassEventTicketKeys,
+  PassEnhancedBoardingPassKeys,
+  PassUpcomingKeys,
 } from './interfaces.js';
+export type {
+  DateInformation,
+  Image,
+  Images,
+  ImageURLEntry,
+  UpcomingEntrySemantics,
+  UpcomingPassInformationEntry,
+  UpcomingPassInformationType,
+  UpcomingURLs,
+} from './lib/upcoming-pass-information.js';

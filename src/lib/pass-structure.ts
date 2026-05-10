@@ -23,7 +23,8 @@ type StructureFieldName =
   | 'auxiliaryFields'
   | 'backFields'
   | 'primaryFields'
-  | 'secondaryFields';
+  | 'secondaryFields'
+  | 'additionalInfoFields';
 
 export class PassStructure {
   protected fields: Partial<ApplePass> = {};
@@ -153,5 +154,16 @@ export class PassStructure {
   }
   get secondaryFields(): FieldsMap {
     return this.fieldMap('secondaryFields');
+  }
+
+  // iOS 18 event-ticket dashboard fields. Only valid on eventTicket
+  // passes — mirrors the style gating used by `transitType` (boardingPass)
+  // and `nfc` (storeCard).
+  get additionalInfoFields(): FieldsMap {
+    if (this.style !== 'eventTicket')
+      throw new ReferenceError(
+        `additionalInfoFields only allowed on eventTicket passes, current style is ${this.style}`,
+      );
+    return this.fieldMap('additionalInfoFields');
   }
 }
