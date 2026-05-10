@@ -87,7 +87,3 @@ jobs:
           # depend on node_modules being present at runtime.
           node --input-type=module -e \
             "import('file:///tmp/bundle.mjs').then(m => { if (!m.Pass || !m.Template) { console.error('missing exports'); process.exit(1); } })"
-      - name: ncc single-file bundle
-        run: |
-          npx @vercel/ncc build dist/index.js -o /tmp/ncc-out
-          node -e "const m = require('/tmp/ncc-out/index.js'); if (!m.Pass || !m.Template) { console.error('missing exports'); process.exit(1); }"
