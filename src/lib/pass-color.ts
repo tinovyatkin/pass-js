@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2017-2026 Konstantin Vyatkin <tino@vtkn.io>
 
-import colorNames from 'color-name';
+import { CSS_NAMED_COLORS } from './css-named-colors.js';
 
 const ABBR_RE = /^#([\da-f])([\da-f])([\da-f])([\da-f])?$/i;
 const HEX_RE = /^#([\da-f]{2})([\da-f]{2})([\da-f]{2})([\da-f]{2})?$/i;
@@ -23,8 +23,8 @@ function is0to255(num: number): boolean {
 function getRgb(colorString: string): [number, number, number] {
   // short paths
   const string = colorString.trim();
-  const named = colorNames[string];
-  if (named) return named;
+  const named = CSS_NAMED_COLORS.get(string.toLowerCase());
+  if (named) return [named[0], named[1], named[2]];
   if (/transparent/i.test(string)) return [0, 0, 0];
 
   // we don't need to recheck values because they are enforced by regexes

@@ -277,6 +277,19 @@ app.use(async (ctx, next) => {
 
 If the pass file generates without errors but you can't open it on an iPhone, connect the iPhone to a Mac running macOS 10.14 or later and open the **Console** application. Select your device on the left, then watch for errors emitted while the system tries to add the pass.
 
+## Supply chain safety
+
+- **Zero runtime dependencies.** `@walletpass/pass-js` ships with an empty
+  `dependencies` map in `package.json` — everything it needs is either in
+  the Node.js standard library or implemented in this repo. Nothing is
+  pulled from npm when you install this package.
+- **Trusted publishing with provenance.** Releases go to npm via
+  [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers)
+  (GitHub OIDC, no long-lived token). Every published tarball carries an
+  [npm provenance attestation](https://docs.npmjs.com/generating-provenance-statements)
+  linking it back to the exact GitHub commit and workflow run that built
+  it — verifiable with `npm audit signatures`.
+
 ## Stay in touch
 
 - Author — [Konstantin Vyatkin](https://github.com/tinovyatkin)

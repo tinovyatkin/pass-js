@@ -45,9 +45,6 @@
     "oxlint": "^1.63.0",
     "oxlint-tsgolint": "^0.22.1"
   },
-  "dependencies": {
-    "color-name": "^2.0.0"
-  },
   "keywords": [
     "apple",
     "wallet",
