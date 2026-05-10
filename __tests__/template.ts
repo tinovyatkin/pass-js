@@ -6,11 +6,18 @@ import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 
 import { Template } from '../dist/template.js';
+import { stripJsonComments } from '../dist/lib/strip-json-comments.js';
 import { writeZip } from '../dist/lib/zip.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 describe('Template', () => {
+  it('leaves unterminated block comments for JSON.parse to reject', () => {
+    const source = '{"x": 1 /* unterminated';
+    assert.equal(stripJsonComments(source), source);
+    assert.throws(() => JSON.parse(stripJsonComments(source)), SyntaxError);
+  });
+
   it('throws on unsupported style', () => {
     assert.throws(
       // @ts-expect-error testing invalid input
@@ -75,6 +82,40 @@ describe('Template', () => {
     assert.equal(res.images.size, 8);
     assert.equal(res.localization.size, 3);
     assert.equal(res.localization.get('zh-CN').size, 29);
+  });
+
+  it('loads commented pass.json from a ZIP buffer', async () => {
+    const passJson = `{
+      "formatVersion": 1,
+      "passTypeIdentifier": "pass.with.comments",
+      "teamIdentifier": "T",
+      "organizationName": "O",
+      "description": "d",
+      "webServiceURL": "https://example.com/passes/*",
+      "serialNumber": "s",
+      // ZIP-loaded pass.json follows the same relaxed parser as folders.
+      /* Block comments are accepted too. */
+      "coupon": {}
+    }`;
+    const buffer = writeZip([{ path: 'pass.json', data: passJson }]);
+    const templ = await Template.fromBuffer(buffer);
+    assert.equal(templ.passTypeIdentifier, 'pass.with.comments');
+    assert.equal(templ.webServiceURL, 'https://example.com/passes/*');
+    assert.equal(templ.style, 'coupon');
+  });
+
+  it('rejects JavaScript expressions in pass.json', async () => {
+    const passJson = `({
+      formatVersion: 1,
+      passTypeIdentifier: Function("return process")().env.HOME,
+      teamIdentifier: "T",
+      organizationName: "O",
+      description: "d",
+      serialNumber: "s",
+      coupon: {}
+    })`;
+    const buffer = writeZip([{ path: 'pass.json', data: passJson }]);
+    await assert.rejects(() => Template.fromBuffer(buffer), SyntaxError);
   });
 
   it('fromBuffer matches pass.json only as a whole path segment', async () => {

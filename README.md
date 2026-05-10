@@ -41,6 +41,11 @@ The [Apple Worldwide Developer Relations Certification Authority](https://www.ap
 
 A template carries the fields, images, and localizations shared between your passes. Use it to stamp out individual passes.
 
+`Template.load` and `Template.fromBuffer` are intended for trusted template
+assets. Do not pass attacker-controlled folders, ZIP buffers, or `.pkpass`
+bundles to these APIs; loading untrusted bundles can consume excessive memory
+and may crash or stall the process.
+
 ```js
 import { Template } from '@walletpass/pass-js';
 

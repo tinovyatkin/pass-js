@@ -8,8 +8,6 @@ import { createPrivateKey, type KeyObject, X509Certificate } from 'node:crypto';
 import { join } from 'node:path';
 import { readFile, readdir } from 'node:fs/promises';
 
-import stripJsonComments from 'strip-json-comments';
-
 import { Pass } from './pass.js';
 import { PASS_STYLES } from './constants.js';
 import type { PassStyle, ApplePass, Options } from './interfaces.js';
@@ -17,6 +15,7 @@ import { PassBase } from './lib/base-pass.js';
 import { readZip } from './lib/zip.js';
 import type { PassImages } from './lib/images.js';
 import type { Localizations } from './lib/localizations.js';
+import { stripJsonComments } from './lib/strip-json-comments.js';
 
 const {
   HTTP2_HEADER_METHOD,
@@ -46,7 +45,13 @@ export class Template extends PassBase {
     }
   }
 
-  // Load a Template, images, and key from a directory on disk.
+  /**
+   * Load a Template, images, and key from a trusted directory on disk.
+   *
+   * Do not pass attacker-controlled template folders. Loading untrusted
+   * pass bundles can force excessive memory allocation and may crash or stall
+   * the process.
+   */
   static async load(
     folderPath: string,
     keyPassword?: string,
@@ -56,7 +61,8 @@ export class Template extends PassBase {
     let template: Template;
 
     if (entries.find(entry => entry.isFile() && entry.name === 'pass.json')) {
-      const jsonContent = await readFile(join(folderPath, 'pass.json'), 'utf8');
+      const passJsonPath = join(folderPath, 'pass.json');
+      const jsonContent = await readFile(passJsonPath, 'utf8');
       const passJson = JSON.parse(
         stripJsonComments(jsonContent),
       ) as Partial<ApplePass>;
@@ -133,9 +139,15 @@ export class Template extends PassBase {
     return template;
   }
 
-  // Reconstruct a Template from a pre-zipped buffer (e.g. a .pkpass fetched
-  // from S3). Reads pass.json, images, and localization strings out of the
-  // bundle.
+  /**
+   * Reconstruct a Template from a trusted pre-zipped buffer (e.g. a .pkpass
+   * fetched from S3). Reads pass.json, images, and localization strings out of
+   * the bundle.
+   *
+   * Do not pass attacker-controlled ZIP or .pkpass buffers. Loading untrusted
+   * pass bundles can force excessive memory allocation and may crash or stall
+   * the process.
+   */
   static async fromBuffer(
     buffer: Buffer,
     options?: Options,
