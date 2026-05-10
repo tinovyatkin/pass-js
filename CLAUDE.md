@@ -42,7 +42,7 @@ src/
     images.ts       — image validation + localized variants
     localizations.ts — .lproj strings + UTF-16 LE serialization
     zip.ts          — in-repo ZIP reader + STORE writer (replaces yauzl + do-not-zip)
-    sign-manifest.ts — PKCS#7 SignedData via pkijs + node:crypto; WWDR G4 inlined
+    sign-manifest.ts — PKCS#7 SignedData via minimal in-repo CMS writer + node:crypto; WWDR G4 inlined
     nfc-fields.ts   — NFC dictionary helpers
     semantic-tags.ts — recursive Date→W3C normalization for iOS 18 semantics
     pass-color.ts   — parse 'rgb(...)', '#FFF', named colors into triplets
@@ -87,6 +87,12 @@ src/
   deliberately SHA-1; Apple's pkpass spec requires it. Don't bump to
   SHA-256. The PKCS#7 signature over `manifest.json` is what carries
   authenticity.
+
+- **PKCS#7/CMS signing is intentionally narrow.** `src/lib/sign-manifest.ts`
+  uses a minimal in-repo DER/CMS writer plus `node:crypto` for the single
+  detached SignedData shape this library emits. If Node adds native
+  CMS/PKCS#7 signing support, prefer replacing the internal writer with
+  that API instead of expanding the custom implementation.
 
 - **Tests import from `dist/`, not `src/`.** Node's native TS strip mode
   doesn't rewrite internal `.js` import specifiers, so `npm test` builds

@@ -77,15 +77,11 @@ jobs:
       - run: npm run build
       - name: esbuild single-file bundle (Lambda-style)
         run: |
-          # --banner injects a createRequire shim so bundled CJS modules
-          # (e.g. @noble/hashes → node:crypto) can still resolve node
-          # builtins when the output format is ESM.
           npx esbuild dist/index.js \
             --bundle \
             --platform=node \
             --format=esm \
             --target=node24 \
-            --banner:js="import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);" \
             --outfile=/tmp/bundle.mjs
           # Load the bundle from outside the repo so we prove it doesn't
           # depend on node_modules being present at runtime.
