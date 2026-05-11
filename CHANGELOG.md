@@ -1,5 +1,18 @@
 # Changelog
 
+## [7.2.0](https://github.com/tinovyatkin/pass-js/compare/v7.1.0...v7.2.0) (2026-05-11)
+
+
+### Features
+
+* support calendarEvent top-level pass field ([#177](https://github.com/tinovyatkin/pass-js/issues/177)) ([#672](https://github.com/tinovyatkin/pass-js/issues/672)) ([0918c56](https://github.com/tinovyatkin/pass-js/commit/0918c568cfdf76ff8fb2ba1e48e6e1909b31a373))
+* support row key on eventTicket auxiliary fields ([#625](https://github.com/tinovyatkin/pass-js/issues/625)) ([#674](https://github.com/tinovyatkin/pass-js/issues/674)) ([3e0028a](https://github.com/tinovyatkin/pass-js/commit/3e0028a94dcd2ea03c9dc86928da500e437c3ab7))
+
+
+### Bug Fixes
+
+* serialize userInfo top-level pass field ([#673](https://github.com/tinovyatkin/pass-js/issues/673)) ([f2a0370](https://github.com/tinovyatkin/pass-js/commit/f2a037021a78d5d1e47dba9c79975bbbc3c28aba))
+
 ## [7.1.0](https://github.com/tinovyatkin/pass-js/compare/v7.0.0...v7.1.0) (2026-05-11)
 
 
