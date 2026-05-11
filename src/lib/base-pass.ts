@@ -207,6 +207,45 @@ export class PassBase extends PassStructure {
   }
 
   /**
+   * Calendar event associated with the pass. `startDate` / `endDate`
+   * accept either a `Date` or a W3C-formatted string; `Date` values are
+   * serialized to the W3C format by `normalizeDatesDeep` at `toJSON`
+   * time.
+   */
+  get calendarEvent(): ApplePass['calendarEvent'] {
+    return this.fields.calendarEvent;
+  }
+  set calendarEvent(v: ApplePass['calendarEvent']) {
+    if (!v) {
+      delete this.fields.calendarEvent;
+      return;
+    }
+    if (typeof v.title !== 'string' || v.title.length === 0)
+      throw new TypeError(
+        `calendarEvent.title must be a non-empty string, received ${typeof v.title}`,
+      );
+    for (const key of ['startDate', 'endDate'] as const) {
+      const value = v[key];
+      if (value instanceof Date) {
+        if (!Number.isFinite(value.getTime()))
+          throw new TypeError(
+            `calendarEvent.${key} must be a valid Date, received ${value.toString()}`,
+          );
+      } else if (typeof value === 'string') {
+        if (!isValidW3CDateString(value))
+          throw new TypeError(
+            `calendarEvent.${key} must be a valid W3C date string, received ${value}`,
+          );
+      } else {
+        throw new TypeError(
+          `calendarEvent.${key} must be a Date or W3C date string, received ${typeof value}`,
+        );
+      }
+    }
+    this.fields.calendarEvent = v;
+  }
+
+  /**
    * Ordered list of visual style schemes the pass opts into (iOS 18+).
    */
   get preferredStyleSchemes(): ApplePass['preferredStyleSchemes'] {

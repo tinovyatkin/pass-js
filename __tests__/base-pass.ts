@@ -502,6 +502,85 @@ describe('PassBase', () => {
     assert.equal(json.semantics.internationalDocumentsAreVerified, true);
   });
 
+  it('calendarEvent getter/setter + Date normalization', () => {
+    const bp = new PassBase({ eventTicket: {} });
+    assert.equal(bp.calendarEvent, undefined);
+
+    // Date objects serialize to W3C strings, not Date.prototype.toJSON's
+    // ISO 8601 with milliseconds + trailing Z.
+    const start = new Date(Date.UTC(2026, 5, 1, 12, 0, 0));
+    const end = new Date(Date.UTC(2026, 5, 1, 14, 0, 0));
+    bp.calendarEvent = {
+      title: 'Party',
+      location: 'Discovery Meadow',
+      startDate: start,
+      endDate: end,
+    };
+    const json = JSON.parse(JSON.stringify(bp)) as {
+      calendarEvent: {
+        title: string;
+        location: string;
+        startDate: string;
+        endDate: string;
+      };
+    };
+    assert.equal(json.calendarEvent.title, 'Party');
+    assert.equal(json.calendarEvent.location, 'Discovery Meadow');
+    assert.equal(typeof json.calendarEvent.startDate, 'string');
+    assert.equal(typeof json.calendarEvent.endDate, 'string');
+    assert.doesNotMatch(json.calendarEvent.startDate, /\.\d{3}Z$/);
+    assert.match(
+      json.calendarEvent.startDate,
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:[+-]\d{2}:\d{2}|Z)$/,
+    );
+
+    // Pre-formatted W3C strings pass through unchanged.
+    bp.calendarEvent = {
+      title: 'Party',
+      startDate: '2026-06-01T19:00-08:00',
+      endDate: '2026-06-01T23:00-08:00',
+    };
+    const json2 = JSON.parse(JSON.stringify(bp)) as {
+      calendarEvent: { startDate: string; endDate: string };
+    };
+    assert.equal(json2.calendarEvent.startDate, '2026-06-01T19:00-08:00');
+    assert.equal(json2.calendarEvent.endDate, '2026-06-01T23:00-08:00');
+
+    // Missing title throws.
+    assert.throws(() => {
+      bp.calendarEvent = {
+        startDate: '2026-06-01T19:00-08:00',
+        endDate: '2026-06-01T23:00-08:00',
+      } as unknown as NonNullable<typeof bp.calendarEvent>;
+    }, /calendarEvent\.title must be a non-empty string/);
+
+    // Invalid date string throws.
+    assert.throws(() => {
+      bp.calendarEvent = {
+        title: 'Party',
+        startDate: 'not a date',
+        endDate: '2026-06-01T23:00-08:00',
+      };
+    }, /calendarEvent\.startDate must be a valid W3C date string/);
+
+    // Invalid Date throws.
+    assert.throws(() => {
+      bp.calendarEvent = {
+        title: 'Party',
+        startDate: new Date('nope'),
+        endDate: new Date(Date.UTC(2026, 5, 1, 14, 0, 0)),
+      };
+    }, /calendarEvent\.startDate must be a valid Date/);
+
+    // Setting to undefined deletes the field.
+    bp.calendarEvent = undefined;
+    assert.equal(bp.calendarEvent, undefined);
+    const json3 = JSON.parse(JSON.stringify(bp)) as {
+      calendarEvent?: unknown;
+    };
+    assert.equal(json3.calendarEvent, undefined);
+  });
+
   it('color values as RGB triplets', () => {
     const bp = new PassBase();
     assert.doesNotThrow(() => {
