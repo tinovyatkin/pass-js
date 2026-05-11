@@ -65,3 +65,15 @@ test('FieldsMap Class', () => {
     `[{"key":"testDate","label":"labelDate","value":"${getW3CDateString(date)}"}]`,
   );
 });
+
+test('FieldsMap preserves `row` on add() and toJSON()', () => {
+  const fields = new FieldsMap();
+  fields.add({ key: 'a', value: '1', row: 0 });
+  fields.add({ key: 'b', value: '2', row: 1 });
+  assert.partialDeepStrictEqual(fields.get('a'), { value: '1', row: 0 });
+  assert.partialDeepStrictEqual(fields.get('b'), { value: '2', row: 1 });
+  assert.deepEqual(fields.toJSON(), [
+    { key: 'a', value: '1', row: 0 },
+    { key: 'b', value: '2', row: 1 },
+  ]);
+});
