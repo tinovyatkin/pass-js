@@ -11,6 +11,7 @@
     "typescript/await-thenable": "error",
     "typescript/no-for-in-array": "error",
     "no-unused-vars": "error",
+    "no-underscore-dangle": ["error", { "allow": ["_cycleGuard"] }],
     "typescript/no-unnecessary-type-assertion": "off",
     "typescript/no-unsafe-type-assertion": "off",
     "typescript/no-unsafe-assignment": "off",
