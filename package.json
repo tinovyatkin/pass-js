@@ -29,10 +29,11 @@
     "dist/**/*.js",
     "dist/**/*.d.ts",
     "dist/**/*.d.ts.map",
+    "dist/assets/**/*.svg",
     "bin/passkit-keys"
   ],
   "scripts": {
-    "build": "tsgo --project tsconfig.json",
+    "build": "tsgo --project tsconfig.json && node --input-type=module -e \"import{cpSync,existsSync}from'node:fs';if(existsSync('src/assets'))cpSync('src/assets','dist/assets',{recursive:true,filter:(s)=>!s.endsWith('.md')});\"",
     "lint": "oxlint --type-aware && oxfmt --check src __tests__",
     "format": "oxfmt src __tests__",
     "test": "npm run build && node --enable-source-maps --test \"__tests__/*.ts\"",

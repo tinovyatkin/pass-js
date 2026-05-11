@@ -38,3 +38,8 @@ export type {
   Personalization,
   RequiredPersonalizationField,
 } from './lib/personalization.js';
+export { getAddToWalletButton } from './add-to-wallet-button.js';
+export type {
+  AddToWalletLocale,
+  AddToWalletOptions,
+} from './add-to-wallet-button.js';

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PLACEHOLDER. Replace with Apple's official "Add to Apple Wallet" badge. -->
+<!-- See ./README.md for sourcing + licensing instructions. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="50" viewBox="0 0 160 50">
+  <rect width="160" height="50" fill="none" stroke="#999" stroke-dasharray="4"/>
+  <text x="80" y="30" text-anchor="middle" font-family="system-ui" font-size="12" fill="#999">PLACEHOLDER</text>
+</svg>

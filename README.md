@@ -299,6 +299,15 @@ app.use(async (ctx, next) => {
 });
 ```
 
+## "Add to Apple Wallet" button
+
+`getAddToWalletButton({ locale })` returns Apple's localized badge SVG
+as a `Buffer` (falls back to `en-US`). Usage must follow Apple's
+[Add to Apple Wallet guidelines](https://developer.apple.com/wallet/add-to-apple-wallet-guidelines/).
+The repo currently ships a placeholder `en-US.svg`; the maintainer
+needs to drop Apple's branded SVG assets into
+`src/assets/add-to-wallet/` before the next minor release.
+
 ## Troubleshooting with the Console app
 
 If the pass file generates without errors but you can't open it on an iPhone, connect the iPhone to a Mac running macOS 10.14 or later and open the **Console** application. Select your device on the left, then watch for errors emitted while the system tries to add the pass.
