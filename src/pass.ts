@@ -12,6 +12,11 @@ import type { ApplePass, Options } from './interfaces.js';
 import type { Template } from './template.js';
 import type { Localizations } from './lib/localizations.js';
 import { assertUpcomingPassInformationContext } from './lib/upcoming-pass-information.js';
+import {
+  createPersonalizationEntry,
+  isPersonalizationLogoPath,
+  type Personalization,
+} from './lib/personalization.js';
 
 // Create a new pass.
 //
@@ -26,8 +31,9 @@ export class Pass extends PassBase {
     images?: PassImages,
     localization?: Localizations,
     options?: Options,
+    personalization?: Personalization,
   ) {
-    super(fields, images, localization, options);
+    super(fields, images, localization, options, personalization);
     this.template = template;
 
     Object.preventExtensions(this);
@@ -81,9 +87,29 @@ export class Pass extends PassBase {
 
     const zip: ZipWriteEntry[] = [];
 
-    zip.push({ path: 'pass.json', data: Buffer.from(JSON.stringify(this)) });
+    const passJson = JSON.stringify(this);
+    const passObject = JSON.parse(passJson) as Partial<ApplePass>;
+    const imageEntries = await this.images.toArray();
+    const personalization = this.personalization;
+    const hasNfc =
+      'nfc' in passObject &&
+      typeof passObject.nfc === 'object' &&
+      passObject.nfc !== null;
+    const canPersonalize = Boolean(
+      personalization &&
+      hasNfc &&
+      imageEntries.some(entry => isPersonalizationLogoPath(entry.path)),
+    );
+
+    zip.push({ path: 'pass.json', data: Buffer.from(passJson) });
     zip.push(...this.localization.toArray());
-    zip.push(...(await this.images.toArray()));
+    zip.push(
+      ...imageEntries.filter(
+        entry => canPersonalize || !isPersonalizationLogoPath(entry.path),
+      ),
+    );
+    if (canPersonalize && personalization)
+      zip.push(createPersonalizationEntry(personalization));
 
     const manifestJson = JSON.stringify(
       zip.reduce<Record<string, string>>((res, { path, data }) => {

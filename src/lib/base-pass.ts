@@ -15,6 +15,10 @@ import {
   validateUpcomingPassInformationEntries,
   type UpcomingPassInformationEntry,
 } from './upcoming-pass-information.js';
+import {
+  validatePersonalization,
+  type Personalization,
+} from './personalization.js';
 
 const STRUCTURE_FIELDS_SET = new Set([...STRUCTURE_FIELDS, 'nfc']);
 
@@ -22,12 +26,14 @@ export class PassBase extends PassStructure {
   readonly images: PassImages;
   readonly localization: Localizations;
   readonly options: Options | undefined;
+  private personalizationData: Personalization | undefined = undefined;
 
   constructor(
     fields: Partial<ApplePass> = {},
     images?: PassImages,
     localizations?: Localizations,
     options?: Options,
+    personalization?: Personalization,
   ) {
     super(fields);
 
@@ -45,6 +51,8 @@ export class PassBase extends PassStructure {
 
     // copy localizations
     this.localization = new Localizations(localizations);
+
+    this.personalization = personalization;
   }
 
   // Returns the pass.json object (not a string). Any Date anywhere in the
@@ -268,6 +276,22 @@ export class PassBase extends PassStructure {
       return;
     }
     this.fields.semantics = normalizeSemanticTags(v);
+  }
+
+  /**
+   * Contents of `personalization.json`, used by Wallet's NFC reward-card
+   * signup flow. The file is only emitted when the final bundle also has a
+   * serialized NFC dictionary and a `personalizationLogo*.png` asset.
+   */
+  get personalization(): Personalization | undefined {
+    return this.personalizationData;
+  }
+  set personalization(v: Personalization | undefined) {
+    if (!v) {
+      this.personalizationData = undefined;
+      return;
+    }
+    this.personalizationData = validatePersonalization(v);
   }
 
   /**

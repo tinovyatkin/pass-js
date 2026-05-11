@@ -16,6 +16,10 @@ import { readZip } from './lib/zip.js';
 import type { PassImages } from './lib/images.js';
 import type { Localizations } from './lib/localizations.js';
 import { stripJsonComments } from './lib/strip-json-comments.js';
+import {
+  parsePersonalizationBuffer,
+  type Personalization,
+} from './lib/personalization.js';
 
 const {
   HTTP2_HEADER_METHOD,
@@ -35,8 +39,9 @@ export class Template extends PassBase {
     images?: PassImages,
     localization?: Localizations,
     options?: Options,
+    personalization?: Personalization,
   ) {
-    super(fields, images, localization, options);
+    super(fields, images, localization, options, personalization);
 
     if (style) {
       if (!PASS_STYLES.has(style))
@@ -116,6 +121,14 @@ export class Template extends PassBase {
             );
         }
       } else {
+        if (entry.name === 'personalization.json') {
+          entriesLoader.push(
+            readFile(join(folderPath, entry.name)).then(buffer => {
+              template.personalization = parsePersonalizationBuffer(buffer);
+            }),
+          );
+          continue;
+        }
         if (entry.name === keyName) {
           entriesLoader.push(
             template.loadCertificate(join(folderPath, keyName), keyPassword),
@@ -178,6 +191,11 @@ export class Template extends PassBase {
           template.images,
           template.localization,
           options,
+          template.personalization,
+        );
+      } else if (/(?:^|\/)personalization\.json$/i.test(entry.filename)) {
+        template.personalization = parsePersonalizationBuffer(
+          zip.getBuffer(entry),
         );
       } else {
         const img = template.images.parseFilename(entry.filename);
@@ -325,6 +343,7 @@ export class Template extends PassBase {
       this.images,
       this.localization,
       this.options,
+      this.personalization,
     );
   }
 }

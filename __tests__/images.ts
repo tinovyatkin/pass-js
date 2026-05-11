@@ -14,6 +14,7 @@ describe('PassImages', () => {
     assert.doesNotMatch('byakablogo.png', IMAGE_FILENAME_REGEX);
     assert.match('icon@2x.png', IMAGE_FILENAME_REGEX);
     assert.match('thumbnail@3x.png', IMAGE_FILENAME_REGEX);
+    assert.match('personalizationLogo@3x.png', IMAGE_FILENAME_REGEX);
     assert.doesNotMatch('logo@4x', IMAGE_FILENAME_REGEX);
     assert.doesNotMatch('byaka.png', IMAGE_FILENAME_REGEX);
     assert.doesNotMatch('logo.jpg', IMAGE_FILENAME_REGEX);
@@ -25,6 +26,10 @@ describe('PassImages', () => {
     assert.deepEqual(img.parseFilename('icon@2x.png'), {
       imageType: 'icon',
       density: '2x',
+    });
+    assert.deepEqual(img.parseFilename('personalizationLogo@3x.png'), {
+      imageType: 'personalizationLogo',
+      density: '3x',
     });
     assert.equal(img.parseFilename('logo.jpg'), undefined);
   });
@@ -60,6 +65,24 @@ describe('PassImages', () => {
       img.add('icon', tinyPng, undefined, undefined, true),
     );
     assert.equal(img.size, 1);
+  });
+
+  it('validates personalizationLogo dimensions', async () => {
+    const img = new PassImages();
+    await assert.doesNotReject(() =>
+      img.add(
+        'personalizationLogo',
+        path.resolve(__dirname, './resources/logo.png'),
+      ),
+    );
+    await assert.rejects(
+      () =>
+        img.add(
+          'personalizationLogo',
+          path.resolve(__dirname, '../images/logo.png'),
+        ),
+      /personalizationLogo image must have width no larger than 150px/,
+    );
   });
 
   it('reads localized images', async t => {
