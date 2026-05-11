@@ -193,6 +193,10 @@ export const TOP_LEVEL_FIELDS: {
   relevantDates: {
     type: Array,
   },
+  calendarEvent: {
+    type: Object,
+    templatable: true,
+  },
   // Visual Appearance Keys
   barcodes: {
     type: Array,

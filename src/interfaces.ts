@@ -535,6 +535,17 @@ export interface RelevantDateEntry {
 }
 
 /**
+ * Undocumented-in-prose but valid top-level `calendarEvent` field.
+ * @see {@link https://developer.apple.com/documentation/walletpasses/pass/calendarevent}
+ */
+export interface CalendarEvent {
+  title: string;
+  location?: string;
+  startDate: string | Date;
+  endDate: string | Date;
+}
+
+/**
  * Information about where and when a pass is relevant.
  */
 export interface PassRelevanceKeys {
@@ -572,6 +583,12 @@ export interface PassRelevanceKeys {
    * @see {@link https://developer.apple.com/documentation/walletpasses/pass/relevantdates}
    */
   relevantDates?: RelevantDateEntry[];
+  /**
+   * Calendar event associated with the pass. Presented at WWDC 2018.
+   *
+   * @see {@link https://developer.apple.com/documentation/walletpasses/pass/calendarevent}
+   */
+  calendarEvent?: CalendarEvent;
 }
 
 /**
