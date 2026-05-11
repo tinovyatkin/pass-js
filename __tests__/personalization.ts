@@ -1,6 +1,6 @@
 import { describe, it, before } from 'node:test';
 import assert from 'node:assert/strict';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
@@ -40,9 +40,23 @@ function makeTestKeypair(): { certPem: string; keyPem: string } {
   const dir = mkdtempSync(`${tmpdir()}${path.sep}`);
   const keyPath = path.join(dir, 't.key');
   const certPath = path.join(dir, 't.crt');
-  execSync(
-    `openssl req -x509 -newkey rsa:2048 -keyout ${keyPath} -out ${certPath} ` +
-      `-days 1 -nodes -subj "/CN=Pass Type ID: pass.com.example.passbook/O=pass-js test"`,
+  execFileSync(
+    'openssl',
+    [
+      'req',
+      '-x509',
+      '-newkey',
+      'rsa:2048',
+      '-keyout',
+      keyPath,
+      '-out',
+      certPath,
+      '-days',
+      '1',
+      '-nodes',
+      '-subj',
+      '/CN=Pass Type ID: pass.com.example.passbook/O=pass-js test',
+    ],
     { stdio: 'ignore' },
   );
   return {
@@ -134,6 +148,14 @@ describe('personalization', () => {
           pass.personalization = personalization;
         },
       },
+      {
+        name: 'empty nfc message',
+        async setup(pass) {
+          pass.nfc.message = '';
+          pass.personalization = personalization;
+          await pass.images.add('personalizationLogo', logo);
+        },
+      },
     ];
 
     for (const testCase of cases) {
@@ -214,5 +236,11 @@ describe('personalization', () => {
         requiredPersonalizationFields: ['not-a-field'],
       } as unknown as Personalization;
     }, /requiredPersonalizationFields\[0\] is invalid/);
+    assert.throws(() => {
+      template.personalization = {
+        description: 'Join',
+        requiredPersonalizationFields: [],
+      };
+    }, /requiredPersonalizationFields must contain at least one field/);
   });
 });

@@ -18,6 +18,13 @@ import {
   type Personalization,
 } from './lib/personalization.js';
 
+function hasNfcPayload(pass: Partial<ApplePass>): boolean {
+  const nfc = (pass as { nfc?: unknown }).nfc;
+  if (!nfc || typeof nfc !== 'object') return false;
+  const message = (nfc as { message?: unknown }).message;
+  return typeof message === 'string' && message.length > 0;
+}
+
 // Create a new pass.
 //
 // template  - The template
@@ -91,13 +98,9 @@ export class Pass extends PassBase {
     const passObject = JSON.parse(passJson) as Partial<ApplePass>;
     const imageEntries = await this.images.toArray();
     const personalization = this.personalization;
-    const hasNfc =
-      'nfc' in passObject &&
-      typeof passObject.nfc === 'object' &&
-      passObject.nfc !== null;
     const canPersonalize = Boolean(
       personalization &&
-      hasNfc &&
+      hasNfcPayload(passObject) &&
       imageEntries.some(entry => isPersonalizationLogoPath(entry.path)),
     );
 

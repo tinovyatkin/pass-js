@@ -62,6 +62,10 @@ export function validatePersonalization(
     throw new TypeError(
       'personalization.requiredPersonalizationFields must be an array',
     );
+  if (value.requiredPersonalizationFields.length === 0)
+    throw new TypeError(
+      'personalization.requiredPersonalizationFields must contain at least one field',
+    );
 
   const requiredPersonalizationFields = value.requiredPersonalizationFields.map(
     (field, index) => {
