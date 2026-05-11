@@ -118,6 +118,32 @@ await template.images.load('./images');
 
 Image input may be a file path or a `Buffer`. Format is enforced: only **PNG** is accepted.
 
+For NFC reward-card signup flows, add PassKit personalization metadata and a
+150 x 40 point personalization logo:
+
+```js
+const template = new Template('storeCard', {
+  passTypeIdentifier: 'pass.com.example.passbook',
+  teamIdentifier: 'MXL',
+});
+
+template.nfc.message = 'member-id';
+template.personalization = {
+  description: 'Join Acme Rewards',
+  requiredPersonalizationFields: [
+    'PKPassPersonalizationFieldName',
+    'PKPassPersonalizationFieldEmailAddress',
+  ],
+  termsAndConditions: '<a href="https://example.com/terms">Terms</a>',
+};
+await template.images.add('personalizationLogo', personalizationLogoPng);
+```
+
+`personalization.json` and `personalizationLogo*.png` are emitted only when
+the final pass has NFC data, personalization metadata, and at least one
+personalization logo. If any piece is missing, the personalization files are
+left out of the generated bundle.
+
 If you have a single directory that contains `pass.json`, the key
 `com.example.passbook.pem`, and all the images you need, one call does everything:
 

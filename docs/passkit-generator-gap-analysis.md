@@ -2,10 +2,11 @@
 
 > **📌 Historical baseline (pre-PR #664).** This document describes the
 > gap between pass-js (7.0.1) and passkit-generator v3.5.7 **as of
-> 2026-05-10, before any implementation work landed**. P0, P1, and P2
-> (iOS 18 event-ticket keys, iOS 26 enhanced boarding-pass keys, typed
-> `SemanticTags`, and `upcomingPassInformation`) are **implemented in
-> this PR** — see the PR description for the current state. The
+> 2026-05-10, before any implementation work landed**. P0, P1, P2, and
+> P3 (iOS 18 event-ticket keys, iOS 26 enhanced boarding-pass keys,
+> typed `SemanticTags`, `upcomingPassInformation`, and Personalization)
+> are **implemented in this PR** — see the PR description for the
+> current state. The
 > matrix and priority plan below are preserved as the rationale for
 > the change; do not use them to assess current coverage.
 

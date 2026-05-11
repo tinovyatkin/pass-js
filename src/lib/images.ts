@@ -24,7 +24,8 @@ export type ImageType =
   | 'background'
   | 'footer'
   | 'strip'
-  | 'thumbnail';
+  | 'thumbnail'
+  | 'personalizationLogo';
 
 const IMAGES_TYPES = new Set(Object.keys(IMAGES));
 export const IMAGE_FILENAME_REGEX = new RegExp(
@@ -275,6 +276,21 @@ export class PassImages extends Map<string, string | Buffer> {
           throw new TypeError(
             `thumbnail image must have height no larger than ${
               150 * densityMulti
+            }px for ${densityMulti}x density, received ${height}`,
+          );
+        break;
+
+      case 'personalizationLogo':
+        if (width > 150 * densityMulti)
+          throw new TypeError(
+            `personalizationLogo image must have width no larger than ${
+              150 * densityMulti
+            }px for ${densityMulti}x density, received ${width}`,
+          );
+        if (height > 40 * densityMulti)
+          throw new TypeError(
+            `personalizationLogo image must have height no larger than ${
+              40 * densityMulti
             }px for ${densityMulti}x density, received ${height}`,
           );
         break;

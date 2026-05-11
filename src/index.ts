@@ -34,3 +34,7 @@ export type {
   UpcomingPassInformationType,
   UpcomingURLs,
 } from './lib/upcoming-pass-information.js';
+export type {
+  Personalization,
+  RequiredPersonalizationField,
+} from './lib/personalization.js';

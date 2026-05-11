@@ -99,6 +99,10 @@ export const IMAGES: {
     width: 90,
     height: 90,
   },
+  personalizationLogo: {
+    width: 150,
+    height: 40,
+  },
 };
 
 export const DENSITIES: ReadonlySet<ImageDensity> = new Set(['1x', '2x', '3x']);
