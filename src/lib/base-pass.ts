@@ -285,8 +285,13 @@ export class PassBase extends PassStructure {
     return this.fields.userInfo;
   }
   set userInfo(v: ApplePass['userInfo']) {
-    if (v === undefined || v === null) delete this.fields.userInfo;
-    else this.fields.userInfo = v;
+    if (v === undefined || v === null) {
+      delete this.fields.userInfo;
+      return;
+    }
+    // Deep-clone so Template → Pass → caller don't share mutable state
+    // through the shallow spread in Template.createPass.
+    this.fields.userInfo = structuredClone(v);
   }
 
   /**

@@ -218,6 +218,18 @@ describe('PassBase', () => {
     assert.deepEqual(bp2.userInfo, { token: 'xyz' });
   });
 
+  it('userInfo is deep-cloned on assignment so callers cannot mutate pass state', () => {
+    const source = { token: 'abc', nested: { roles: ['admin'] } };
+    const bp = new PassBase();
+    bp.userInfo = source;
+    source.token = 'mutated';
+    source.nested.roles.push('extra');
+    assert.deepEqual(bp.userInfo, {
+      token: 'abc',
+      nested: { roles: ['admin'] },
+    });
+  });
+
   it('P0 iOS 18 event-ticket URL setters round-trip', () => {
     const urlFields = [
       'bagPolicyURL',
