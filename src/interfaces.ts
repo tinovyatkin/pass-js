@@ -303,6 +303,8 @@ export type FieldDescriptor = {
   changeMessage?: string;
   dataDetectorTypes?: DataDetectors[];
   semantics?: SemanticTags;
+  /** eventTicket auxiliaryFields only */
+  row?: 0 | 1;
 } & (
   | {
       value: string;

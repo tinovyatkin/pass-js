@@ -164,6 +164,27 @@ describe('Pass', () => {
     assert.deepEqual(JSON.parse(JSON.stringify(t)), expected);
   });
 
+  it('eventTicket auxiliaryFields round-trip `row` key (issue #625)', () => {
+    const eventTemplate = new Template('eventTicket', {
+      passTypeIdentifier: 'pass.com.example.passbook',
+      teamIdentifier: 'MXL',
+    });
+    const pass = eventTemplate.createPass(fields);
+    pass.auxiliaryFields.add({ key: 'a1', label: 'A1', value: '1', row: 0 });
+    pass.auxiliaryFields.add({ key: 'a2', label: 'A2', value: '2', row: 0 });
+    pass.auxiliaryFields.add({ key: 'b1', label: 'B1', value: '3', row: 1 });
+    pass.auxiliaryFields.add({ key: 'b2', label: 'B2', value: '4', row: 1 });
+    const json = JSON.parse(JSON.stringify(pass)) as {
+      eventTicket: { auxiliaryFields: { key: string; row: 0 | 1 }[] };
+    };
+    const aux = json.eventTicket.auxiliaryFields;
+    assert.equal(aux.length, 4);
+    assert.equal(aux.find(f => f.key === 'a1')?.row, 0);
+    assert.equal(aux.find(f => f.key === 'a2')?.row, 0);
+    assert.equal(aux.find(f => f.key === 'b1')?.row, 1);
+    assert.equal(aux.find(f => f.key === 'b2')?.row, 1);
+  });
+
   it('asBuffer returns a buffer with a valid ZIP', async () => {
     const pass = template.createPass(fields);
     await pass.images.load(path.resolve(__dirname, './resources'));
@@ -186,6 +207,39 @@ describe('Pass', () => {
         encoding: 'utf8',
       });
       assert.match(stdout, /No errors detected in compressed data/);
+    } finally {
+      unlinkSync(passFileName);
+    }
+  });
+
+  it('serializes userInfo into the pkpass bundle (#630)', async () => {
+    const pass = template.createPass(fields);
+    await pass.images.load(path.resolve(__dirname, './resources'));
+    pass.headerFields.add({ key: 'date', value: 'Date', label: 'Nov 1' });
+    pass.userInfo = {
+      favoriteDrink: 'espresso',
+      loyaltyTier: 3,
+      orderHistory: [{ id: 'A' }, { id: 'B' }],
+    };
+    assert.deepEqual(pass.userInfo, {
+      favoriteDrink: 'espresso',
+      loyaltyTier: 3,
+      orderHistory: [{ id: 'A' }, { id: 'B' }],
+    });
+    const tmd = mkdtempSync(`${tmpdir()}${path.sep}`);
+    const passFileName = path.join(
+      tmd,
+      `pass-${randomBytes(10).toString('hex')}.pkpass`,
+    );
+    writeFileSync(passFileName, await pass.asBuffer());
+    try {
+      const raw = unzipEntry(passFileName, 'pass.json').toString('utf8');
+      const parsed = JSON.parse(raw);
+      assert.deepEqual(parsed.userInfo, {
+        favoriteDrink: 'espresso',
+        loyaltyTier: 3,
+        orderHistory: [{ id: 'A' }, { id: 'B' }],
+      });
     } finally {
       unlinkSync(passFileName);
     }
