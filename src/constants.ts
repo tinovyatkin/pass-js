@@ -224,6 +224,10 @@ export const TOP_LEVEL_FIELDS: {
   semantics: {
     type: Object,
   },
+  userInfo: {
+    type: Object,
+    templatable: true,
+  },
   suppressStripShine: {
     type: Boolean,
     templatable: true,

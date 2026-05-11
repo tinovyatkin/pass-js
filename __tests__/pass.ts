@@ -190,6 +190,39 @@ describe('Pass', () => {
       unlinkSync(passFileName);
     }
   });
+
+  it('serializes userInfo into the pkpass bundle (#630)', async () => {
+    const pass = template.createPass(fields);
+    await pass.images.load(path.resolve(__dirname, './resources'));
+    pass.headerFields.add({ key: 'date', value: 'Date', label: 'Nov 1' });
+    pass.userInfo = {
+      favoriteDrink: 'espresso',
+      loyaltyTier: 3,
+      orderHistory: [{ id: 'A' }, { id: 'B' }],
+    };
+    assert.deepEqual(pass.userInfo, {
+      favoriteDrink: 'espresso',
+      loyaltyTier: 3,
+      orderHistory: [{ id: 'A' }, { id: 'B' }],
+    });
+    const tmd = mkdtempSync(`${tmpdir()}${path.sep}`);
+    const passFileName = path.join(
+      tmd,
+      `pass-${randomBytes(10).toString('hex')}.pkpass`,
+    );
+    writeFileSync(passFileName, await pass.asBuffer());
+    try {
+      const raw = unzipEntry(passFileName, 'pass.json').toString('utf8');
+      const parsed = JSON.parse(raw);
+      assert.deepEqual(parsed.userInfo, {
+        favoriteDrink: 'espresso',
+        loyaltyTier: 3,
+        orderHistory: [{ id: 'A' }, { id: 'B' }],
+      });
+    } finally {
+      unlinkSync(passFileName);
+    }
+  });
 });
 
 describe('generated pass bundle', () => {

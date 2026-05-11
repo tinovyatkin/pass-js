@@ -279,6 +279,17 @@ export class PassBase extends PassStructure {
   }
 
   /**
+   * Custom information for companion apps. Not displayed to the user.
+   */
+  get userInfo(): ApplePass['userInfo'] {
+    return this.fields.userInfo;
+  }
+  set userInfo(v: ApplePass['userInfo']) {
+    if (v === undefined || v === null) delete this.fields.userInfo;
+    else this.fields.userInfo = v;
+  }
+
+  /**
    * Contents of `personalization.json`, used by Wallet's NFC reward-card
    * signup flow. The file is only emitted when the final bundle also has a
    * serialized NFC dictionary and a `personalizationLogo*.png` asset.

@@ -195,6 +195,29 @@ describe('PassBase', () => {
     assert.equal(bp.appLaunchURL, undefined);
   });
 
+  it('userInfo round-trips through toJSON and clears on undefined', () => {
+    const bp = new PassBase();
+    assert.equal(bp.userInfo, undefined);
+    bp.userInfo = { foo: 'bar', num: 42, nested: { a: [1, 2, 3] } };
+    assert.deepEqual(bp.userInfo, {
+      foo: 'bar',
+      num: 42,
+      nested: { a: [1, 2, 3] },
+    });
+    const json = JSON.parse(JSON.stringify(bp));
+    assert.deepEqual(json.userInfo, {
+      foo: 'bar',
+      num: 42,
+      nested: { a: [1, 2, 3] },
+    });
+    bp.userInfo = undefined;
+    assert.equal(bp.userInfo, undefined);
+    assert.equal(JSON.parse(JSON.stringify(bp)).userInfo, undefined);
+    // hydration from constructor fields
+    const bp2 = new PassBase({ userInfo: { token: 'xyz' } });
+    assert.deepEqual(bp2.userInfo, { token: 'xyz' });
+  });
+
   it('P0 iOS 18 event-ticket URL setters round-trip', () => {
     const urlFields = [
       'bagPolicyURL',
