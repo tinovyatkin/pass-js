@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.2.1](https://github.com/tinovyatkin/pass-js/compare/v7.2.0...v7.2.1) (2026-05-11)
+
+
+### Code Refactoring
+
+* use `using` disposable to rebalance semantic-tag cycle guard ([#677](https://github.com/tinovyatkin/pass-js/issues/677)) ([70a48b3](https://github.com/tinovyatkin/pass-js/commit/70a48b33d1f0ca164732432db4eaaa1abcd2f535))
+
 ## [7.2.0](https://github.com/tinovyatkin/pass-js/compare/v7.1.0...v7.2.0) (2026-05-11)
 
 
