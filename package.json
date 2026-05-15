@@ -39,7 +39,7 @@
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
-    "@types/node": "^24.0.0",
+    "@types/node": "^25.8.0",
     "@typescript/native-preview": "7.0.0-dev.20260509.2",
     "oxfmt": "^0.48.0",
     "oxlint": "^1.63.0",
