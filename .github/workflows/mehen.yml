@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: ophidiarium/mehen@v0
+      - uses: ophidiarium/mehen@v1
         with:
           paths: src
         continue-on-error: true
