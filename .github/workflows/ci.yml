@@ -58,7 +58,7 @@ jobs:
             --test-reporter=lcov \
             --test-reporter-destination=coverage/lcov.info \
             "__tests__/*.ts"
-      - uses: codecov/codecov-action@v6
+      - uses: codecov/codecov-action@v7
         with:
           use_oidc: true
           files: coverage/lcov.info
