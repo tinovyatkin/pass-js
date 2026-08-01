@@ -38,7 +38,7 @@ jobs:
           # SHA already. For manual/dispatch triggers we resolve the ref
           # from the inputs and fall back to the repo's latest release.
           ref: ${{ github.event.inputs.tag || github.event.client_payload.tag || github.ref }}
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 24.x
           registry-url: https://registry.npmjs.org
