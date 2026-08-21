@@ -121,6 +121,7 @@ describe('PassBase', () => {
     const serialized = JSON.parse(JSON.stringify(bp));
     assert.equal(serialized.relevantDates.length, 2);
     assert.equal(serialized.relevantDates[0].date, '2026-06-01T19:00-07:00');
+    assert.equal(serialized.relevantDates[0].relevantDate, undefined);
     assert.deepEqual(serialized.preferredStyleSchemes, [
       'posterEventTicket',
       'eventTicket',
