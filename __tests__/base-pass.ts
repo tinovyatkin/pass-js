@@ -613,4 +613,61 @@ describe('PassBase', () => {
       bp.foregroundColor = 'byaka a ne color';
     }, /Invalid color value/);
   });
+
+  it('featuredActions get/set + toJSON (iOS 27)', () => {
+    const bp = new PassBase({ storeCard: {} });
+    assert.equal(bp.featuredActions, undefined);
+
+    const input = [
+      {
+        identifier: 'my-offer-id',
+        type: 'membershipBenefits',
+        url: 'https://example.com/offers',
+      },
+    ];
+    bp.featuredActions = input;
+    assert.deepEqual(bp.featuredActions, input);
+
+    const serialized = JSON.parse(JSON.stringify(bp));
+    assert.deepEqual(serialized.featuredActions, input);
+
+    // Shallow copy: mutating the input after assign must not change the field.
+    input[0].url = 'https://example.com/mutated';
+    assert.equal(bp.featuredActions?.[0].url, 'https://example.com/offers');
+
+    bp.featuredActions = [];
+    assert.equal(bp.featuredActions, undefined);
+    bp.featuredActions = [
+      {
+        identifier: 'call-support',
+        type: 'call',
+        url: 'tel:+15555550100',
+      },
+    ];
+    assert.equal(bp.featuredActions?.length, 1);
+    bp.featuredActions = undefined;
+    assert.equal(bp.featuredActions, undefined);
+  });
+
+  it('featuredActions setter validates identifier, type, and url', () => {
+    const bp = new PassBase();
+    const valid = {
+      identifier: 'my-offer-id',
+      type: 'membershipBenefits',
+      url: 'https://example.com/offers',
+    };
+
+    assert.throws(() => {
+      bp.featuredActions = [{ ...valid, identifier: '' }];
+    }, TypeError);
+    assert.throws(() => {
+      bp.featuredActions = [{ ...valid, type: '' }];
+    }, TypeError);
+    assert.throws(() => {
+      bp.featuredActions = [{ ...valid, url: 'not a url' }];
+    }, TypeError);
+    assert.throws(() => {
+      bp.featuredActions = [{ identifier: 'x', type: 'call' } as typeof valid];
+    }, TypeError);
+  });
 });
