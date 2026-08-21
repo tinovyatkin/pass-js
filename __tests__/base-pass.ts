@@ -110,7 +110,7 @@ describe('PassBase', () => {
     assert.equal(bp.preferredStyleSchemes, undefined);
 
     bp.relevantDates = [
-      { relevantDate: '2026-06-01T19:00-07:00' },
+      { date: '2026-06-01T19:00-07:00' },
       {
         startDate: '2026-06-02T18:00-07:00',
         endDate: '2026-06-02T22:00-07:00',
@@ -120,6 +120,7 @@ describe('PassBase', () => {
 
     const serialized = JSON.parse(JSON.stringify(bp));
     assert.equal(serialized.relevantDates.length, 2);
+    assert.equal(serialized.relevantDates[0].date, '2026-06-01T19:00-07:00');
     assert.deepEqual(serialized.preferredStyleSchemes, [
       'posterEventTicket',
       'eventTicket',
@@ -152,11 +153,18 @@ describe('PassBase', () => {
       /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:[+-]\d{2}:\d{2}|Z)$/,
     );
     // Pre-formatted strings pass through unchanged.
-    bp.relevantDates = [{ relevantDate: '2026-06-02T10:00-07:00' }];
+    bp.relevantDates = [{ date: '2026-06-02T10:00-07:00' }];
     const out2 = bp.toJSON() as {
-      relevantDates: { relevantDate: string }[];
+      relevantDates: { date: string }[];
     };
-    assert.equal(out2.relevantDates[0].relevantDate, '2026-06-02T10:00-07:00');
+    assert.equal(out2.relevantDates[0].date, '2026-06-02T10:00-07:00');
+    // Deprecated inner `relevantDate` still round-trips; no rewrite to `date`.
+    bp.relevantDates = [{ relevantDate: '2026-06-03T10:00-07:00' }];
+    const out3 = bp.toJSON() as {
+      relevantDates: { relevantDate?: string; date?: string }[];
+    };
+    assert.equal(out3.relevantDates[0].relevantDate, '2026-06-03T10:00-07:00');
+    assert.equal(out3.relevantDates[0].date, undefined);
   });
 
   it('semantics shared subtrees are not mistaken for cycles', () => {
