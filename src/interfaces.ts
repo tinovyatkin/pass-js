@@ -888,6 +888,39 @@ export interface PassUpcomingKeys {
   upcomingPassInformation?: import('./lib/upcoming-pass-information.js').UpcomingPassInformationEntry[];
 }
 
+/**
+ * A tappable action drawn beneath the pass (iOS 27+).
+ *
+ * Wallet uses `type` to pick the icon and localized call-to-action.
+ * Provide actions in priority order; Apple documents a maximum of two.
+ *
+ * @see {@link https://developer.apple.com/documentation/walletpasses/defining-the-metadata-of-your-wallet-pass}
+ */
+export interface FeaturedAction {
+  /** Unique id for this action on the pass. */
+  identifier: string;
+  /**
+   * Apple slug, e.g. addToBalance, membershipBenefits, order, shop,
+   * bookAppointment, bookCar, bookFlight, bookStay, viewSchedule,
+   * listenToMusic, watchTrailer, call, place.
+   */
+  type: string;
+  /** Destination; must be a parseable URL (`https:`, `tel:`, `maps:`, …). */
+  url: string;
+}
+
+/**
+ * iOS 27 featured actions. Available on all pass styles; older iOS
+ * versions silently ignore the key.
+ */
+export interface PassFeaturedActionsKeys {
+  /**
+   * Up to two actions, in priority order. Wallet draws them beneath
+   * the pass with an icon and localized call-to-action from `type`.
+   */
+  featuredActions?: FeaturedAction[];
+}
+
 export type ApplePass = PassStandardKeys &
   PassAssociatedAppKeys &
   PassCompanionAppKeys &
@@ -899,7 +932,8 @@ export type ApplePass = PassStandardKeys &
   PassStructureFields &
   PassEventTicketKeys &
   PassEnhancedBoardingPassKeys &
-  PassUpcomingKeys;
+  PassUpcomingKeys &
+  PassFeaturedActionsKeys;
 
 export interface Options {
   allowHttp?: boolean;
