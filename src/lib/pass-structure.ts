@@ -172,6 +172,10 @@ export class PassStructure {
   }
 
   get footerFields(): FieldsMap {
+    if (this.style !== 'posterGeneric')
+      throw new ReferenceError(
+        `footerFields only allowed on posterGeneric passes, current style is ${this.style}`,
+      );
     return this.fieldMap('footerFields');
   }
 }
