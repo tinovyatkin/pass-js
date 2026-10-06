@@ -100,7 +100,7 @@ describe('posterGeneric passes', () => {
     const pass = new PassBase({ posterGeneric: { footerFields } });
     assert.equal(pass.footerFields.size, 1);
     pass.style = 'generic';
-    assert.equal(pass.footerFields.size, 0);
+    assert.throws(() => pass.footerFields, ReferenceError);
     assert.equal(JSON.parse(JSON.stringify(pass)).posterGeneric, undefined);
     pass.style = 'posterGeneric';
     pass.footerFields.add({ key: 'new', value: 'Individual' });
@@ -139,8 +139,21 @@ describe('posterGeneric passes', () => {
     }, TypeError);
   });
 
-  it('requires a style before footer access and retains existing style validation', () => {
+  it('rejects footer fields outside posterGeneric and retains existing style validation', () => {
     assert.throws(() => new PassBase().footerFields, ReferenceError);
+    assert.throws(
+      () =>
+        new PassBase({
+          generic: {
+            footerFields: [{ key: 'invalid', value: 'not allowed' }],
+          },
+        }),
+      ReferenceError,
+    );
+    assert.throws(
+      () => new PassBase({ generic: {} }).footerFields,
+      ReferenceError,
+    );
     assert.throws(
       () => new PassBase({ generic: {} }).additionalInfoFields,
       ReferenceError,
