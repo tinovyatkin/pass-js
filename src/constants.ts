@@ -42,6 +42,7 @@ export const barcodeFormat = {
   PDF417: 'PKBarcodeFormatPDF417' as BarcodeFormat,
   Aztec: 'PKBarcodeFormatAztec' as BarcodeFormat,
   Code128: 'PKBarcodeFormatCode128' as BarcodeFormat,
+  Code39: 'PKBarcodeFormatCode39' as BarcodeFormat,
 };
 
 export const dateTimeFormat = {
@@ -114,6 +115,7 @@ export const PASS_STYLES: ReadonlySet<PassStyle> = new Set([
   'eventTicket',
   'storeCard',
   'generic',
+  'posterGeneric',
 ]);
 
 // Optional top level fields
@@ -293,6 +295,7 @@ export const STRUCTURE_FIELDS: readonly (keyof PassCommonStructure)[] = [
   'headerFields',
   'primaryFields',
   'secondaryFields',
+  'footerFields',
 ];
 
 export const BARCODES_FORMAT: ReadonlySet<BarcodeFormat> = new Set([
@@ -300,4 +303,5 @@ export const BARCODES_FORMAT: ReadonlySet<BarcodeFormat> = new Set([
   'PKBarcodeFormatPDF417',
   'PKBarcodeFormatAztec',
   'PKBarcodeFormatCode128',
+  'PKBarcodeFormatCode39',
 ]);

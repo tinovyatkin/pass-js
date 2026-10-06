@@ -24,7 +24,8 @@ type StructureFieldName =
   | 'backFields'
   | 'primaryFields'
   | 'secondaryFields'
-  | 'additionalInfoFields';
+  | 'additionalInfoFields'
+  | 'footerFields';
 
 export class PassStructure {
   protected fields: Partial<ApplePass> = {};
@@ -33,7 +34,7 @@ export class PassStructure {
     for (const style of PASS_STYLES) {
       if (!(style in fields)) continue;
       this.style = style;
-      if ('boardingPass' in fields && fields.boardingPass) {
+      if (style === 'boardingPass' && fields.boardingPass) {
         this.transitType = fields.boardingPass.transitType;
       } else if ('storeCard' in this.fields && 'nfc' in fields) {
         this.fields.nfc = new NFCField(fields.nfc);
@@ -78,6 +79,8 @@ export class PassStructure {
 
   /** Pass type, e.g. boardingPass, coupon, etc. */
   get style(): PassStyle | undefined {
+    // Poster passes may retain a generic fallback for older Wallet versions.
+    if ('posterGeneric' in this.fields) return 'posterGeneric';
     for (const style of PASS_STYLES) {
       if (style in this.fields) return style;
     }
@@ -86,7 +89,8 @@ export class PassStructure {
 
   set style(v: PassStyle | undefined) {
     for (const style of PASS_STYLES)
-      if (style !== v) delete this.fields[style as keyof ApplePass];
+      if (style !== v && !(v === 'posterGeneric' && style === 'generic'))
+        delete this.fields[style as keyof ApplePass];
     // NFC is a storeCard-only field; drop any carry-over when switching away.
     if (v !== 'storeCard')
       delete (this.fields as Partial<{ nfc: unknown }>).nfc;
@@ -156,14 +160,22 @@ export class PassStructure {
     return this.fieldMap('secondaryFields');
   }
 
-  // iOS 18 event-ticket dashboard fields. Only valid on eventTicket
+  // Dashboard fields for eventTicket (iOS 18+) and posterGeneric (iOS 27+)
   // passes — mirrors the style gating used by `transitType` (boardingPass)
   // and `nfc` (storeCard).
   get additionalInfoFields(): FieldsMap {
-    if (this.style !== 'eventTicket')
+    if (this.style !== 'eventTicket' && this.style !== 'posterGeneric')
       throw new ReferenceError(
-        `additionalInfoFields only allowed on eventTicket passes, current style is ${this.style}`,
+        `additionalInfoFields only allowed on eventTicket or posterGeneric passes, current style is ${this.style}`,
       );
     return this.fieldMap('additionalInfoFields');
+  }
+
+  get footerFields(): FieldsMap {
+    if (this.style !== 'posterGeneric')
+      throw new ReferenceError(
+        `footerFields only allowed on posterGeneric passes, current style is ${this.style}`,
+      );
+    return this.fieldMap('footerFields');
   }
 }

@@ -336,16 +336,19 @@ export type PassStyle =
   | 'coupon'
   | 'eventTicket'
   | 'storeCard'
-  | 'generic';
+  | 'generic'
+  | 'posterGeneric';
 
 export type BarcodeFormat =
   | 'PKBarcodeFormatQR'
   | 'PKBarcodeFormatPDF417'
   | 'PKBarcodeFormatAztec'
-  | 'PKBarcodeFormatCode128';
+  | 'PKBarcodeFormatCode128'
+  | 'PKBarcodeFormatCode39';
 export interface BarcodeDescriptor {
   /**
-   *  Barcode format. For the barcode dictionary, you can use only the following values: PKBarcodeFormatQR, PKBarcodeFormatPDF417, or PKBarcodeFormatAztec. For dictionaries in the barcodes array, you may also use PKBarcodeFormatCode128.
+   * Barcode format. The barcodes array also supports PKBarcodeFormatCode128
+   * and, on iOS 27+, PKBarcodeFormatCode39.
    */
   format: BarcodeFormat;
   /**
@@ -622,11 +625,12 @@ export interface PassCommonStructure {
    */
   backFields?: Field[] | FieldsMap;
   /**
-   * Event-ticket dashboard fields (iOS 18+). Only valid on `eventTicket`
-   * passes; the setter on `PassStructure` throws a ReferenceError if
-   * accessed on another style.
+   * Dashboard fields for `eventTicket` (iOS 18+) and `posterGeneric`
+   * (iOS 27+) passes. Access on another style throws a ReferenceError.
    */
   additionalInfoFields?: Field[] | FieldsMap;
+  /** Fields displayed in the footer of a poster generic pass (iOS 27+). */
+  footerFields?: Field[] | FieldsMap;
 }
 
 /**
@@ -781,12 +785,17 @@ export interface StoreCardPass {
   nfc?: NFCDictionary;
 }
 
+export interface PosterGenericPass {
+  posterGeneric: PassCommonStructure;
+}
+
 export type PassStructureFields =
   | BoardingPass
   | CouponPass
   | EventTicketPass
   | GenericPass
-  | StoreCardPass;
+  | StoreCardPass
+  | PosterGenericPass;
 
 /**
  * iOS 18 event-ticket "Event Guide" and styling keys.
