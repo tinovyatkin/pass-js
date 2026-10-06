@@ -32,6 +32,20 @@ describe('posterGeneric passes', () => {
     assert.equal(JSON.parse(JSON.stringify(template)).posterGeneric, undefined);
   });
 
+  it('does not reapply boarding transitType after posterGeneric becomes active', () => {
+    const pass = new PassBase({
+      boardingPass: { transitType: 'PKTransitTypeAir' },
+      posterGeneric: { footerFields: [{ key: 'tier', value: 'Family' }] },
+    });
+
+    assert.equal(pass.style, 'posterGeneric');
+    const serialized = JSON.parse(JSON.stringify(pass));
+    assert.equal(serialized.boardingPass, undefined);
+    assert.deepEqual(serialized.posterGeneric.footerFields, [
+      { key: 'tier', value: 'Family' },
+    ]);
+  });
+
   it('loads both styles from a folder and ZIP, preferring the poster', async () => {
     const fields = {
       generic: { primaryFields: [{ key: 'legacy', value: 'Legacy' }] },
