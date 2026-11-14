@@ -39,12 +39,14 @@ export function getW3CDateString(value: string | Date): string {
   const hours = date.getHours().toFixed().padStart(2, '0');
   const minutes = date.getMinutes().toFixed().padStart(2, '0');
   const offset = -date.getTimezoneOffset();
-  const offsetHours = Math.abs(Math.floor(offset / 60))
+  // Abs before splitting hours and minutes. Math.floor truncates toward -∞,
+  // so floor(-210 / 60) is -4 and abs(floor(...)) emitted "-04:-30" for
+  // UTC−03:30 (America/St_Johns) and "-10:-30" for UTC−09:30.
+  const absOffset = Math.abs(offset);
+  const offsetHours = Math.floor(absOffset / 60)
     .toFixed()
     .padStart(2, '0');
-  const offsetMinutes = (Math.abs(offset) - parseInt(offsetHours, 10) * 60)
-    .toFixed()
-    .padStart(2, '0');
+  const offsetMinutes = (absOffset % 60).toFixed().padStart(2, '0');
   const offsetSign = offset < 0 ? '-' : '+';
   return `${date.getFullYear()}-${month}-${day}T${hours}:${minutes}${offsetSign}${offsetHours}:${offsetMinutes}`;
 }
