@@ -523,12 +523,17 @@ export interface Location {
 
 /**
  * A date/time range during which the pass is relevant. Either a point
- * in time (`relevantDate`) or a window (`startDate`/`endDate`).
+ * in time (`date`) or a window (`startDate`/`endDate`).
  *
  * @see {@link https://developer.apple.com/documentation/walletpasses/pass/relevantdates}
  */
 export interface RelevantDateEntry {
   /** ISO 8601 date-time at which the pass becomes relevant. */
+  date?: string | Date;
+  /**
+   * @deprecated Apple's current key is `date`. `relevantDate` was the
+   * iOS 18 name / alias and is ignored for lock-screen relevancy.
+   */
   relevantDate?: string | Date;
   /** Start of a relevance window (ISO 8601 date-time). */
   startDate?: string | Date;
