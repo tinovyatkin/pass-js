@@ -282,6 +282,8 @@ export const TOP_LEVEL_FIELDS: {
   transitProviderPhoneNumber: { type: 'string', templatable: true },
   // iOS 26 Poster Event Ticket — upcoming chained events
   upcomingPassInformation: { type: Array },
+  // iOS 27 featured actions (all pass styles)
+  featuredActions: { type: Array },
 };
 
 // Pass structure keys.

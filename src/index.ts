@@ -19,10 +19,12 @@ export type {
   WifiNetwork,
   PKPassengerCapability,
   PKTransitSecurityProgram,
-  // iOS 18 / 26 top-level key mixins
+  // iOS 18 / 26 / 27 top-level key mixins
   PassEventTicketKeys,
   PassEnhancedBoardingPassKeys,
   PassUpcomingKeys,
+  FeaturedAction,
+  PassFeaturedActionsKeys,
 } from './interfaces.js';
 export type {
   DateInformation,
