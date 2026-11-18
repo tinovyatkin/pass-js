@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.2.2](https://github.com/tinovyatkin/pass-js/compare/v7.2.1...v7.2.2) (2026-11-18)
+
+
+### Bug Fixes
+
+* use Apple's date key on RelevantDateEntry ([#698](https://github.com/tinovyatkin/pass-js/issues/698)) ([8034dbd](https://github.com/tinovyatkin/pass-js/commit/8034dbdfbc0f6e8c408526db0c3d6f56a2d6094b))
+
 ## [7.2.1](https://github.com/tinovyatkin/pass-js/compare/v7.2.0...v7.2.1) (2026-05-11)
 
 
