@@ -384,6 +384,20 @@ describe('PassBase', () => {
     ]);
   });
 
+  it('hydrates transit type only while processing a boarding pass', () => {
+    const boarding = new PassBase({
+      boardingPass: { transitType: 'PKTransitTypeAir' },
+    });
+    assert.equal(boarding.transitType, 'PKTransitTypeAir');
+
+    const mixed = new PassBase({
+      boardingPass: { transitType: 'PKTransitTypeAir' },
+      generic: { primaryFields: [{ key: 'name', value: 'Example' }] },
+    });
+    assert.equal(mixed.style, 'generic');
+    assert.equal(mixed.primaryFields.size, 1);
+  });
+
   it('P0 typed SemanticTags (iOS 18 fields) compile + serialize', () => {
     const eventStart = new Date(Date.UTC(2026, 5, 1, 20, 0, 0));
     const bp = new PassBase({
