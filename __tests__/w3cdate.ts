@@ -40,6 +40,36 @@ describe('W3C dates strings', () => {
     );
   });
 
+  it('formats negative non-whole-hour UTC offsets', () => {
+    // Local Y-M-D h:m follow the process TZ; only the offset suffix is under
+    // test. getTimezoneOffset() is minutes to add to local time to reach UTC.
+    const date = new Date('2024-01-15T12:00:00Z');
+    const cases: Array<[offsetMinutes: number, suffix: string]> = [
+      // America/St_Johns standard time (UTC−03:30). Previously "-04:-30".
+      [210, '-03:30'],
+      // America/St_Johns daylight time (UTC−02:30).
+      [150, '-02:30'],
+      // Pacific/Marquesas (UTC−09:30). Previously "-10:-30".
+      [570, '-09:30'],
+      // Sub-hour negative offset. Previously "-01:-30".
+      [30, '-00:30'],
+      // Positive fractional offsets must keep working (Nepal, India).
+      [-345, '+05:45'],
+      [-330, '+05:30'],
+      // Whole-hour and UTC.
+      [240, '-04:00'],
+      [-60, '+01:00'],
+      [0, '+00:00'],
+    ];
+    for (const [offsetMinutes, suffix] of cases) {
+      date.getTimezoneOffset = () => offsetMinutes;
+      const res = getW3CDateString(date);
+      assert.equal(res.slice(-6), suffix, res);
+      assert.ok(isValidW3CDateString(res), res);
+      assert.ok(Number.isFinite(getDateFromW3CString(res).getTime()), res);
+    }
+  });
+
   it('parseable to Date', () => {
     const date = new Date();
     const str = getW3CDateString(date);
