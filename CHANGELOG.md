@@ -1,5 +1,17 @@
 # Changelog
 
+## [7.3.0](https://github.com/tinovyatkin/pass-js/compare/v7.2.1...v7.3.0) (2026-11-21)
+
+
+### Features
+
+* support poster generic passes, footer fields, and Code39 ([#700](https://github.com/tinovyatkin/pass-js/issues/700)) ([72a49d7](https://github.com/tinovyatkin/pass-js/commit/72a49d783733cac48f52bb2a8e646548a8ed22f0))
+
+
+### Bug Fixes
+
+* use Apple's date key on RelevantDateEntry ([#698](https://github.com/tinovyatkin/pass-js/issues/698)) ([8034dbd](https://github.com/tinovyatkin/pass-js/commit/8034dbdfbc0f6e8c408526db0c3d6f56a2d6094b))
+
 ## [7.2.1](https://github.com/tinovyatkin/pass-js/compare/v7.2.0...v7.2.1) (2026-05-11)
 
 
