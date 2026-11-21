@@ -72,13 +72,10 @@ export class Template extends PassBase {
         stripJsonComments(jsonContent),
       ) as Partial<ApplePass>;
 
-      let type: PassStyle | undefined;
-      for (const t of PASS_STYLES) {
-        if (t in passJson) {
-          type = t;
-          break;
-        }
-      }
+      const type =
+        'posterGeneric' in passJson
+          ? 'posterGeneric'
+          : [...PASS_STYLES].find(t => t in passJson);
       if (!type) throw new TypeError('Unknown pass style!');
       template = new Template(type, passJson, undefined, undefined, options);
     } else {
