@@ -1060,4 +1060,40 @@ export class PassBase extends PassStructure {
     this.fields.upcomingPassInformation =
       validateUpcomingPassInformationEntries(v);
   }
+
+  // ─── iOS 27: featuredActions ───────────────────────────────────────────
+  // Empty / missing deletes the field. Each item needs a non-empty
+  // identifier and type; url is validated with `new URL` (scheme
+  // required; tel:/maps: allowed). Stored as a shallow copy so callers
+  // cannot mutate pass state. Apple documents a max of two; we do not
+  // cap at runtime.
+
+  get featuredActions(): ApplePass['featuredActions'] {
+    return this.fields.featuredActions;
+  }
+  set featuredActions(v: ApplePass['featuredActions']) {
+    if (!v || v.length === 0) {
+      delete this.fields.featuredActions;
+      return;
+    }
+    for (const [i, action] of v.entries()) {
+      if (
+        typeof action.identifier !== 'string' ||
+        action.identifier.length === 0
+      )
+        throw new TypeError(
+          `featuredActions[${i}].identifier must be a non-empty string`,
+        );
+      if (typeof action.type !== 'string' || action.type.length === 0)
+        throw new TypeError(
+          `featuredActions[${i}].type must be a non-empty string`,
+        );
+      if (typeof action.url !== 'string' || action.url.length === 0)
+        throw new TypeError(
+          `featuredActions[${i}].url must be a non-empty string`,
+        );
+      void new URL(action.url);
+    }
+    this.fields.featuredActions = v.map(action => ({ ...action }));
+  }
 }
