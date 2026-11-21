@@ -34,7 +34,11 @@ export class PassStructure {
     for (const style of PASS_STYLES) {
       if (!(style in fields)) continue;
       this.style = style;
-      if (style === 'boardingPass' && fields.boardingPass) {
+      if (
+        style === 'boardingPass' &&
+        'boardingPass' in fields &&
+        fields.boardingPass
+      ) {
         this.transitType = fields.boardingPass.transitType;
       } else if ('storeCard' in this.fields && 'nfc' in fields) {
         this.fields.nfc = new NFCField(fields.nfc);
